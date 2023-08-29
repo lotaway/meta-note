@@ -1,0 +1,10 @@
+node_modules/
+./system-support/bin
+./system-support/build
+.idea
+.vs
+.vscode
+dist
+dist-electron
+build
+bin

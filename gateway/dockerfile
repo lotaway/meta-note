@@ -1,0 +1,23 @@
+# 引用镜像
+FROM node:latest
+# 创建文件夹
+RUN mkdir -p /gateway
+# 拷贝发布文件
+COPY ./dist /gateway/dist
+COPY ./node_modules /gateway/node_modules
+COPY ./package*.json /gateway
+COPY ./tsconfig.json /gateway
+# 设定命令作用目录
+WORKDIR /gateway
+# 执行初始化
+# RUN npm install
+RUN npx prisma generate
+RUN rm -rf ./dist/prisma
+
+# 配置系统变量，指定端口
+# ENV HOST 0.0.0.0
+# ENV PORT 30001
+# 开放端口
+EXPOSE 30001
+# 容器启动命令
+CMD ["npm", "run" , "start:prod"]

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Component, the new generation to lost react, vue and angular</title>
+</head>
+<body>
+<template id="template-card">
+    <style>
+        .contain {
+            padding: 15px;
+        }
+
+        .contain.round {
+            border-radius: 8px;
+        }
+
+        .contain.bg-black {
+            background: #000;
+            color: #fff;
+        }
+
+        .contain.bg-white {
+            background: #fff;
+            color: #000;
+        }
+
+        .contain.bg-blue {
+            background: #00aaee;
+            color: #fff;
+        }
+
+        .title {
+            text-align: center;
+        }
+
+        .desc {
+        }
+
+        .content {
+            line-height: 170%;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+        }
+    </style>
+    <div class="contain">
+        <header class="header">
+            <div class="layout-left">
+                <h3 class="title">
+                    <slot name="title">Default Title</slot>
+                </h3>
+                <p class="desc">
+                    <slot name="desc">Default Description</slot>
+                </p>
+            </div>
+            <div class="layout-right">
+                <slot name="tool"/>
+            </div>
+        </header>
+        <div class="content">
+            <slot/>
+        </div>
+    </div>
+</template>
+Template is not visitably before add to document.
+<div>
+    Web Component 相对于当前热门的前端框架React，Vue，Angular三大流行框架的异同和优缺点：
+    1、目前原生浏览器几乎都支持，只看到像一些印度流行浏览器仍未支持，可以通过polyfill抹平差距，不像三大框架完全依赖babel和webpack预先构建；
+    2、可以类似Vue的Template格式直接写组件Html和Css，也可以用原生js动态创建元素或文本，并且可以直接在Html中调用或者通过Js动态创建Html。；
+    3、当使用Template创建时，该Template必须在当前页面里，而没有办法类似三大框架那样通过引入多个文件的组件堆砌成页面。
+</div>
+<h3>Just use customize element in html</h3>
+<div is="wc-card" type="black" minimize="true" round>
+    <span slot="title">Title from html</span>
+    <span slot="desc">To be desc</span>
+    <span slot="tool">
+        <ul>
+            <li>
+                <button type="button">Scroll</button>
+            </li>
+            <li>
+                <button type="button">Question</button>
+            </li>
+        </ul>
+    </span>
+    this will be content
+</div>
+<div id="target-contain">
+    Use customize element in js.
+</div>
+<script>
+    class WCCard extends HTMLDivElement {
+        // class WCCard extends HTMLElement {
+        constructor() {
+            super();
+            this._isMinimize = false;
+            const templateContent = document.getElementById("template-card").content;
+            // this.appendChild(templateContent.cloneNode(true));
+            const shadowRoot = this.attachShadow({mode: "open"}); //    mode=closed will not able use js to access shadowRoot
+            shadowRoot.appendChild(templateContent.cloneNode(true));
+            //  attribute type to template style
+            const typeStyle = WCCard.typeToStyle[this.getAttribute("type") || "default"];
+            typeStyle && shadowRoot.querySelector(".contain").classList.add(typeStyle);
+            this.getAttribute("round") !== null && shadowRoot.querySelector(".contain").classList.add("round");
+            //  create style content
+            const htmlStyleElement = document.createElement("style");
+            htmlStyleElement.textContent = `.contain {
+                font-size: ${this.getAttribute("font-size") || 1.5}rem
+            }`;
+            shadowRoot.appendChild(htmlStyleElement);
+            //  get form interact and value
+            // this._internals = this.attachInternals();
+        }
+
+        static get typeToStyle() {
+            return {
+                black: "bg-black",
+                white: "bg-white",
+                blue: "bg-blue"
+            };
+        }
+
+        typeChangeHandler() {
+            const shadowRoot = this.shadowRoot;
+            const typeStyle = WCCard.typeToStyle[this.getAttribute("type") || "default"];
+            if (typeStyle) {
+                shadowRoot.querySelector(".contain").classList.value = "contain";   //  remove the old type style
+                shadowRoot.querySelector(".contain").classList.add(typeStyle);
+            }
+        }
+
+        //  add watch attributes change
+        static get observedAttributes() {
+            return ["minimize", "type"];
+        }
+
+        //  attributes change callback
+        attributeChangedCallback(name, ordVal, newVal) {
+            switch (name) {
+                // case "checked":
+                //     this._internals.setFormValue(this.checked ? 'on' : 'off');
+                //     break;
+                case "minimize":
+                    this._isMinimize = newVal;
+                    console.log(arguments);
+                    break;
+                case "type":
+                    // this._type = newVal;
+                    console.log("change type");
+                    this.typeChangeHandler();
+                    break;
+            }
+        }
+
+        get minimize() {
+            // return this.getAttribute("minimize");
+            return this._isMinimize;
+        }
+
+        set minimize(value) {
+            this.toggleAttribute("minimize", Boolean(value));
+            // this._isMinimize = value;
+            // this.querySelector("h3").innerText = value;
+        }
+
+        get type() {
+            return this.getAttribute("type");
+        }
+
+        set type(value) {
+            return this.setAttribute("type", value);
+        }
+
+        //  after first time add to document
+        connectedCallback() {
+        }
+
+        //  after remote from document
+        disconnectedCallback() {
+        }
+
+        //  move to diff doc
+        adoptedCallback() {
+        }
+
+        static formAssociated = true;   //  link to form
+
+        get form() {
+            return this._internals.form;
+        }
+
+        get name() {
+            return this._internals.name;
+        }
+
+        /*get type() {
+            return this._internals.type
+        }*/
+
+        //  add connect to form
+        formAssociatedCallback() {
+        }
+
+        formStateRestoreCallback() {
+        }
+
+        formResetCallback() {
+        }
+
+        formDisabledCallback() {
+        }
+
+        render() {
+            // this.innerHTML = "";
+        }
+    }
+
+    window.customElements.define("wc-card", WCCard, {extends: "div"});
+    // window.customElements.define("wc-card", WCCard);
+
+    window.addEventListener("DOMContentLoaded", function () {
+        window.customElements.whenDefined("wc-card").then(function () {
+            const wcCard1 = document.createElement("div", {is: "wc-card"});
+            wcCard1.type = "blue";
+            const descStr = "Desc from js string.";
+            wcCard1.innerHTML = `<span slot="desc">${descStr}</span><span>This will be content to noname slot</span>`;
+            const title1 = document.createElement("span");
+            title1.slot = "title";
+            title1.innerText = "Title from js element";
+            wcCard1.appendChild(title1);
+            document.getElementById("target-contain").appendChild(wcCard1);
+        }).catch(function (err) {
+            console.log("Not define yet." + JSON.stringify(err));
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "name": "notes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist-electron/main/desktop-main.js",
+  "scripts": {
+    "dev": "vite",
+    "start": "electron .",
+    "build": "vue-tsc && vite build",
+    "publish": "electron-builder",
+    "preview": "vite preview"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "cheerio": "^1.0.0-rc.12",
+    "electron-package": "^0.1.0",
+    "pug": "^3.0.2",
+    "puppeteer": "^19.5.0",
+    "sass": "^1.58.0",
+    "typescript": "^4.9.3",
+    "vite": "^4.0.4",
+    "vite-plugin-electron": "^0.11.1",
+    "vite-plugin-electron-renderer": "^0.11.4",
+    "vue-tsc": "^1.0.11"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.0.9",
+    "electron": "^22.0.3",
+    "fluent-ffmpeg": "^2.1.2",
+    "os": "^0.1.2",
+    "path": "^0.12.7",
+    "vue": "^3.2.45"
+  }
+}

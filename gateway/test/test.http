@@ -1,0 +1,17 @@
+### 获取商品
+GET http://localhost:30000/goods
+### 创建商品
+POST http://demo.8248.net/ashx/cn/goods.ashx
+Content-Type: application/json
+
+{
+    "p": "1",
+    "keyword": "衣服"
+}
+
+### 修改
+PUT http://demo.8248.net/ashx/cn/goods.ashx
+
+### 删除
+
+DELETE http://demo.8248.net/ashx/cn/goods.ashx

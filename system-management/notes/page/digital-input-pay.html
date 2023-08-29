@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>扫码支付</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="Keywords" content=""/>
+    <meta name="Description" content=""/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="full-screen" content="yes">
+    <meta name="x5-fullscreen" content="true">
+    <title>扫码支付</title>
+    <style>
+        .icon-delete-3 {
+            display: inline-block;
+            width: 3.7rem;
+            height: 3.7rem;
+            background: url("https://img.icons8.com/dotty/2x/clear-symbol.png") center center / 100% auto no-repeat;
+        }
+
+        html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline
+        }
+
+        button:focus, input:focus, select:focus, textarea:focus {
+            outline: 0
+        }
+
+        a, a:hover, del {
+            text-decoration: none;
+        }
+
+        ul, li, ol, dd, dl, dt {
+            list-style: none
+        }
+
+        *, *:after, *:before {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box
+        }
+
+        body, html {
+            height: 100%
+        }
+
+        body {
+            font-size: 12px;
+            position: relative
+        }
+
+        .scan-code-pay .container {
+            padding: 0;
+        }
+
+        .scan-code-pay .container .top {
+            padding: 15px;
+        }
+
+        .scan-code-pay .container .head .logo {
+            width: 64%;
+        }
+
+        .scan-code-pay .title {
+            text-align: center;
+            opacity: 0.3;
+            margin-top: 11%;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .scan-code-pay .list-keyboard {
+            margin: 0 20px;
+            text-align: center;
+        }
+
+        .scan-code-pay .list-keyboard .item {
+            float: left;
+            width: 33.3%;
+        }
+
+        .scan-code-pay .list-keyboard .button {
+            display: block;
+            width: 100%;
+            font-size: 3.7rem;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        .scan-code-pay .list-keyboard .button:active {
+            opacity: 0.5;
+        }
+
+        .scan-code-pay .list-keyboard .button .text {
+            vertical-align: middle;
+        }
+
+        .scan-code-pay .tip {
+            text-align: center;
+            opacity: 0.3;
+        }
+
+        .scan-code-pay .output-container {
+            text-align: center;
+            font-size: 2.4rem;
+        }
+
+        .scan-code-pay .output-container .output {
+            font-size: 4.8rem;
+            word-break: break-all;
+            line-height: 100%;
+        }
+
+        .scan-code-pay .control .btn {
+            display: block;
+            border: none;
+            margin: 9% auto 3%;
+            border-radius: 100px;
+            width: 81.46%;
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .main-color,
+        footer .item.active .text,
+        footer .item.active .icon:before {
+            color: #760fcc;
+        }
+
+        .ba-main-color {
+            background: #760fcc;
+            color: #fff;
+        }
+
+        a, a:hover, del {
+            color: #333;
+        }
+
+        body {
+            background: #efeff4;
+            color: #333;
+        }
+
+        .scan-code-pay .container .top .output-container {
+            color: #fff;
+        }
+
+        .scan-code-pay .list-keyboard .button .text {
+            color: #333;
+        }
+
+        .scan-code-pay .list-keyboard .button:active {
+            background: #ddd;
+        }
+
+        .scan-code-pay .control .btn.disabled {
+            background: #ddd;
+        }
+    </style>
+</head>
+<body class="scan-code-pay">
+<main class="container" id="container">
+    <section class="top ba-main-color">
+        <div class="head">
+            <span>欢迎使用扫码支付</span>
+        </div>
+        <p class="title">请输入支付金额</p>
+        <p class="output-container">￥<span class="output">{{output.value === "" ? 0 : output.value}}</span></p>
+    </section>
+    <section class="bot">
+        <ul class="list list-keyboard clearf">
+            <li class="item" v-for="(btn, index) in input.buttons">
+                <button class="button" type="button" @click="handler(input.clickType, index)">
+                    <i v-if="btn.className" :class="'icon ' + btn.className"></i>
+                    <span class="text">{{btn.title}}</span>
+                </button>
+            </li>
+        </ul>
+        <div class="control">
+            <button type="button" :class="'btn' + (inputSubmitDisabled ? ' disabled' : ' ba-main-color')"
+                    @click="handler(input.submit.type)">
+                {{input.submit.title}}
+            </button>
+        </div>
+        <div class="tip main-color">本服务由xx提供</div>
+    </section>
+</main>
+<script type="module">
+    import {createApp} from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+    var data = {
+            storeId: "",
+            payType: "",
+            output: {
+                value: ""
+            },
+            input: {
+                dealing: false,    //  是否正在处理输入
+                clickType: "input-button-click",
+                submit: {
+                    type: "submit",
+                    title: "立即支付"
+                },
+                buttons: [
+                    {
+                        title: 1
+                    }
+                    , {
+                        title: 2
+                    }
+                    , {
+                        title: 3
+                    }
+                    , {
+                        title: 4
+                    }
+                    , {
+                        title: 5
+                    }
+                    , {
+                        title: 6
+                    }
+                    , {
+                        title: 7
+                    }
+                    , {
+                        title: 8
+                    }
+                    , {
+                        title: 9
+                    }
+                    , {
+                        title: "."
+                    }
+                    , {
+                        title: 0
+                    }
+                    , {
+                        className: "icon-delete-3"
+                    }
+                ]
+            }
+        }
+        , computed = {
+            inputSubmitDisabled: function () {
+                return !this.payType || Number(this.output.value) <= 0 || this.input.dealing;
+            }
+        }
+        , methods = {
+            handler: function (type, data) {
+                var vue = this;
+                var handler = {};
+                handler[this.input.clickType] = function (index) {
+                    var value = vue.output.value
+                        , title = vue.input.buttons[index].title
+                    ;
+                    if (title !== undefined) {
+                        if (title === ".") {
+                            value = value.replace(title, "") + title;
+                        } else {
+                            value += title.toString();
+                        }
+                    } else {
+                        value = value.replace(/\d[.]?$/, "");
+                    }
+                    this.output.value = value;
+                };
+                handler[this.input.submit.type] = function () {
+                    var vue = this
+                        , orderTotal = Number(this.output.value)
+                        , tipText = ""
+                    ;
+                    if (vue.inputSubmitDisabled) {
+                        if (!vue.payType) {
+                            tipText = "无效的支付环境";
+                        } else if (orderTotal) {
+                            tipText = "无效的支付金额";
+                        } else if (vue.input.dealing) {
+                            tipText = "支付处理中，请稍候";
+                        } else {
+                            tipText = "无法处理的状态";
+                        }
+                        alert(tipText);
+                        return false;
+                    }
+                    vue.input.dealing = true;
+                    const abortController = new AbortController();
+                    fetch({
+                        method: "POST",
+                        url: "/scanCode/orderSubmit"
+                    }, {
+                        signal: abortController.signal,
+                        body: "orderTotal=" + orderTotal + "&soId=" + vue.storeId
+                    }).then(function (apiData) {
+                        //  do pay...
+                    }).catch(function (err) {
+                        alert("生成订单出错：" + JSON.stringify(err));
+                    });
+                };
+                if (handler[type]) {
+                    handler[type].call(this, data);
+                } else {
+                    alert("无法处理的事件");
+                }
+            }
+        }
+    ;
+    createApp({
+        data() {
+            return data;
+        },
+        computed: computed,
+        methods: methods,
+        created: function () {
+            var vue = this
+                //  客户端类型
+                , payTypeList = [
+                    {
+                        title: "支付宝",
+                        type: "alipay",
+                        check: true
+                    },
+                    {
+                        title: "微信",
+                        type: "wexin",
+                        check: true
+                    }
+                ]
+            ;
+            payTypeList.forEach(function (item) {
+                if (item.check) {
+                    vue.input.submit.title = item.title + "支付";
+                    vue.payType = item.type;
+                    return false;
+                }
+            });
+            // vue.payType = payment.type.weChat;   //  测试
+            if (!vue.payType) {
+                var splitText = "或者";
+                alert("请在" + payTypeList.reduce(function (prev, item) {
+                    return prev + splitText + item.title;
+                }, "").replace(new RegExp("^" + splitText), "") + "中打开");
+            }
+        }
+    }).mount("#container");
+</script>
+</body>
+</html>
