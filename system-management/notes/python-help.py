@@ -109,8 +109,19 @@ def get_url():
     print("response url request by Django:" + django.get_version())
 
 
+def len_of_longest_child(nums):
+    n = len(nums)
+    L = [1] * n # initial value: [1, 1, 1, 1, 1]
+    for i in reversed(range(n)):
+        for j in range(i + 1, n):
+            if nums[j] > nums[i]:
+                L[i] = max(L[i], L[j] + 1)
+    return max(L)
+
+
 def main(args: list[str, ...] = None):
-    get_url()
+    max_len = len_of_longest_child([2, 1, 2, 4, 3])
+    print(max_len)
 
 
 if __name__ == '__main__':

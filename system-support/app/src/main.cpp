@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "hazel.h"
 #include "./platform/usb.h"
+
 extern "C"
 {
 #include "hello.h"
@@ -11,4 +12,6 @@ extern "C"
 
 int main() {
 	get_usb_devices();
+	int in;
+	std::cin >> in;
 }

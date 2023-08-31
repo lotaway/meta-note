@@ -1,5 +1,19 @@
 #pragma once
 #include "./include/stdafx.h"
+//	std::mutex 互斥锁
+#include <mutex>
+//	std::async 异步任务
+#include <future>
+//	stack 栈所需要
+#include <stack>
+//	静态库，需要打包到exe文件中，效率更好，但单文件更大
+//	动态库，一般是放置到exe文件旁边
+//	引入依赖库
+//#include <GLFW/glfw3.h>
+//	引入解决方案中的其他项目
+// emsdk无法识别，只能使用引号加相对路径"../../engine/src/engine.h"，除了cpp和标准库以外的文件都没有被编译进去wasm
+#include <engine.h>
+#include "logger.h"
 
 namespace utils {
 	void use_library();

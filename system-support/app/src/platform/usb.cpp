@@ -1,7 +1,3 @@
-#include "../include/stdafx.h"
-#include <Windows.h>
-#include <SetupAPI.h>
-#include <iostream>
 #include "usb.h"
 
 /*SPDRP_FRIENDLYNAME：设备的友好名称。

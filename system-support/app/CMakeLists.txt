@@ -4,4 +4,4 @@ file(GLOB_RECURSE SOURCES "*.cpp" "*.h")
 # add_executable(app ./app/src/main.cpp)
 add_executable(app ${SOURCES})
 # Á´½Ó¿â
-target_link_libraries(app PUBLIC engine)
+target_link_libraries(app PUBLIC engine Setupapi)

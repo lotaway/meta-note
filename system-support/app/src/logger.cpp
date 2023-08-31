@@ -38,8 +38,12 @@ namespace logger {
 	#if MODE==1
 	#define modeOut(message) cout << message << endl;
 	#else
-	#define modeOut(message) intoFile(message)
+	#define modeOut(message) into_file(message)
 	#endif
+
+	void into_file(std::string message) {
+		//	write log into file
+	}
 
 	void out(const char* message) {
 		modeOut(message);
