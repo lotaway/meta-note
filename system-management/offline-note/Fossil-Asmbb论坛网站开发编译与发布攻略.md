@@ -77,6 +77,17 @@ git checkout master
 git merge upstream/master
 ```
 
+还可以添加子仓库，用于依赖的第三方git项目：
+
+```bash
+# 添加第三方仓库作为子仓库
+git submodule add lib-address.git child-directory/child-project-name
+# 初始化第三方仓库
+git submodule init child-directory/child-project-name
+# 更新第三方仓库
+git submodule update
+```
+
 以上就完成了asmbb项目源代码的获取工作。
 
 # 配置开发环境
