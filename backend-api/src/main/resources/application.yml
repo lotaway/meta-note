@@ -1,0 +1,8 @@
+---
+spring:
+  application:
+    name: backend-api
+---
+spring:
+  profiles:
+    active: user-service, product-service

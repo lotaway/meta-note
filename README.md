@@ -1,13 +1,12 @@
+![阿卢说他遇到阿玮](https://tvax2.sinaimg.cn/crop.47.138.345.345.180/6b20647bly8fh6rmudt3cj20c80ha40r.jpg)
+
 ## Description
 
 *本项目为元笔记相关*
 
-[nodejs文档](http://nodejs.cn/api/http.html)
-[nest文档](https://docs.nestjs.com/support)
-
 ## Direct 目录说明
 
-* gateway 网关中心（协调、管理）
+* backend-api 服务端（业务处理、储存数据、前端接口）
 * system-management 桌面端管理（管理、笔记、通讯）
 * system-support 系统支持（提供客户端和服务端支持）
 
@@ -23,23 +22,9 @@ $ npm install
 npm run dev
 ```
 
-### Gateway 网关
+### Backend Api 服务端
 
-```bash
-$ cd gateway
-
-# generate database
-$ npm run db:generate
-
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
+（建设中）
 
 ### Software 软体端
 

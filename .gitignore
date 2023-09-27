@@ -1,10 +1,19 @@
+# private environment
+.env
+.data
+*/.env
+.aws
+
+# compiled output
 node_modules/
 ./system-support/bin
 ./system-support/build
-.idea
-.vs
-.vscode
 dist
 dist-electron
 build
 bin
+
+# IDEs and editors
+.idea
+.vs
+.vscode
