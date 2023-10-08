@@ -58,33 +58,33 @@ class LocalDataSource(private val dataStore: DataStore<UserPreferences>) {
 视图模型：
 
 ```kotlin
-data class NewsResource {
-    val id: Integer,
+data class NewsResource(
+    val id: Int,
     val thumbnail: String,
     val title: String,
     val content: String,
     val url: String
-}
+)
 
-data class SaveableNewsResource {
+data class SavableNewsResource(
     val newsResource: NewsResource,
     val isBookmarked: Boolean
-}
+)
 
 sealed interface NewsListState {
     object NoInit: NewsListState
     object Loading: NewsListState
-    data class Success(val newsResources: List<SaveableNewsResource>): NewsListState
+    data class Success(val newsResources: List<SavableNewsResource>): NewsListState
     object Error: NewsListState
     object End: NewsListState
 }
 
 class MyViewModel(val bookmarksRepository: BookmarksRepository, newsRepository: NewsRepository): ViewModel() {
     
-    private val newsData: List<SaveableNewsResource> = combine(newsRepository.newsResourcesStream, bookmarksRepository.bookmarksStream) { newsResources, bookmarks ->
+    private val newsData: List<SavableNewsResource> = combine(newsRepository.newsResourcesStream, bookmarksRepository.bookmarksStream) { newsResources, bookmarks ->
         newsResources.map { newsResource ->
             val isBookmarked = bookmarks.contains(newsResource.id)
-            SaveableNewsResource(newsResource, isBookmarked)
+            SavableNewsResource(newsResource, isBookmarked)
         }
     }
 
