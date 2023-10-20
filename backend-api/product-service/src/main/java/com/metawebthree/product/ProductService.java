@@ -1,8 +1,12 @@
 package com.metawebthree.product;
 
+import com.metawebthree.base.MQProducer;
 import com.metawebthree.cloud.S3Buckets;
 import com.metawebthree.cloud.S3Service;
 import com.metawebthree.image.ProductImageService;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -14,12 +18,19 @@ import java.util.UUID;
 public class ProductService {
     private final S3Service s3Service;
     private final S3Buckets s3Bucket;
+    private final MQProducer mqProducer;
 
     private final ProductImageService productImageService;
 
-    public ProductService(S3Service s3Service, S3Buckets s3Bucket, ProductImageService productImageService) {
+    public ProductService(
+            S3Service s3Service,
+            S3Buckets s3Bucket,
+            MQProducer mqProducer,
+            ProductImageService productImageService
+    ) {
         this.s3Service = s3Service;
         this.s3Bucket = s3Bucket;
+        this.mqProducer = mqProducer;
         this.productImageService = productImageService;
     }
 
@@ -35,8 +46,9 @@ public class ProductService {
         return s3Service.getObject(s3Bucket.getProduct(), key);
     }
 
-    public void deleteProduct(String key) {
+    public void deleteProduct(String key) throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
         s3Service.deleteObject(s3Bucket.getProduct(), key);
+        mqProducer.send("deleteProduct", "delete product with:" + key, null, null);
     }
 
     public boolean uploadImage(Integer productId, MultipartFile file) {

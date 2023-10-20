@@ -6,3 +6,7 @@ spring:
 spring:
   profiles:
     active: user-service, product-service
+# rocketMQ
+rocketmq:
+  client:
+    namesrv: 192.168.43.137:9876

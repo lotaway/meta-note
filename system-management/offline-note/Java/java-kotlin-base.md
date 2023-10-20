@@ -670,9 +670,10 @@ fun main(wantToByHero: Boolean) {
 }
 ```
 
-# Coroutine 协程
+# VirtualThread & Coroutine 虚拟线程与协程
 
-开关线程会有一定消耗，因此频繁开关或者大量创建线程就会有严重性能问题，这对于原本想通过多线程提速的程序显得弄巧成拙。协程就是更进一步通过定义挂起阻塞的操作，把实际线程开关交给程序处理（也可手动指定），保证独立有栈的前提下让这种并发执行任务的过程变得顺畅，相当于一种更小粒度的虚拟线程。
+开关线程会有一定消耗，因此频繁开关或者大量创建线程就会有严重性能问题，这对于原本想通过多线程提速的程序显得弄巧成拙。 
+协程就是更进一步通过定义挂起阻塞的操作，把实际线程开关交给程序处理（也可手动指定），保证独立有栈的前提下让这种并发执行任务的过程变得顺畅，相当于一种更小粒度的虚拟线程。
 Kotlin很早就支持了协程的特性，而Java在经历了众多版本迭代在21之后也开始支持类似协程的虚拟线程。
 协程用法与线程非常类似，大抵都是调用、实现一个方法，在内部执行耗时或者异步（协程）操作，防止阻塞主线程，特别是客户端的UI更新或者后端接口响应。
 
@@ -683,20 +684,53 @@ Kotlin中的用法：
 suspend fun main() {
     //  启动一个协程
     runBlock {
-        //  启动并指定在IO线程中执行
+        //  再启动一个新的协程并指定在IO线程中执行
         launch(Dispatchers.IO) {
-            //  阻塞2秒后执行，模拟调用API与写入文件等耗时操作
+            //  阻塞当前上下文2秒后执行，模拟调用API与写入文件等耗时操作
             delay(2000)
             println("hello coroutine in IO")
         }
-        //  阻塞0.5秒后执行，模拟UI计算更新等操作
+        //  阻塞当前上下文0.5秒后执行，模拟UI计算更新等操作
         delay(500)
         println("hello in coroutine block")
     }
 }
 ```
 
-至于Java的例子，估计大部分线上环境还停留在Java8，没机会用上协程[doge]
+以上两个父子协程是并行执行任务的，因此可以做到各种各自执行，即使阻塞也是只在协程自身的上下文环境内阻塞，而不会影响到外在的其他协程和主线程。
+至于Java的例子，估计大部分线上环境还停留在Java8，没机会用上Java21的虚拟线程，但还是简单展示一下创建：
+
+```java
+public class TheThread {
+    //  执行一个沉睡一秒的任务，将其重复十万次
+    public static void start(Executor executor) {
+        IntStream.range(0, 100_000).forEach(i -> {
+            //  使用submit执行一次就会利用executor复制一个线程/虚拟线程
+            executor.submit(() -> {
+                Thread.sleep(Duration.offSeconds(1));
+                return i;
+            });
+        });
+    }
+    
+    //  创建新线程，任务耗时21秒
+    public static void real() {
+        try (var executor = new Excutors.newThreadPerTaskExcutor(Thread::new)) {
+            start(executor);
+        }
+    }
+
+    //  创建虚拟线程，任务耗时3秒
+    public static void virtual() {
+        try (var executor = new Excutors.newVirtualThreadPerTaskExecutor()) {
+            start(executor);
+        }
+    }
+}
+```
+
+虚拟线程大部分是模仿协程的方式去实现的封装sleep、yield等。
+注意虚拟线程和协程解决是IO密集的任务，可以解决效率问题，但对于CPU密集型，也就是大量计算的类型，依旧是开启一个线程去执行比较好，甚至如果不考虑阻塞问题，单线程计算肯定是最快的，因为不需要开关线程和切换上下文。
 深入学习协程需要大量时间，网上也有各种优秀教程，这里就不展开述说。
 
 # flow 流
@@ -734,3 +768,5 @@ fun main() {
     }
 }
 ```
+
+大体讲完了，本文到此为止，以后有什么基础更新再补充。
