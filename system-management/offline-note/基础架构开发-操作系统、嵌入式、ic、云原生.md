@@ -91,6 +91,8 @@ NFV和VNF的引入使得网络的部署和管理更加灵活和高效。它们�
 3. 引导程序会负责完成（BIOS启动的）16位系统兼容模式切换到32位保护模式，最终到64位长模式，之后所有寄存器和主内存可用；
 4. 内核被引导程序启动后可以收到从BIOS到引导程序传递过来的信息。
 
+### 最小内核
+
 以下是最简的一个操作系统，需要指定不使用标准库和main函数（作为操作系统需要_start函数来启动，而无法认main函数），并且借助简单的C库来实现一个不断循环的主函数和一个错误抛出函数。
 
 ```rust
@@ -193,6 +195,19 @@ qemu-system-x86_64 -drive format=raw,file=target/x86_64-blog_os/debug/bootimage-
 ```
 运行成功即可弹窗显示Hello World!
 ![运行成功弹窗](https://os.phil-opp.com/zh-CN/minimal-rust-kernel/qemu.png)
+
+### VGA字符模式
+
+了解VGA字符模式和使用VGA字符缓冲区即可在屏幕输出任意Character Cell字符单元，一个字符单元包括以下格式描述：
+* 0-7bit，ASCII编码的字符
+* 8-11bit，前景色
+* 12·14bit，后景色
+* 15bit，闪烁
+
+
+
+
+
 
 这是一个简单的示例，实际上远远没有达到一个完整操作系统的要求，需要可以看一个更加完整的源码示例自行研究：
 [Redox-OS in GitLab](https://gitlab.redox-os.org/redox-os/redox/)
