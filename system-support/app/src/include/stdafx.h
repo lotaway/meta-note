@@ -4,6 +4,8 @@
 #include <array>
 //	cout << std::to_string 时需要，帮助int转为string
 #include <string>
+// stringstream需要，用于将字符等内容拼接成字符串
+#include <sstream>
 //	_ptr智能指针所需要引入
 #include <memory>
 //	std::vector自定义数组需要

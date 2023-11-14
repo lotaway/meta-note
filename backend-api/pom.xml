@@ -18,6 +18,7 @@
     <modules>
         <module>user-service</module>
         <module>product-service</module>
+        <module>message-service</module>
     </modules>
     <properties>
         <java.version>11</java.version>
@@ -36,7 +37,7 @@
         <json.version>20230227</json.version>
         <aws.java.sdk.version>2.20.87</aws.java.sdk.version>
         <aws.lambda.java.version>1.2.2</aws.lambda.java.version>
-        <kotlin.version>1.9.0-Beta</kotlin.version>
+        <kotlin.version>1.9.20</kotlin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -186,6 +187,17 @@
             <artifactId>rocketmq-client</artifactId>
             <version>5.1.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -193,6 +205,30 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jvmTarget>1.8</jvmTarget>
+                </configuration>
             </plugin>
         </plugins>
     </build>

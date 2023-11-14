@@ -1759,4 +1759,61 @@ P     I
 			bool result = regex_match("+8615999948166", "[+]?\\d{7,14}");
 			std::cout << result << std::endl;
 		}
+
+
+		//给定一个由n个整数组成的数组arr，将数组划分为k个连续非重子数组，使得每个元素属于且仅属于一个子数组，并且每个子数组至少包含一个元素。划分数组以使其美丽度最小。返回最小可能的美丽度。
+		//注意 : 子数组是数组的连续子段
+		//示例
+		//考虑n = 4, arr = [1, 2, 3, 4]和k = 2
+		//使用基于1的索引，展示了每种可能的分割的美丽程度
+		//[1和[2, 3, 4]:分数分别为 1 * 1 = 1 和34 = 12。数组的美丽程度为max(1.12) = 12。
+		//[1, 2和[3, 4]:: 分数分别为 2 * 2 = 4 和24 = 8。美丽程度为 max(4, 8) = 8。
+		//[1, 2, 3和[4]::分数分别为 3 * 3 = 9 和14 = 4。美丽程度为max(9, 4) = 9.
+		//所以，数组的最小可能美丽程度为8.
+
+		int GetMinimumBeauty(std::vector<int>& arr, int k, int left, int right, std::unordered_map<std::string, int>& beauties)
+		{
+			std::stringstream b_key_stream;
+			b_key_stream << k << "," << left << "," << right;
+			std::string b_key = b_key_stream.str();
+			if (beauties.contains(b_key))
+			{
+				return beauties.at(b_key);
+			}
+			auto result_handle = [&](int beauty) -> int {
+				beauties.emplace(b_key, beauty);
+				return beauty;
+				};
+			if (left == right)
+				return result_handle(arr[left]);
+			if (k == 1) {
+				int val = 0;
+				for (int i = left; i <= right; ++i)
+					val = std::max(val, arr[i]);
+				return result_handle(val * (right - left + 1));
+			}
+			int beauty = INT_MAX;
+			for (int i = left; i <= right - k + 1; ++i)
+			{
+				beauty = std::min(beauty, std::max(GetMinimumBeauty(arr, 1, left, i, beauties), GetMinimumBeauty(arr, k - 1, i + 1, right, beauties)));
+			}
+			return result_handle(beauty);
+		}
+		int GetMinimumBeauty(std::vector<int>& arr, int k, int left, int right) {
+			std::unordered_map<std::string, int> beatuies{};
+			return GetMinimumBeauty(arr, k, left, right, beatuies);
+		}
+		int GetMinimumBeauty(std::vector<int>& arr, int k)
+		{
+			return GetMinimumBeauty(arr, k, 0, arr.size() - 1);
+		}
+
+		void TestGetMinimumBeauty()
+		{
+			std::vector<int> arr{ 1,2,3,4 };
+			std::clock_t start_time = clock();
+			int result = GetMinimumBeauty(arr, 2);
+			std::clock_t end_time = clock();
+			std::cout << result << ", time: " << end_time - start_time << std::endl;
+		}
 }

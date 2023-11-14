@@ -14,22 +14,22 @@ SQL是Structured Query Language 的缩写,意为“结构化查询语言”。�
 --  用户表
 CREATE TABLE `User`
 (
-    id         INTEGER PRIMARY KEY UNIQUE auto_increment COMMENT '用户标识',
+    id         INTEGER PRIMARY KEY UNIQUE AUTO_INCREMENT COMMENT '用户标识',
     username   VARCHAR(20) NOT NULL UNIQUE COMMENT '用户名',
     nickname   VARCHAR(20)          DEFAULT '' COMMENT '昵称',
     sex        CHAR(2)     NOT NULL DEFAULT 0 COMMENT '性别',
     age        CHAR(2)     NOT NULL DEFAULT 0 COMMENT '年龄',
-    authorId   INTEGER COMMENT '作者标识',
-    createTime DATETIME(3)          DEFAULT DATETIME(3),
-    updateTime DATETIME(3)          DEFAULT DATETIME(3)
+    author_id   INTEGER COMMENT '作者标识',
+    create_time DATETIME(3)          DEFAULT date(3),
+    update_time DATETIME(3)          DEFAULT date(3)
 );
 -- 作者表
 CREATE TABLE `Author`
 (
-    id       INTEGER PRIMARY KEY UNIQUE auto_increment COMMENT '作者标识',
+    id       INTEGER PRIMARY KEY UNIQUE AUTO_INCREMENT COMMENT '作者标识',
     nickname VARCHAR(20) UNIQUE COMMENT '昵称',
-    userId   INTEGER NOT NULL,
-    CONSTRAINT `Author_userId_fkey` FOREIGN KEY (userId) REFERENCES `User` (`id`),
+    user_id   INTEGER NOT NULL,
+    CONSTRAINT `Author_userId_fkey` FOREIGN KEY (user_id) REFERENCES `User` (`id`),
     state    CHAR(1) DEFAULT 0 COMMENT '账号状态',
     category TINYINT(50) COMMENT '写作类型',
     level    TINYINT(10) COMMENT '级别'
@@ -37,10 +37,10 @@ CREATE TABLE `Author`
 -- 书籍表
 CREATE TABLE `Book`
 (
-    id          INTEGER PRIMARY KEY UNIQUE auto_increment COMMENT '书标识',
-    authorId    INTEGER      NOT NULL,
-    CONSTRAINT `Book_authorId_fkey` FOREIGN KEY (authorId) REFERENCES `Author` (`id`),
-    bookName    VARCHAR(30)  NOT NULL UNIQUE COMMENT '书名',
+    id          INTEGER PRIMARY KEY UNIQUE AUTO_INCREMENT COMMENT '书标识',
+    author_id    INTEGER      NOT NULL,
+    CONSTRAINT `Book_authorId_fkey` FOREIGN KEY (author_id) REFERENCES `Author` (`id`),
+    book_name    VARCHAR(30)  NOT NULL UNIQUE COMMENT '书名',
     description VARCHAR(255) NOT NULL UNIQUE COMMENT '描述',
     state       CHAR(1) DEFAULT 0 COMMENT '书籍状态',
     readCount   INTEGER DEFAULT 0 COMMENT '阅读量',
@@ -51,9 +51,9 @@ CREATE TABLE `Book`
 CREATE TABLE `BookChapter`
 (
     id          VARCHAR(50) UNIQUE DEFAULT uuid() COMMENT '书籍章节标识',
-    bookId      INTEGER     NOT NULL,
-    CONSTRAINT `BookChapter_bookId_fkey` FOREIGN KEY (bookId) REFERENCES `Book` (`id`),
-    chapterName VARCHAR(50) NOT NULL UNIQUE COMMENT '章节名称',
+    book_id      INTEGER     NOT NULL,
+    CONSTRAINT `BookChapter_bookId_fkey` FOREIGN KEY (book_id) REFERENCES `Book` (`id`),
+    chapter_name VARCHAR(50) NOT NULL UNIQUE COMMENT '章节名称',
     state       CHAR(1)            DEFAULT 0 COMMENT '章节状态',
     content     text               DEFAULT '' COMMENT '章节内容',
     readCount   INTEGER            DEFAULT 0 COMMENT '阅读量'
@@ -62,10 +62,10 @@ CREATE TABLE `BookChapter`
 CREATE TABLE `AuthorSubscribe`
 (
     id      INTEGER UNIQUE   DEFAULT uuid() COMMENT '订阅标识',
-    fUserId INTEGER NOT NULL,
-    CONSTRAINT `BookSubscribe_fUserId_fkey` FOREIGN KEY (fUserId) REFERENCES `Author` (`id`),
-    sUserId INTEGER NOT NULL,
-    CONSTRAINT `BookSubscribe_sUserId_fkey` FOREIGN KEY (sUserId) REFERENCES `Author` (`id`),
+    f_user_id INTEGER NOT NULL COMMENT '被订阅的作者标识',
+    CONSTRAINT `BookSubscribe_fUserId_fkey` FOREIGN KEY (f_user_id) REFERENCES `Author` (`id`),
+    s_user_id INTEGER NOT NULL COMMENT '要订阅的用户标识',
+    CONSTRAINT `BookSubscribe_sUserId_fkey` FOREIGN KEY (s_user_id) REFERENCES `Author` (`id`),
     state   CHAR(1) NOT NULL DEFAULT 0
 )
 ```
@@ -77,7 +77,7 @@ CREATE TABLE `AuthorSubscribe`
 
 ```mysql
 ALTER TABLE `Author`
-    ADD CONSTRAINT `Author_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`);
+    ADD CONSTRAINT `Author_userId_fkey` FOREIGN KEY (`user_id`) REFERENCES `User` (`id`);
 ```
 
 如果只是数据库的外键，一般是指物理外键，但也可以不依靠数据库，单纯通过代码方式进行关联，这种称为逻辑外键。
@@ -124,7 +124,7 @@ DELETE FROM `BookChapter` WHERE id=1;
 列查询即不使用*号，而是罗列具体要查询的字段名，通过`SELECT fieldName1, fieldName2 FROM [tableName]`查询
 
 ```sql
-SELECT bookName, state
+SELECT book_name, state
 FROM Book;
 ```
 
@@ -133,7 +133,7 @@ FROM Book;
 列查询结果支持进行一些简单的运算或函数使用
 
 ```sql
-SELECT bookName, create_time * 1000
+SELECT book_name, create_time * 1000
 FROM Book;
 ```
 
@@ -155,7 +155,7 @@ WHERE...
 有时对于查询出来的列数据会有重复的情况（注意前面是列名重复，这里是数据重复），而如果不需要重复可以通过distinct修饰字段去重
 
 ```sql
-SELECT username, DISTINCT authorId
+SELECT username, DISTINCT author_id
 FROM User;
 ```
 
@@ -176,9 +176,9 @@ WHERE update_time >= '2023-01-01'
 查找多个不同关键字书名的：
 
 ```sql
-SELECT bookName
+SELECT book_name
 FROM Book
-WHERE bookName IN ('逆天', '邪神');
+WHERE book_name IN ('逆天', '邪神');
 ```
 
 查找作者名称以某个结尾的：
@@ -200,7 +200,7 @@ WHERE authorName LIKE '%番茄';
 * AVG 获取平均值
 
 ```sql
-SELECT bookName,
+SELECT book_name,
        SUM(readCount) AS '总阅读数', COUNT(readCount) AS '总共书本量', MAX(readCount) AS '单本最多阅读数', MIN(readCount) AS '单本最少阅读数', AVG(readCount) AS '单本平均阅读数'
 FROM Book
 WHERE state = 1;
@@ -238,7 +238,7 @@ over用于对单独字段进行类似group by的分组返回结果集。
 SELECT id, name, AVG(Book.id) OVER(PARTITION BY Book.type)
 FROM Author,
      Book
-WHERE Author.id = Book.authorId
+WHERE Author.id = Book.author_id
 ```
 
 over内部可使用order by进行排序，但会影响求值结果，导致每行结果只会根据前面已查询出来的行进行整理计算：
@@ -291,7 +291,7 @@ ORDER BY update_time desc;
 SELECT User.*, Author.*
 FROM User,
      Author
-WHERE User.id = Author.userId;
+WHERE User.id = Author.user_id;
 ```
 
 ## 连接查询 JOIN
@@ -306,16 +306,16 @@ WHERE User.id = Author.userId;
 ```mysql
 SELECT User.*, Author.*
 FROM `User`
-         JOIN `Author` on `User`.`authorId` = `Author`.`id`
+         JOIN `Author` on `User`.`author_id` = `Author`.`id`
 ```
 
 三表联查：
 
 ```mysql
 SELECT User.*, Author.*, Book.*
-FROM (User JOIN Author WHERE User.authorId=Author.id)
+FROM (User JOIN Author WHERE User.author_id=Author.id)
        JOIN Book
-WHERE Author.id = Book.authorId
+WHERE Author.id = Book.author_id
 ```
 
 ## 联合
@@ -357,7 +357,7 @@ FROM Author
 ```mysql
 SELECT *
 FROM `User`
-WHERE `id` = (SELECT userId AS id FROM `Author` WHERE nickname = '很爱很爱你')
+WHERE `id` = (SELECT user_id AS id FROM `Author` WHERE nickname = '很爱很爱你')
 ```
 
 ### 列子查询
@@ -368,7 +368,7 @@ WHERE `id` = (SELECT userId AS id FROM `Author` WHERE nickname = '很爱很爱�
 ```mysql
 SELECT *
 FROM `User`
-WHERE `id` IN (SELECT userId AS id FROM `Author` WHERE state = '1' OR state = '2')
+WHERE `id` IN (SELECT user_id AS id FROM `Author` WHERE state = '1' OR state = '2')
 ```
 
 #### EXIST/IN
@@ -398,9 +398,9 @@ WHERE (category, level) = (SELECT category, level FROM `Author` WHERE id = 1);
 
 ```mysql
 SELECT *
-FROM (SELECT * FROM `User` WHERE createTime > '2023-01-01') u,
+FROM (SELECT * FROM `User` WHERE create_time > '2023-01-01') u,
      `Author`
-WHERE u.id = Author.userId;
+WHERE u.id = Author.user_id;
 ```
 
 作为集合范围使用：

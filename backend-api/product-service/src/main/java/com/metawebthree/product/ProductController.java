@@ -1,6 +1,9 @@
 package com.metawebthree.product;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +42,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/delete")
-    public boolean delete() {
+    public boolean delete() throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
         productService.deleteProduct("test.txt");
         return true;
     }

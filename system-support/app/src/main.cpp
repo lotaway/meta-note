@@ -24,7 +24,5 @@ void test_val() {
 }
 
 int main() {
-	get_usb_devices();
-	int in;
-	std::cin >> in;
+	utils::TestGetMinimumBeauty();
 }

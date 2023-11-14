@@ -364,4 +364,8 @@ namespace utils {
 	bool regex_match(const std::string&, const std::string&);
 
 	void test_regex_match();
+
+	int GetMinimumBeauty(std::vector<int>&, int);
+
+	void TestGetMinimumBeauty();
 }
