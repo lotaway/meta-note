@@ -42,7 +42,7 @@ public class AlgorithmUtils {
         System.out.println(result + ", time:" + (endTime - startTime) / 1000);
     }
 
-    public static void main(String[] args) throws IOException {
+    /*public static void main(String[] args) throws IOException {
         new AlgorithmUtils().maxAreaTest();
-    }
+    }*/
 }
