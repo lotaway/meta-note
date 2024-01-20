@@ -28,7 +28,7 @@
         <mybatis-spring.version>3.0.1</mybatis-spring.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <slf4j-api.version>2.0.7</slf4j-api.version>
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <gson.version>2.9.1</gson.version>
         <commons-io.version>2.11.0</commons-io.version>
         <jjwt-api.version>0.11.5</jjwt-api.version>
@@ -194,9 +194,14 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
+            <artifactId>kotlin-test-junit</artifactId>
             <version>${kotlin.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>core</artifactId>
+            <version>4.9.8</version>
         </dependency>
     </dependencies>
 

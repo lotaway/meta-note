@@ -16,7 +16,7 @@
 $ npm install
 ```
 
-## Running the app 同时运行服务端和客户端
+## Run in local 本地运行
 
 ```bash
 npm run dev

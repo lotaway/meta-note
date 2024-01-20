@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Objects;
 
 @Data
-public class ApiResponse<DataType extends Object> {
+public class ApiResponse<DataType> {
     private int status;
     private String message;
     private DataType data;
@@ -48,6 +48,10 @@ public class ApiResponse<DataType extends Object> {
 
     public static ApiResponse<Exception> error() {
         return new ApiResponse<>(201, "error");
+    }
+
+    public static ApiResponse<Exception> error(String errMessage) {
+        return new ApiResponse<>(201, errMessage);
     }
 
     public static ApiResponse<Exception> error(Exception e) {
