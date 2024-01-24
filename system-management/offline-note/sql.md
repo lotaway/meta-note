@@ -167,10 +167,23 @@ FROM User;
 如查找日期在2023年之后创建或更新的：
 
 ```sql
+-- 使用日期格式
 SELECT *
 FROM Book
 WHERE update_time >= '2023-01-01'
    OR create_time >= '2023-01-01'
+--    使用时间戳格式
+SELECT *
+FROM Book
+WHERE update_time >= '1672531200000'
+OR create_time >= '1672531200000'
+-- 使用内置方法获取指定年份，如mysql的
+SELECT *
+FROM Book
+WHERE update_time >= YEAR(NOW())
+-- 使用内置方法获取指定时间范围
+SELECT * FROM orders
+WHERE order_date >= DATE_SUB(NOW(), INTERVAL 1 YEAR);
 ```
 
 查找多个不同关键字书名的：
