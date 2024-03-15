@@ -1,4 +1,4 @@
-@[TOC](年度指南-Web网页开发学习总纲-2023修订版)
+@[TOC](年度指南-Web网页开发学习总纲-2024修订版)
 来源：[YTB视频](https://www.youtube.com/watch?v=EqzUcMzfV1w)有修改
 
 # 为什么学习写代码？
@@ -16,41 +16,45 @@
 
 # Web网页开发者类型
 
-## 前端开发者
+## Front-End Engineer 前端开发者
 
-Front-End Engineer 前端开发工程师的工作内容是为客户端或浏览器端打造用户界面。通用会使用到的技能是HTML、CSS、DOM、前端框架等等。
 
-## 后端开发者
+前端开发工程师的工作内容是为客户端或浏览器端打造用户界面。通用会使用到的语言/语法包括作为基础的HTML、CSS、JS和React、Vue等前端框架和Threejs库等。
 
-Back-End Engineer
-后端开发工程师工作内容是在服务端上处理数据相关事务。通用会使用的开发语言是Java，Go，.net，Python，PHP，少量会使用Ruby，Nodejs等，数据会涉及像是Oracle，MySQL，Postgres，Server
-SQL，MongoDB，Redis，需要了解HTTP服务器配置部署等devOpts技能。
+## Back-End Engineer 后端开发者
 
-## 全栈开发者
+后端开发工程师工作内容是在服务端上处理数据相关事务。会使用以下其中一种开发语言：Java，Go，C#，Nodejs、
+少量会使用Python，PHP，Ruby等，
+数据部分会使用以下其中一种：Oracle，MySQL，Postgres，Micronet Server SQL，MongoDB，
+并会包含使用如Redis、RocketMQ等，需要了解HTTP服务器配置部署等devOpts技能。
 
-Full-Stack Engineer 全栈开发工程师包含前端开发者和后端开发者的工作，完成所有所需工具、技能、语言的组合。
+## Full-Stack Engineer 全栈开发者
+
+全栈开发工程师包含前端开发者和后端开发者的工作，完成所有所需工具、技能、语言的组合。
+一般由于前后端各自的工作内容就非常多，
+所以就算作为全栈可能也会有所偏向，
+如偏重前端的全栈，或者偏重后端的全栈。
 
 # 可能需要用到的工具
 
-1、电脑和对应的操作系统，开发上推荐MacOS，或者Windows，但是服务器一般会用Linux，或者用[WSL](https://baike.baidu.com/item/wsl/20359185?fr=aladdin)
+1、电脑和对应的操作系统，开发机推荐MacOS，或者Windows，而服务器一般会选用Linux，或者用[WSL](https://baike.baidu.com/item/wsl/20359185?fr=aladdin)
 作为代替；
-2、网页浏览器，推荐用谷歌浏览器，其次是火狐、Brave（加密货币用得多）、Edge、Safari；
-3、文本编辑器或者集成开发工具，如VS Code、Webstorm、Sublime、Vim等；
+2、网页浏览器，推荐用谷歌浏览器或Edge，其次是火狐、Brave（加密货币用得多），360、QQ、Safari之类只需要做做兼容，最好不要作为主要目标浏览器；
+3、文本编辑器或者集成开发工具，前端一般是VS Code、Webstorm、Sublime等，后端根据所选语言可以是Visual Studio、Idea、VS Code、Vim等；
 4、命令行，使用操作系统默认的，或者iTErm2、Powershell、Git Bash、Hyper等；
-5、设计软件，前端开发会接触得比较多，如Figma、Adobe XD、Sketch、Axure等。
+5、设计软件，前端开发会接触比较多，如Figma、Adobe XD、Sketch、Axure等。
+6、数据库界面工具，后端开发会接触比较多，一般是数据库自带的，或者开发工具集成插件，或者Navicat等集成各类数据库的工具。
 
 # HTML & CSS
 
 HTML & CSS是网页前端开发打造用户界面的基础模块，你需要掌握：
-1、HTML5基础和语义化标签、页面布局等；
-2、CSS基础原理；
-3、CSS排列方式，如百分比、媒体查询、Flex、Grid等；
-4、媒体查询、响应式设计；
-5、简单的动画和变形。
+1、HTML5基础和语义化标签、页面结构；
+2、CSS盒子模型、排列、单位、百分比、媒体查询、容器、布局、响应式设计；
+3、动画和变形、SVG、Canvas等。
 
-# Sass & PostCSS
+# CSS预处理器
 
-Sass是CSS的预处理器，可能添加很多功能到基础CSS里，例如可以提供变量、依赖链、混合器、函数等。
+Sass/Scss/Less是CSS的预处理器，可能添加很多功能到基础CSS里，例如可以提供变量、依赖链、混合器、函数等。
 PostCSS是一个CSS转换工具，可以帮助抹平不同浏览器中的CSS属性差异，一般是作为插件配合Sass一起使用即可。
 
 # CSS框架
@@ -74,33 +78,35 @@ CSS框架一般也叫UI框架，可以提供给你的元素提供样式类或者
 # Javascript
 
 Javascript是浏览器里的开发语言，所有网页开发者都需要达到一定的JS知识登记。
-1、JS基础，如数据类型、数据结构、函数、循环等；
-2、DOM，如Document对象模型；
-3、异步编程，如Promise、Async/Await等；
-4、请求和响应，如HTTP原理、Fetch接口请求；
-5、数组方法，如map、filter、reduce等等。
+1、JS基础，如数据类型、数据结构、函数、判断、循环，数组方法，如map、filter、reduce等，数据转换，如toFixed、toString、Math.floor等；
+2、DOM、BOM，主要是宿主（一般指代浏览器）通过操作系统提供的功能，如Document对象模型、时间日期、窗口屏幕和设备参数等；
+3、异步编程，如Promise、Async/Await、Worker、addListener，请求和响应，如HTTP原理、Fetch接口请求、Socket；
+4、本地存储，使用Map、Object、Set、Array存储在内存、Redux/Vuex全局数据源、LocalStorage/SessionStorage本地存储、IndexDB本地数据库、Caches；
 
 # 额外的编程工具
 
 1、Git，最受欢迎的版本控制协议工具，一般配合远程仓库如GitHub、GitLab、BitBucket等，国内用得比较多的是Gitee；
-2、NPM包管理工具，可以用来安装各种第三方包，需要先安装Nodejs；
+2、npm/yarn/pnpm等包管理工具，可以用来安装各种第三方包，但需要先安装Nodejs；
 3、对所有类型的网页开发者来说，浏览器开发工具或语句都非常重要，需要知道元素选择器、输出、本地存储、网页活动等；
 4、插件，如Emmet优化文本编辑、Live Server快速启动静态页、Prettier代码格式化、ESlint代码检查、GitHub Copilot自动生成代码块等。
 
 # 部署网站
 
 受欢迎的平台：
-1、netlify；
-2、Vercel；
-3、cPanel；
-4、AmazonS3。
+1、cloudflare
+2、netlify
+3、AmazonS3
+4、Vercel
+5、cPanel
+
 域名注册一般需要10到15美元（约90元一年）：
-1、namecheap；
-2、domani.com；
-3、bluehost；
-4、GoDaddy。
+1、namecheap
+2、domani.com
+3、bluehost
+4、GoDaddy
+
 部署方式：
-Git、SSH、FTP/SFTP
+Git、SSH、FTP/SFTP、Docker
 
 # 前端开发涉及内容
 
@@ -116,27 +122,23 @@ Git、SSH、FTP/SFTP
 
 ## 网页设计
 
-1、学习更多设计；
-2、深入学习CSS；
-3、更多简单的网站。
+* 视觉：渐变、视差、滤镜、过渡；
+* 工程：模块化打包、自动测试、离线；
+* 质量：架构、设计模式、中间件。
 
 ## 网页前端框架（推荐学习）
 
 1、React，Vue，Svelte；
-2、State状态管理；
-3、服务端渲染。
+2、State状态管理，如Redux、Mobi、Vuex；
+3、SSR服务端渲染如Nextjs、Nuxtjs。
 
 ## 后端
 
-1、Nodejs、Python、PHP、C#、Go；
-2、数据处理-Postgres、MongoDB；
-3、HTTP和API开发。
-
-## 高级JS
-
-1、模块化打包；
-2、自动测试；
-3、设计模式。
+1、Java、Nodejs、Python、PHP、C#、Go；
+2、数据处理-Postgres、MongoDB、索引优化、锁、事务等；
+3、HTTP和API开发、TCP/UDP/RPC/Socket等高效通讯；
+4、Redis缓存、RocketMQ/RabbitMQ异步消息、数据一致性、预防击穿、雪崩等；
+5、高并发、微服务、分布式、集群、熔断、降级、令牌桶、漏斗等特性学习。
 
 # 前端框架
 
@@ -150,11 +152,9 @@ Git、SSH、FTP/SFTP
 # Typescript
 
 Javascript的超集，添加了静态类型支持和最新的JS特性，包含：
-1、静态类型检查；
-2、支持类和模块；
-3、其他ES6+特性；
-4、减少可能性的代码错误；
-5、增强代码鲁棒性和可靠性。
+1、静态类型检查和自动推断，在开发阶段就减少可能性的代码错误；
+2、支持类、命名空间和其他ES6+特性，如装饰器、反射、元数据操作等；
+3、提升可阅读性，增强代码鲁棒性和可靠性。
 
 # 适用于前端框架的UI框架
 
@@ -390,8 +390,9 @@ GraphQL是基于前端需要经常变化接口请求所得的数据内容和结�
 
 需要学习的内容：
 
-* 区块链和最大的公网以太网
-* Solidity/Viper 契约型编程语言，用于编写智能合约
+* 区块链技术，了解最大的公网以太网和ETH币，最有价值的比特币，了解如Layer1、P2TR、UTXO、部分签名、多签、跨链桥、Swap
+* 阅读最新的技术或链如铭文、符文、Ordinal、Runealpha、Linea
+* Solidity/Viper 契约型编程语言，用于编写智能合约、了解ERC20、ERC721、ERC404、转账
 * 应用类型，如D游戏、DAO、DeFi、NFT、碳平衡，其中广为外界所知的NFT其实就是一种带有唯一性的货币作为产品本身销售，所以每个货币会因为价值变得价格不一。
 
 # 人工智能
@@ -409,9 +410,15 @@ WebAssembly简称wasm，可以看做新时代的Flash或者程序版的Docker，
 
 # Metaverse 元宇宙
 
-元宇宙其实是一种综合性的概念项目，包含3D、人工智能、区块链等特性，通过结合VR或者摄像头、麦克风让用户像玩游戏一样进行办公、买菜、逛街购物等，也有AR/MR方向，让本地软件都转移到云电脑上实现实时共享，其次是线下能大幅得到线上的支持和增强。
-目前（2023年1月）已经看到了有人做好了元宇宙框架，声称可以帮助开发者提升300%效率在开发自己的元宇宙项目上，意味着耗时几年的项目可以在六个月到一年内完成。
+元宇宙其实是一种综合性的概念项目，包含3D、人工智能、区块链等特性，
+通过结合VR或者摄像头、麦克风、陀螺仪、GPS等让用户像玩游戏一样进行办公、买菜、逛街购物等，
+也有AR/MR方向，让本地软件都转移到云电脑上实现实时共享，其次是线下能大幅得到线上的支持和增强。
+如苹果目前的Vision Pro、之前的Quest4、魅族眼镜等都属于此范畴的产物。
+目前已有做好的元宇宙框架雏形，声称可以帮助开发者提升300%效率在开发自己的元宇宙项目上，意味着耗时几年的项目可以在六个月到一年内完成。
 
 # 总结
 
-无论是网站、应用还是桌面软件的发展是非常离谱和令人惊叹的，其中前端的发展是日新月异，很多功能已经不是简单地区分客户端、浏览器端和服务端或者后端就能解决的问题，而是功能特性、界面交互与业务数据处理之间的三者如何协作和划分，所以保持学习！
+无论是网站、应用还是桌面软件的发展是非常离谱和令人惊叹的，
+其中前端的发展是日新月异，
+很多功能已经不是简单地区分客户端、浏览器端和服务端或者后端就能解决的问题，
+而是功能特性、界面交互与业务数据处理之间的三者如何协作和划分，所以保持学习！
