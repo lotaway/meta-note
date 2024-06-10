@@ -30,6 +30,7 @@ Bots游戏，是继HTML、CSS和JavaScript之后的第四种Web语言。到目�
 * [WebAssembly.studio](https://webassembly.studio)，可编译C/Rust/Wat
 * [Wat2Wasm](https://webassembly.github.io/wabt/demo/wat2wasm/)，可编译Wat
 * [Go](https://golang.google.cn/dl)，Go官方从1.1版本就开始支持编译成wasm
+* [Kotlin Wasm](https://book.kotlincn.net/text/wasm-overview.html), Kotlin也有Multi platform提供stdlib-js库+task的方式打包成wasm供js里调用
 
 接下来用C++语言实现一个斐波数列的计算：
 

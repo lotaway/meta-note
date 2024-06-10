@@ -173,10 +173,12 @@ Template is not visitably before add to document.
 
         //  after first time add to document
         connectedCallback() {
+            console.log("connected callback")
         }
 
         //  after remote from document
         disconnectedCallback() {
+            console.log("disconnected callback")
         }
 
         //  move to diff doc
@@ -211,6 +213,7 @@ Template is not visitably before add to document.
         }
 
         render() {
+            console.log("in render")
             // this.innerHTML = "";
         }
     }
@@ -234,5 +237,7 @@ Template is not visitably before add to document.
         });
     });
 </script>
+<script type="module" src="./web-component.ts"></script>
+<web-button status="">Hello, Web Button</web-button>
 </body>
 </html>
