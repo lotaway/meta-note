@@ -1,4 +1,4 @@
-@[TOC](CSS样式－伪类)
+@[TOC](CSS伪类-网页CSS样式知识)
 
 # :before
 

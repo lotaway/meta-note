@@ -534,3 +534,52 @@ type Copy<T> = {
 type res = Copy<UnionToIntersection<{ a: 1 } | { b: 3 }>>
 //  等同于 type res = { a: 1, b: 3 }
 ```
+
+# 获取Promise返回值
+
+相信大部分人定义Promise返回值类型时都是写`Promise<DataType>`，之后再通过`await promise`的方式拿到真正的返回值。
+但现在可以使用`Awaited<Promise<DataType>>`来直接定义拿到的返回值了：
+
+以前：
+
+```typescript
+// lib库定义
+interface Info {
+    id: number
+    name: string
+    msg: string
+}
+export function getData(): Promise<Info> {
+    // do something...
+}
+
+// 调用
+import { getData} from "lib"
+type ReturnData = ReturnType<typeof getData>
+
+async function handler(promise: ReturnData) {
+    const data = await promise
+    console.log(data.id)
+}
+
+function main() {
+    handler(getData())
+}
+```
+
+现在：
+
+```typescript
+// lib库定义省略（与之前一致）
+// 调用
+import { getData} from "lib"
+type ReturnData = Awaited<ReturnType<typeof getData>>
+
+async function handler(data: ReturnData) {
+    console.log(data.id)
+}
+
+async function main() {
+    handler(await getData())
+}
+```
