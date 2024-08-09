@@ -48,6 +48,7 @@ ease表示在过渡开始和结束时都减缓变化速度。
 
 .menu:active .child-menu {
     height: calc-size(auto);
+    /* height: fit-content; // 也可以使用fit-content，效果一样，甚至可以用max-height: 0/auto代替height */
 }
 ```
 
