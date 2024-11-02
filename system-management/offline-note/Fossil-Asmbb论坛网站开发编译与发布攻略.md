@@ -21,13 +21,13 @@
 首先是先行下载Fossil，可直接通过[Fossil官方下载页](https://fossil-scm.org/home/uv/download.html)进行下载，或者在命令行输入：
 
 ```bash
-wget -d https://fossil-scm.org/home/uv/fossil-linux-x64-2.22.tar.gz
+wget -d https://fossil-scm.org/home/uv/fossil-linux-x64-2.24.tar.gz
 ```
 
 之后执行解压缩：
 
 ```bash
-tar -xvzf fossil-linux-x64-2.22.tar.gz
+tar -xvzf fossil-linux-x64-2.24.tar.gz
 ```
 
 接着是使用Fossil来拉取asmbb项目（注意./Fossil/fossil是刚解压的出来的文件夹Fossil所在路径下的fossil文件）：
@@ -94,8 +94,9 @@ git submodule update
 
 接下来是开发和编译所需工作：
 下载[Fresh编译器](https://fresh.flatassembler.net/index.cgi?page=content/2_download.txt)
-用于编译汇编代码，注意下载安装后，打开Fresh开发工具，在菜单栏options/IDE
-options里的Aliases一栏，修改/添加Name为TargetOS的值为Linux或Win32（根据最终部署网站的操作系统而定），配置name为lib的值为freshlib所在的FreshLibDev路径。
+用于编译汇编代码。注意下载安装后，打开Fresh开发工具，在菜单栏options/IDE
+options里的Aliases一栏，修改/添加Name为TargetOS的值为Linux或Win32（根据最终部署网站的操作系统而定），配置name为lib的值为最新的FreshIDE的[FreshLibDev(asmbb作者维护更新的)](https://fresh.flatassembler.net/fossil/repo/fresh/timeline?n=100&r=FreshLibDev)对应的freshlib所在的路径。
+如果lib配置不是最新dev版本，会各种报错，包括但不限于找不到变量、找不到string方法等。
 
 之后使用Fresh打开项目源代码目录下/source/engine.fpr，类似于开发工具的配置文件，这将会打开整个项目，之后可以进行汇编代码的修改和编译（Ctrl+F9）生成engine文件。
 
