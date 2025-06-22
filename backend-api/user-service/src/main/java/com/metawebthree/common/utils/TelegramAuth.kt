@@ -9,11 +9,11 @@ public fun validateLogin(authData: String, hash: String, token: String): Boolean
     return try {
         Mac.getInstance(algorithm).apply {
             init(SecretKeySpec("WebAppData".toByteArray(), algorithm))
-        }.run {
-            val key = doFinal(token.toByteArray())
+        }.let {mac ->
+            val key = mac.doFinal(token.toByteArray())
             init(SecretKeySpec(key, algorithm))
             TreeMap<String, String>(authData.split("&").map { it.split("=") }.toMap()).run {
-                Base64.getEncoder().encodeToString(doFinal(this.toByteArray())).equals(hash, true)
+                Base64.getEncoder().encodeToString(mac.doFinal(this.toByteArray())).equals(hash, true)
             }
         }
     } catch (e: NoSuchAlgorithmException) {
