@@ -743,7 +743,7 @@ public class TheThread {
 //  创建一个方法返回流，这里使用了flow函数来创建流
 fun createFlow(): Flow<String> = flow<String> {
         //  执行一次提交，这会触发一次订阅者的处理
-        emit(“world")
+        emit("world")
         runBlock {
             //  使用循环和延时阻塞来模拟有间隔地多次提交数据
             (0..10).forEach {
@@ -770,3 +770,42 @@ fun main() {
 ```
 
 大体讲完了，本文到此为止，以后有什么基础更新再补充。
+
+# 花括号链式写法优势
+
+Kotlin提供了强大的作用域函数（Scope Functions），通过花括号链式写法可以大大简化代码，提高可读性。这些函数包括：`apply`、`let`、`run`、`with`、`also`。
+
+## HmacSHA加密对比
+
+### Java写法
+
+```java
+
+public class Example {
+    public static String validaty(String data, String key) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        mac.init(secretKeySpec);
+        byte[] hash = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        String result = Base64.getEncoder().encodeToString(hash);
+        return result;
+    }
+}
+```
+
+### Kotlin写法（花括号链式）
+
+kotlin可以使用花括号加上let、apply、run等方式轻松达成链式调用和提供不同返回形式，让处理步骤更加符合大脑直觉理解。
+
+```kotlin
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+
+fun validaty(data: String, key: String): String = Mac.getInstance("HmacSHA256").apply {
+    init(SecretKeySpec(key.toByteArray(StandardCharsets.UTF_8), "HmacSHA256"))
+}.doFinal(data.toByteArray(StandardCharsets.UTF_8)).let { hash ->
+    Base64.getEncoder().encodeToString(hash)
+}
+```
