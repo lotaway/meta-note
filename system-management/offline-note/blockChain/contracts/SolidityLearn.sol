@@ -14,7 +14,7 @@ library insideMethod {
 
 contract AboutUseLib {
 
-    using importMethod for uint;   //  link uint var can direct call
+    using ImportMethod for uint;   //  link uint var can direct call
     uint num = 100;
 
     function useLib() public {
