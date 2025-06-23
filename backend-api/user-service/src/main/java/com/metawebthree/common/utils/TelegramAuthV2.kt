@@ -15,7 +15,8 @@ public class TelegramAuthV2 {
                 val key = mac.doFinal(token.toByteArray())
                 init(SecretKeySpec(key, algorithm))
                 TreeMap<String, String>(authData.split("&").map { it.split("=") }.toMap()).run {
-                    Base64.getEncoder().encodeToString(mac.doFinal(this.toByteArray())).equals(hash, true)
+                    val sortedData = this.entries.joinToString("&") { "${it.key}=${it.value}" }
+                    Base64.getEncoder().encodeToString(mac.doFinal(sortedData.toByteArray())).equals(hash, true)
                 }
             }
         } catch (e: NoSuchAlgorithmException) {
