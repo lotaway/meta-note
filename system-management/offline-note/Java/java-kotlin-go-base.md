@@ -90,19 +90,18 @@ class Zava {
 ```
 
 ```kotlin
-//  常量
+//  val关键字代表常量，注意类型是自动推断的，可以无需显式声明
 val con1 = 1
 //  相当于
 val con1: Int = 1
-//  常量不可修改值
-//con1 = 2
-//  变量
+//  常量不可修改值，以下赋值会报错
+con1 = 2
+//  var关键字代表变量
 var con2 = 1
-//  同样相当于
-var con2: Int = 1
 //  变量可修改值
 con2 = 2
-//con2 = "1"  //  No allow, type are Int
+// 对已经推断为整型的变量赋值字符串会报错，因为类型已经确定
+con2 = "1"
 //  字符串，可拼接变量
 var cont3 = "this is string with value: ${con1}"
 //  相当于
@@ -594,13 +593,20 @@ public class UserPojo {
 ```
 
 Kotlin可以通过在类前添加data关键字修饰符可以让类自动完成get/set和重写copy，toString，composeTo，hashCode等方法。
-也可以通过添加by可以使用委托的形式让其他类完成所需的事情，例如此处让必须实现的方法info委托给Person处理，Man自身可以不实现：
+也可以通过添加by可以使用委托的形式让其他类完成所需的事情，例如此处让必须实现的方法info委托给Person处理，Man自身可以不用再实现：
 
 ```kotlin
-data class Man : Live by Person {
-    fun work() {
-        println("Go to work")
+interface Live {
+    fun info(): String
+}
+open class Person: Live {
+    fun info(): String {
+        "Person"
     }
+}
+
+data class Man : Live by Person {
+    
 }
 ```
 
@@ -619,11 +625,15 @@ class FamilyChoose {
     }
 }
 class Woman : Person {
+    // 将值的取值和赋值委托给FamilyChoose处理
     var workType by FamilyChoose()
 }
-```
 
-以上代码相当于将变量workType的取值和赋值都委托给类FamilyChoose处理，方便在受类约束的情况下，完成复杂与动态的处理。
+val woman = Woman()
+println(woman.version) // 输出1
+woman.workType = "Finance" // 触发了FamilyChoose的setValue，version+1了
+println(woman.version) // 输出2
+```
 
 Go只有 struct 充当类使用和 interface
 
@@ -699,7 +709,8 @@ enum class Type {
     fun getDefault() = _default
 }
 //  比较两个枚举值
-val isSame = Type.TEACHER.equals(Type.WORKER)
+val isNotSame = Type.TEACHER.equals(Type.WORKER)
+val isSame = Type.ENGINEER.equals(Type.getDefault())
 ```
 
 # 密封类
@@ -783,9 +794,9 @@ Kotlin中的用法：
 ```kotlin
 //  声明这是一个可挂起的函数
 suspend fun main() {
-    //  启动一个协程
+    //  启动第一个协程
     runBlock {
-        //  再启动一个新的协程并指定在IO线程中执行
+        //  再启动第二个协程并指定在IO线程中执行
         launch(Dispatchers.IO) {
             //  阻塞当前上下文2秒后执行，模拟调用API与写入文件等耗时操作
             delay(2000)
