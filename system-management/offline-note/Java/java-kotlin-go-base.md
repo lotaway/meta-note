@@ -1,9 +1,10 @@
-@[TOC](Java-Kotlin-一次性掌握两门语言)
+@[TOC](Java-Kotlin-go-一次性掌握三门语言)
 
 # 简介
 
-本文主要是通过介绍Java和Kotlin的基础语法达成极速入门。
+本文主要是通过介绍Java、Kotlin和golang的基础语法达成极速入门。
 Kotlin本质是适合带有一定Java基础或者偏现代语法例如Typescript会更容易上手。
+Go则是简洁易于理解的语言，适合新手直接学习上手。
 
 ## Java特点
 
@@ -24,6 +25,16 @@ Kotlin本质是适合带有一定Java基础或者偏现代语法例如Typescript
 * 无自动隐形转换，例如整型1加字符串"1"在Java等语言中会自动转成字符串，但在Kotlin里会报错，要求必须手动将整型1转换成字符串才行
 * 支持运算符重载，因此封装类型可以直接运算
 * 大量Coroutine协程与Flow流的高并发多任务异步特性
+
+# Go特点
+
+* 语法简洁，编译速度快，适合高并发和分布式系统开发
+* 内置并发支持（goroutine、channel），轻量级线程模型
+* 没有类继承，使用struct和interface组合实现面向对象特性
+* 变量声明灵活，类型在变量名后，支持类型推断
+* 内存管理自动（GC），但可通过指针进行底层操作
+* 标准库丰富，跨平台编译简单
+* 错误处理采用多返回值而非异常机制
 
 # 类型
 
@@ -79,19 +90,18 @@ class Zava {
 ```
 
 ```kotlin
-//  常量
+//  val关键字代表常量，注意类型是自动推断的，可以无需显式声明
 val con1 = 1
 //  相当于
 val con1: Int = 1
-//  常量不可修改值
-//con1 = 2
-//  变量
+//  常量不可修改值，以下赋值会报错
+con1 = 2
+//  var关键字代表变量
 var con2 = 1
-//  同样相当于
-var con2: Int = 1
 //  变量可修改值
 con2 = 2
-//con2 = "1"  //  No allow, type are Int
+// 对已经推断为整型的变量赋值字符串会报错，因为类型已经确定
+con2 = "1"
 //  字符串，可拼接变量
 var cont3 = "this is string with value: ${con1}"
 //  相当于
@@ -106,6 +116,16 @@ var cont3: String = "this is string with value: " + con1
 var arr = arrayOf(1, 2, 3)
 //  可变列表
 var arr = mutableListof(1, 2, 3)
+```
+
+Go 变量声明可以用 `var` 或 `:=`，类型在变量名后。Go 没有类，只有结构体。
+
+```go
+var a int = 1
+var s string = "hello"
+// 类型推断
+b := 2
+c := "world"
 ```
 
 # 判断
@@ -157,6 +177,17 @@ var j = when (i) {
     else -> "as default"
 }
 ```
+
+### Go
+
+```go
+if a > 0 {
+    fmt.Println("positive")
+} else {
+    fmt.Println("not positive")
+}
+```
+Go 的 if 语句无需括号，代码块用 `{}` 包裹。
 
 # 循环
 
@@ -354,6 +385,23 @@ out@ for (i in range(1, 10)) {
 println("跳出后到了这里")
 ```
 
+### Go for循环
+
+Go 只有 for 循环，没有 while/do-while，for 也可用作 while。
+
+```go
+for i := 0; i < 10; i++ {
+    fmt.Println(i)
+}
+
+// while 等价写法
+j := 0
+for j < 10 {
+    fmt.Println(j)
+    j++
+}
+```
+
 # 函数
 
 Java里没有所谓namespace命名空间和函数function，只有定义在类里的方法method，也有人将Java里类当作命名空间，而静态方法当作函数来调用。
@@ -379,6 +427,14 @@ fun handle(value: Int): Int {
 }
 fun main() {
     println(handle(2))
+}
+```
+
+Go 的函数用 `func` 关键字，参数类型在变量名后，返回值类型在参数列表后。
+
+```go
+func add(a int, b int) int {
+    return a + b
 }
 ```
 
@@ -537,13 +593,20 @@ public class UserPojo {
 ```
 
 Kotlin可以通过在类前添加data关键字修饰符可以让类自动完成get/set和重写copy，toString，composeTo，hashCode等方法。
-也可以通过添加by可以使用委托的形式让其他类完成所需的事情，例如此处让必须实现的方法info委托给Person处理，Man自身可以不实现：
+也可以通过添加by可以使用委托的形式让其他类完成所需的事情，例如此处让必须实现的方法info委托给Person处理，Man自身可以不用再实现：
 
 ```kotlin
-data class Man : Live by Person {
-    fun work() {
-        println("Go to work")
+interface Live {
+    fun info(): String
+}
+open class Person: Live {
+    fun info(): String {
+        "Person"
     }
+}
+
+data class Man : Live by Person {
+    
 }
 ```
 
@@ -562,11 +625,49 @@ class FamilyChoose {
     }
 }
 class Woman : Person {
+    // 将值的取值和赋值委托给FamilyChoose处理
     var workType by FamilyChoose()
 }
+
+val woman = Woman()
+println(woman.version) // 输出1
+woman.workType = "Finance" // 触发了FamilyChoose的setValue，version+1了
+println(woman.version) // 输出2
 ```
 
-以上代码相当于将变量workType的取值和赋值都委托给类FamilyChoose处理，方便在受类约束的情况下，完成复杂与动态的处理。
+Go只有 struct 充当类使用和 interface
+
+```go
+type Person struct {
+    Name string // 大写字母开头表示公开
+    age  int // 小写字母开头表示私有
+}
+
+func (p *Person) Info() string {
+    return fmt.Sprintf("This is %s old's %s", p.age, p.Name)
+}
+
+// 接口实现，不需要显式约束，只要符合就视为实现
+
+type Live interface {
+    Info() string
+}
+
+type Man struct {
+    name string
+}
+
+func (m Man) Info() string {
+    return "This is " + m.name
+}
+
+// 在需要的地方用Live抽象指代
+func do(liver Live) {
+
+}
+// 使用符合Live的结构体即可
+do(new(Man))
+```
 
 # 枚举类
 
@@ -608,7 +709,8 @@ enum class Type {
     fun getDefault() = _default
 }
 //  比较两个枚举值
-val isSame = Type.TEACHER.equals(Type.WORKER)
+val isNotSame = Type.TEACHER.equals(Type.WORKER)
+val isSame = Type.ENGINEER.equals(Type.getDefault())
 ```
 
 # 密封类
@@ -670,6 +772,16 @@ fun main(wantToByHero: Boolean) {
 }
 ```
 
+
+```go
+const (
+    TEACHER Type = iota
+    WORKER
+    ENGINEER
+    DESIGNER
+)
+```
+
 # VirtualThread & Coroutine 虚拟线程与协程
 
 开关线程会有一定消耗，因此频繁开关或者大量创建线程就会有严重性能问题，这对于原本想通过多线程提速的程序显得弄巧成拙。 
@@ -682,9 +794,9 @@ Kotlin中的用法：
 ```kotlin
 //  声明这是一个可挂起的函数
 suspend fun main() {
-    //  启动一个协程
+    //  启动第一个协程
     runBlock {
-        //  再启动一个新的协程并指定在IO线程中执行
+        //  再启动第二个协程并指定在IO线程中执行
         launch(Dispatchers.IO) {
             //  阻塞当前上下文2秒后执行，模拟调用API与写入文件等耗时操作
             delay(2000)
@@ -732,6 +844,25 @@ public class TheThread {
 虚拟线程大部分是模仿协程的方式去实现的封装sleep、yield等。
 注意虚拟线程和协程解决是IO密集的任务，可以解决效率问题，但对于CPU密集型，也就是大量计算的类型，依旧是开启一个线程去执行比较好，甚至如果不考虑阻塞问题，单线程计算肯定是最快的，因为不需要开关线程和切换上下文。
 深入学习协程需要大量时间，网上也有各种优秀教程，这里就不展开述说。
+
+
+Go 原生支持并发，使用 goroutine 和 channel，用 `go` 关键字开启 goroutine，轻量高效：
+
+```go
+import (
+    "fmt"
+    "time"
+)
+
+func main() {
+    go func() {
+        time.Sleep(2 * time.Second)
+        fmt.Println("hello goroutine")
+    }()
+    time.Sleep(3 * time.Second)
+    fmt.Println("main end")
+}
+```
 
 # flow 流
 
