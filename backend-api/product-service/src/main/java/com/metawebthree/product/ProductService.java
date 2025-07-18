@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ProductService {
@@ -64,5 +65,16 @@ public class ProductService {
 
     public byte[] getImages(Integer productId) {
         return s3Service.getObject(s3Bucket.getProduct(), "/product/%s/images/".formatted(productId));
+    }
+
+    ConcurrentHashMap<Integer, Object> statisticLockMap = new ConcurrentHashMap<>();
+    Long count = 0L;
+
+    public boolean updateFeatureStatistic(Integer featureId, Integer increated) {
+        Object lock = statisticLockMap.computeIfAbsent(featureId, key -> new Object());
+        synchronized (lock) {
+            count += increated;
+        }
+        return true;
     }
 }
