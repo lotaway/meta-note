@@ -27,8 +27,7 @@ public class ProductService {
             S3Service s3Service,
             S3Buckets s3Bucket,
             MQProducer mqProducer,
-            ProductImageService productImageService
-    ) {
+            ProductImageService productImageService) {
         this.s3Service = s3Service;
         this.s3Bucket = s3Bucket;
         this.mqProducer = mqProducer;
@@ -47,7 +46,8 @@ public class ProductService {
         return s3Service.getObject(s3Bucket.getProduct(), key);
     }
 
-    public void deleteProduct(String key) throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
+    public void deleteProduct(String key)
+            throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
         s3Service.deleteObject(s3Bucket.getProduct(), key);
         mqProducer.send("deleteProduct", "delete product with:" + key, null, null);
     }
@@ -71,6 +71,10 @@ public class ProductService {
     Long count = 0L;
 
     public boolean updateFeatureStatistic(Integer featureId, Integer increated) {
+        return updateFeatureStatisticWithLock(featureId, increated);
+    }
+
+    public boolean updateFeatureStatisticWithLock(Integer featureId, Integer increated) {
         Object lock = statisticLockMap.computeIfAbsent(featureId, key -> new Object());
         synchronized (lock) {
             count += increated;
