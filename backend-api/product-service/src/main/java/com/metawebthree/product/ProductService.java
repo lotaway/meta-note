@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ProductService {
@@ -26,8 +27,7 @@ public class ProductService {
             S3Service s3Service,
             S3Buckets s3Bucket,
             MQProducer mqProducer,
-            ProductImageService productImageService
-    ) {
+            ProductImageService productImageService) {
         this.s3Service = s3Service;
         this.s3Bucket = s3Bucket;
         this.mqProducer = mqProducer;
@@ -46,7 +46,8 @@ public class ProductService {
         return s3Service.getObject(s3Bucket.getProduct(), key);
     }
 
-    public void deleteProduct(String key) throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
+    public void deleteProduct(String key)
+            throws MQBrokerException, RemotingException, InterruptedException, MQClientException {
         s3Service.deleteObject(s3Bucket.getProduct(), key);
         mqProducer.send("deleteProduct", "delete product with:" + key, null, null);
     }
@@ -64,5 +65,20 @@ public class ProductService {
 
     public byte[] getImages(Integer productId) {
         return s3Service.getObject(s3Bucket.getProduct(), "/product/%s/images/".formatted(productId));
+    }
+
+    ConcurrentHashMap<Integer, Object> statisticLockMap = new ConcurrentHashMap<>();
+    Long count = 0L;
+
+    public boolean updateFeatureStatistic(Integer featureId, Integer increated) {
+        return updateFeatureStatisticWithLock(featureId, increated);
+    }
+
+    public boolean updateFeatureStatisticWithLock(Integer featureId, Integer increated) {
+        Object lock = statisticLockMap.computeIfAbsent(featureId, key -> new Object());
+        synchronized (lock) {
+            count += increated;
+        }
+        return true;
     }
 }
