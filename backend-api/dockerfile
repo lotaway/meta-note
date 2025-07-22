@@ -1,5 +1,0 @@
-FROM openjdk:19-jdk-alpine
-ADD ./product-service/target/product-service-0.0.1-SNAPSHOT.jar /product-servie.jar
-ADD ./user-service/target/user-service-0.0.1-SNAPSHOT.jar /user-servie.jar
-ENTRYPOINT ["java","-jar","/product-servie.jar"]
-ENTRYPOINT ["java","-jar","/user-servie.jar"]
