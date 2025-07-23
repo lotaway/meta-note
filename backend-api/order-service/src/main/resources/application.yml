@@ -1,0 +1,23 @@
+spring:
+  config:
+    import: classpath:/application.yml
+---
+server:
+  port: 10084
+spring:
+  application:
+    name: order-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://172.29.222.103:3306/metawebthree?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123123
+# mybatis将SQL下划线字段自动转驼峰
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+aws:
+  region: ap-southeast-1
+  s3:
+    buckets:
+      order: metawebthree
