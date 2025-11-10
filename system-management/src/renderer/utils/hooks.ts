@@ -1,4 +1,4 @@
-import {ref, reactive, onMounted, onUnmounted} from "vue"
+import { useState, useEffect, useRef } from 'react'
 
 interface ScrollInfo {
     top: number
@@ -15,109 +15,96 @@ interface MousePosition {
     y: number
 }
 
-interface SequenceItem {
-    id: number
-    type: string
-    handle: FrameRequestCallback
-}
-
 export function useDebounce(callback: FrameRequestCallback, delay = 0) {
-    const refTimer = ref()
-    if (refTimer.value)
-        clearTimeout(refTimer.value)
-    refTimer.value = setTimeout(() => {
+    const timerRef = useRef<NodeJS.Timeout>()
+    
+    if (timerRef.current) {
+        clearTimeout(timerRef.current)
+    }
+    
+    timerRef.current = setTimeout(() => {
         window.requestAnimationFrame(callback)
     }, delay)
-    return refTimer
+    
+    return timerRef
 }
 
 export function useScroll() {
-    const scrollInfo = reactive<ScrollInfo>({
+    const [scrollInfo, setScrollInfo] = useState<ScrollInfo>({
         top: 0,
         left: 0
     })
 
-    function scrollHandle(event: Event) {
-        scrollInfo.top = document.body.scrollTop
-        scrollInfo.left = document.body.scrollLeft
-    }
+    useEffect(() => {
+        function scrollHandle() {
+            setScrollInfo({
+                top: document.body.scrollTop,
+                left: document.body.scrollLeft
+            })
+        }
 
-    onMounted(() => {
-        window?.addEventListener("scroll", scrollHandle)
-    })
-    onUnmounted(() => {
-        window?.removeEventListener("scroll", scrollHandle)
-    })
+        window.addEventListener("scroll", scrollHandle)
+        return () => {
+            window.removeEventListener("scroll", scrollHandle)
+        }
+    }, [])
+
     return scrollInfo
 }
 
 export function useWindowSize() {
-    const windowSize = reactive<WindowSize>({
-        width: 0,
-        height: 0
+    const [windowSize, setWindowSize] = useState<WindowSize>({
+        width: window.innerWidth,
+        height: window.innerHeight
     })
 
-    function resizeHandle() {
-        windowSize.width = window.innerWidth
-        windowSize.height = window.innerHeight
-    }
+    useEffect(() => {
+        function resizeHandle() {
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight
+            })
+        }
 
-    onMounted(() => {
-        window?.addEventListener("resize", resizeHandle)
-    })
-    onUnmounted(() => {
-        window?.removeEventListener("resize", resizeHandle)
-    })
+        window.addEventListener("resize", resizeHandle)
+        return () => {
+            window.removeEventListener("resize", resizeHandle)
+        }
+    }, [])
 
     return windowSize
 }
 
 export function useMousePosition() {
-    const refTimer = ref()
-    // const refTimer = useDebounce(sequenceHandle)
-    const mousePosition = reactive<MousePosition>({
+    const timerRef = useRef<NodeJS.Timeout>()
+    const [mousePosition, setMousePosition] = useState<MousePosition>({
         x: 0,
         y: 0
     })
-    /*const sequence = reactive<SequenceItem[]>([])
 
-    function sequenceHandle(time: DOMHighResTimeStamp) {
-        if (sequence.length === 0)
-            return false
-        //  or do something...
-        const {id, handle} = sequence.shift() as SequenceItem
-        handle(time)
-    }*/
-
-    function mouseMoveHandle(event: MouseEvent) {
-        if (!event)
-            return false
-        if (refTimer.value)
-            clearTimeout(refTimer.value)
-        refTimer.value = setTimeout(() => {
-            window.requestAnimationFrame(() => {
-                mousePosition.x = event.clientX
-                mousePosition.y = event.clientY
-            })
-        }, 0)
-        /*if (sequence.length > 0)
-            return false
-        sequence.push({
-            id: Math.random(),
-            type: "updateMouseMove",
-            handle() {
-                mousePosition.x = event.clientX
-                mousePosition.y = event.clientY
+    useEffect(() => {
+        function mouseMoveHandle(event: MouseEvent) {
+            if (!event) return
+            
+            if (timerRef.current) {
+                clearTimeout(timerRef.current)
             }
-        })*/
-    }
+            
+            timerRef.current = setTimeout(() => {
+                window.requestAnimationFrame(() => {
+                    setMousePosition({
+                        x: event.clientX,
+                        y: event.clientY
+                    })
+                })
+            }, 0)
+        }
 
-    onMounted(() => {
-        window?.addEventListener("mousemove", mouseMoveHandle)
-    })
-    onUnmounted(() => {
-        window?.removeEventListener("mousemove", mouseMoveHandle)
-    })
+        window.addEventListener("mousemove", mouseMoveHandle)
+        return () => {
+            window.removeEventListener("mousemove", mouseMoveHandle)
+        }
+    }, [])
 
     return mousePosition
 }
