@@ -1,9 +1,10 @@
-const {app, BrowserWindow, ipcMain} = require("electron")
-const remote = require("@electron/remote/main")
-const path = require("path")
-const fs = require("fs")
-// const childProcess = require("child_process")
-const ffmpeg = require("fluent-ffmpeg")
+import { app, BrowserWindow, ipcMain } from "electron"
+import * as remote from "@electron/remote/main"
+import path from "node:path"
+import fs from "node:fs"
+// import childProcess from "child_process"
+import ffmpeg from "fluent-ffmpeg"
+import chatGPTMonitor from "./desktop-chatgpt"
 ffmpeg.setFfmpegPath(__dirname)
 
 const isDev = process.env.NODE_ENV === "development"
@@ -50,6 +51,7 @@ void app.whenReady().then(() => {
         void createWindow().catch(err => {
             console.log("创建窗口失败：" + JSON.stringify(err))
         })
+  chatGPTMonitor.setupChatGPTMonitor()
     }
 
     // 延迟解决莫名其妙的ready未完成问题：https://github.com/electron/electron/issues/16809

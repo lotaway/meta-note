@@ -1,5 +1,6 @@
-const {contextBridge, ipcMain, ipcRenderer, BrowserWindow} = require("electron")
-const os = require("os")
+import { contextBridge, ipcMain, ipcRenderer, BrowserWindow } from "electron"
+import os from "os"
+import chatGPTMonitor from "./desktop-chatgpt"
 
 type ReceiveFn = (...args: any) => void
 
@@ -43,6 +44,9 @@ const desktopFn = {
                 }
             }
         }
+    },
+    getChatGPTConversations: () => {
+      return chatGPTMonitor.getConversationCache()
     }
 }
 if (process.contextIsolated) {
