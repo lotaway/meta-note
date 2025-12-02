@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron"
 import * as remote from "@electron/remote/main"
 import path from "node:path"
 import fs from "node:fs"
+import { WebSocketServer } from 'ws'
 // import childProcess from "child_process"
 import ffmpeg from "fluent-ffmpeg"
 import chatGPTMonitor from "./desktop-chatgpt"
@@ -35,6 +36,14 @@ async function createWindow() {
     }
 }
 
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+    app.quit()
+} else {
+    app.on('second-instance', (event, argv) => {
+        console.log('Re-launched args:', argv)
+    })
+}
 app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0 || mainWindow === null) {
         void createWindow().catch(err => {
@@ -42,16 +51,34 @@ app.on("activate", () => {
         })
     }
 })
+// myapp://do/task?id=123
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  console.log('Received URL:', url)
+})
+const args = process.argv
+console.log('Args:', args)
+// E.X. ["electron", ".", "myapp://do/task?id=123"]
+const wss = new WebSocketServer({ port: 5050 })
+console.log('WebSocketServer started on port 5050')
+wss.on('connection', ws => {
+  ws.on('message', (data: object) => {
+    console.log('From extension:', data.toString())
+  })
+  ws.send('Hello from meta-note!')
+})
+
 app.on("window-all-closed", () => {
     !isMac && app.quit()
 })
 
 void app.whenReady().then(() => {
     function init() {
+        app.setAsDefaultProtocolClient("meta-note")
         void createWindow().catch(err => {
             console.log("创建窗口失败：" + JSON.stringify(err))
         })
-  chatGPTMonitor.setupChatGPTMonitor()
+        chatGPTMonitor.setupChatGPTMonitor()
     }
 
     // 延迟解决莫名其妙的ready未完成问题：https://github.com/electron/electron/issues/16809
@@ -88,19 +115,19 @@ async function mergeVideo(filePaths: string[], outputPath: string): Promise<any>
     filePaths.forEach(videoPath => {
         ffmpegProcess.addInput(videoPath)
     })
-    ffmpegProcess.mergeToFile(`${outputPath}/generate.mp4`)
+    ffmpegProcess.mergeToFile(`${outputPath}/generate.mp4`, outputPath)
     ffmpegProcess.on('progress', (progress: any) => {
         console.log("Merging... : " + progress.percent + "%")
     })
     return await new Promise((resolve, reject) => {
-        ffmpegProcess.on('end', () => {
+        ffmpegProcess.on('end', (stdout: string | null, stderr: string | null) => {
             console.info('Merging finished !')
             resolve({
                 statusMsg: 'Merging finished !',
                 outputPath
             })
         })
-        ffmpegProcess.on('error', (error: Error, stdout: Buffer, stderr: Buffer) => {
+        ffmpegProcess.on('error', (error: Error, stdout: string | null, stderr: string | null) => {
             console.error('An error occurred: ' + error.message)
             console.log("ffmpeg stdout:\n" + stdout)
             console.log("ffmpeg stderr:\n" + stderr)
