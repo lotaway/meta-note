@@ -1,15 +1,6 @@
-# private environment
-.env
-.data
-*/.env
-.aws
-
 # compiled output
-node_modules/
 ./system-support/bin
 ./system-support/build
-dist
-dist-electron
 build
 bin
 

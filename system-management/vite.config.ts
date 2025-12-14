@@ -60,7 +60,7 @@ export default defineConfig(({command}) => {
         ],
         base: "./", //  定义基础路径为相对路径，否则vite生成的路径为相对网站根目录的`/xxx`，而electron需要本地路径`./xxx`
         server: {
-            port: 30002,
+            port: parseInt(process.env.DEV_SERVER_PORT || "30002", 10),
             // open: true
         },
         build: {

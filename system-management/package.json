@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@electron/remote": "^2.0.9",
+    "dotenv": "^17.2.3",
     "electron": "^22.0.3",
     "fluent-ffmpeg": "^2.1.2",
     "os": "^0.1.2",

@@ -6,18 +6,29 @@ import { WebSocketServer } from 'ws'
 // import childProcess from "child_process"
 import ffmpeg from "fluent-ffmpeg"
 import chatGPTMonitor from "./desktop-chatgpt"
+import dotenv from 'dotenv'
+
+dotenv.config()
+
 ffmpeg.setFfmpegPath(__dirname)
 
 const isDev = process.env.NODE_ENV === "development"
 const isLinux = process.platform === "linux"
 const isWin = process.platform === "win32"
 const isMac = process.platform === "darwin"
+
+const APP_PROTOCOL = process.env.APP_PROTOCOL || "meta-note"
+const WEBSOCKET_PORT = parseInt(process.env.WEBSOCKET_PORT || "5050", 10)
+const DEV_SERVER_PORT = parseInt(process.env.DEV_SERVER_PORT || "30002", 10)
+const WINDOW_WIDTH = parseInt(process.env.WINDOW_WIDTH || "1200", 10)
+const WINDOW_HEIGHT = parseInt(process.env.WINDOW_HEIGHT || "800", 10)
+
 let mainWindow: InstanceType<typeof BrowserWindow> | null = null
 
 async function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
+        width: WINDOW_WIDTH,
+        height: WINDOW_HEIGHT,
         resizable: true,
         webPreferences: {
             devTools: isDev,
@@ -30,7 +41,7 @@ async function createWindow() {
     remote.enable(mainWindow.webContents)
     // isDev && mainWindow.webContents.openDevTools()
     if (isDev) {
-        await mainWindow.loadURL("http://localhost:30002")
+        await mainWindow.loadURL(`http://localhost:${DEV_SERVER_PORT}`)
     } else {
         await mainWindow.loadFile("dist/index.html")
     }
@@ -53,19 +64,19 @@ app.on("activate", () => {
 })
 // myapp://do/task?id=123
 app.on('open-url', (event, url) => {
-  event.preventDefault()
-  console.log('Received URL:', url)
+    event.preventDefault()
+    console.log('Received URL:', url)
 })
 const args = process.argv
 console.log('Args:', args)
-// E.X. ["electron", ".", "myapp://do/task?id=123"]
-const wss = new WebSocketServer({ port: 5050 })
-console.log('WebSocketServer started on port 5050')
+// E.X. ["electron", ".", "meta-node://do/task?id=123"]
+const wss = new WebSocketServer({ port: WEBSOCKET_PORT })
+console.log(`WebSocketServer started on port ${WEBSOCKET_PORT}`)
 wss.on('connection', ws => {
-  ws.on('message', (data: object) => {
-    console.log('From extension:', data.toString())
-  })
-  ws.send('Hello from meta-note!')
+    ws.on('message', (data: object) => {
+        console.log('From extension:', data.toString())
+    })
+    ws.send(`Hello from ${APP_PROTOCOL}!`)
 })
 
 app.on("window-all-closed", () => {
@@ -74,7 +85,7 @@ app.on("window-all-closed", () => {
 
 void app.whenReady().then(() => {
     function init() {
-        app.setAsDefaultProtocolClient("meta-note")
+        app.setAsDefaultProtocolClient(APP_PROTOCOL)
         void createWindow().catch(err => {
             console.log("创建窗口失败：" + JSON.stringify(err))
         })
@@ -142,4 +153,4 @@ async function mergeVideo(filePaths: string[], outputPath: string): Promise<any>
 
 ipcMain.handle("readFileInDirectory", (event, filePath: string) => Handler.readFileInDirectory(filePath))
 ipcMain.handle("mergeVideo", async (event, videos: string[], outputPath: string) => await mergeVideo(videos, outputPath))
-export {}
+export { }

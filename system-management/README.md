@@ -1,18 +1,40 @@
-# Vue 3 + TypeScript + Vite
+# Meta Note - Electron Application
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+这是一个基于 Electron + React + TypeScript + Vite 构建的桌面应用。
 
-## Recommended IDE Setup
+## 环境配置
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+应用使用环境变量进行配置管理。请按照以下步骤配置：
 
-## Type Support For `.vue` Imports in TS
+### 1. 复制环境变量模板
+```bash
+cp .env.example .env
+```
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+### 2. 编辑环境变量
+编辑 `.env` 文件配置选项
+```
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+## 运行应用
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+### 开发模式
+```bash
+npm run dev
+```
+
+### 构建应用
+```bash
+npm run build
+```
+
+### 启动Electron应用
+```bash
+npm start
+```
+
+## 技术栈
+
+- Electron
+- React
+- TypeScript
+- Vite
