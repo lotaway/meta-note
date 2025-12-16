@@ -3,10 +3,13 @@ import * as remote from "@electron/remote/main"
 import path from "node:path"
 import fs from "node:fs"
 import { WebSocketServer } from 'ws'
-// import childProcess from "child_process"
 import ffmpeg from "fluent-ffmpeg"
 import chatGPTMonitor from "./desktop-chatgpt"
 import dotenv from 'dotenv'
+
+import { llmService } from "./services/llm"
+import { ragService } from "./services/rag_service"
+import { agentService } from "./services/agent_service"
 
 dotenv.config()
 
@@ -39,7 +42,6 @@ async function createWindow() {
     })
     remote.initialize()
     remote.enable(mainWindow.webContents)
-    // isDev && mainWindow.webContents.openDevTools()
     if (isDev) {
         await mainWindow.loadURL(`http://localhost:${DEV_SERVER_PORT}`)
     } else {
@@ -62,14 +64,12 @@ app.on("activate", () => {
         })
     }
 })
-// myapp://do/task?id=123
 app.on('open-url', (event, url) => {
     event.preventDefault()
     console.log('Received URL:', url)
 })
 const args = process.argv
 console.log('Args:', args)
-// E.X. ["electron", ".", "meta-node://do/task?id=123"]
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT })
 console.log(`WebSocketServer started on port ${WEBSOCKET_PORT}`)
 wss.on('connection', ws => {
@@ -79,7 +79,8 @@ wss.on('connection', ws => {
     ws.send(`Hello from ${APP_PROTOCOL}!`)
 })
 
-app.on("window-all-closed", () => {
+app.on("window-all-closed", async () => {
+    await llmService.stop()
     !isMac && app.quit()
 })
 
@@ -90,6 +91,7 @@ void app.whenReady().then(() => {
             console.log("创建窗口失败：" + JSON.stringify(err))
         })
         chatGPTMonitor.setupChatGPTMonitor()
+        llmService.start().catch(err => console.error("Failed to start LLM service:", err))
     }
 
     // 延迟解决莫名其妙的ready未完成问题：https://github.com/electron/electron/issues/16809
@@ -120,8 +122,6 @@ function filename2path(filenames: string[], prevFix: string): string[] {
 }
 
 async function mergeVideo(filePaths: string[], outputPath: string): Promise<any> {
-    // const ffmpegPath = path.join(__dirname, "../lib/ffmpeg.exe")
-    // childProcess.exec(`-f concat -safe 0 -i %s -c copy %s "${outputPath}/file.txt" "${outputPath}/output.mkv"`)
     const ffmpegProcess = ffmpeg()
     filePaths.forEach(videoPath => {
         ffmpegProcess.addInput(videoPath)
@@ -153,4 +153,21 @@ async function mergeVideo(filePaths: string[], outputPath: string): Promise<any>
 
 ipcMain.handle("readFileInDirectory", (event, filePath: string) => Handler.readFileInDirectory(filePath))
 ipcMain.handle("mergeVideo", async (event, videos: string[], outputPath: string) => await mergeVideo(videos, outputPath))
-export { }
+
+ipcMain.handle("llm:completion", async (event, prompt: string) => {
+    return await llmService.completion(prompt)
+})
+
+ipcMain.handle("agent:run", async (event, query: string) => {
+    return await agentService.run(query)
+})
+
+ipcMain.handle("rag:search", async (event, query: string) => {
+    return await ragService.search(query)
+})
+
+ipcMain.handle("rag:add", async (event, content: string, metadata: any) => {
+    return await ragService.addDocument(content, metadata)
+})
+
+export { llmService, ragService, agentService }

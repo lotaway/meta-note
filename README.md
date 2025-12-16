@@ -1,14 +1,10 @@
-![阿卢说他遇到阿玮](https://tvax2.sinaimg.cn/crop.47.138.345.345.180/6b20647bly8fh6rmudt3cj20c80ha40r.jpg)
+# AI元笔记
 
-## Description
+# Description
 
-*本项目为元笔记相关*
+本项目为AI元笔记相关，主要是提供Web UI+ CPP [llama.app](https://github.com/ggml-org/llama.cpp)推理后端
 
 ## Direct 目录说明
 
-* system-management 桌面端管理（管理、笔记、通讯）
+* system-management 桌面端管理（笔记、通讯、rag+vlm+agent+mcp）
 * system-support 系统支持（提供客户端和服务端支持）
-
-### Software 软体端
-
-主要是一些支持库，编译成WASM的形式或者Native库提供底层功能。
