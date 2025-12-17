@@ -1,7 +1,9 @@
-# µİ¹é»ñÈ¡µ±Ç°Ä¿Â¼ÏÂµÄËùÓĞcppºÍhÎÄ¼ş×÷ÎªÔ´ÎÄ¼ş
+# é€’å½’è·å–å½“å‰ç›®å½•ä¸‹çš„æ‰€æœ‰cppå’Œhæ–‡ä»¶ä½œä¸ºæºæ–‡ä»¶
 file(GLOB_RECURSE SOURCES "*.cpp" "*.h")
-# ½«ËùÓĞÔ´ÎÄ¼şÌí¼ÓÎª¿ÉÖ´ĞĞÎÄ¼ş
+# å°†æ‰€æœ‰æºæ–‡ä»¶æ·»åŠ ä¸ºå¯æ‰§è¡Œæ–‡ä»¶
 # add_executable(app ./app/src/main.cpp)
 add_executable(app ${SOURCES})
-# Á´½Ó¿â
-target_link_libraries(app PUBLIC engine Setupapi)
+# æŸ¥æ‰¾ONNX Runtimeåº“
+find_package(ONNXRuntime REQUIRED)
+# é“¾æ¥åº“
+target_link_libraries(app PUBLIC engine Setupapi onnxruntime)

@@ -1,3 +1,6 @@
 [submodule "system-management/fooocu"]
 	path = system-management/fooocu
 	url = https://github.com/lllyasviel/Fooocus.git
+[submodule "system-management/extraREsources/llama.app"]
+	path = system-management/extraREsources/llama.app
+	url = https://github.com/ggml-org/llama.cpp
