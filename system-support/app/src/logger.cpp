@@ -3,72 +3,84 @@
 #include "logger.h"
 using namespace std;
 
-int g_variable = 5;	//	È«¾Ö±äÁ¿£¬½«¿ÉÒÔ±»extern×°ÊÎµÄÍ¬Ãû±äÁ¿ËùÒıÓÃ
+int g_variable = 5; //	å…¨å±€å˜é‡ï¼Œå°†å¯ä»¥è¢«externè£…é¥°çš„åŒåå˜é‡æ‰€å¼•ç”¨
 
-namespace logger {
-	
-	timer::timer(const char* _name) : name(_name) {
+namespace logger
+{
+
+	timer::timer(const char *_name) : name(_name)
+	{
 		start = end = std::chrono::high_resolution_clock::now();
 		duration = end - start;
 	};
-	
-	timer::~timer() {
+
+	timer::~timer()
+	{
 		end = std::chrono::high_resolution_clock::now();
 		duration = end - start;
-		//	Ê¹ÓÃ\nÒ²»á±È<< std::endl¸ü¿ì£¨¿ì5-8ms£©
-		std::cout << name + ':' <<  + duration.count() * 1000.0f << std::endl;
-		//	µ÷ÊÔÊ±×Ô¶¯´¥·¢¶Ïµã
+		//	ä½¿ç”¨\nä¹Ÿä¼šæ¯”<< std::endlæ›´å¿«ï¼ˆå¿«5-8msï¼‰
+		std::cout << name + ':' << +duration.count() * 1000.0f << std::endl;
+		//	è°ƒè¯•æ—¶è‡ªåŠ¨è§¦å‘æ–­ç‚¹
 		__debugbreak();
 	};
 
-	void info::test() {
-
+	void info::test()
+	{
 	}
 
-	void out(const int value) {
+	void out(const int value)
+	{
 		cout << value << endl;
 	}
 
-	void into_file(const char* message) {
+	void into_file(const char *message)
+	{
 		//	record into file
 	}
 
-	// Í¨¹ıÌõ¼şÅĞ¶Ï¾ö¶¨×îºóµ÷ÓÃLOGµÄ´úÂë»á±»Ìæ»»³ÉÃüÁîĞĞÊä³ö»òÕß¿Õ°×£¬¶øÅĞ¶ÏµÄÌõ¼şÍ¬ÑùÍ¨¹ıĞŞ¸ÄºêµÄÖµ¾ö¶¨£¬Ò²¿ÉÒÔÔÚÏîÄ¿ÊôĞÔ¡·C / C++¡·Ô¤´¦ÀíÆ÷¡·Ô¤´¦ÀíÆ÷¶¨ÒåÀï£¬Í¨¹ıÉèÖÃDebugºÍRelease²»Í¬ÅäÖÃ£¬²¢Ìí¼ÓMODE£½1;À´Ö¸¶¨DebugÅäÖÃÏÂÊ¹ÓÃµÄÖµ¡£ÕâÑùµ÷ÊÔDebugÄ£Ê½Ê±¾ÍÄÜÊä³ö£¬¶øµ÷ÊÔRelease»òÕß·¢²¼³ÌĞòÊ±¾Í²»ÓÃ×ÔĞĞĞŞ¸Ä´úÂëÀïµÄMODEÖµ¡£
-	//#define MODE 1
-	#if MODE==1
-	#define modeOut(message) cout << message << endl;
-	#else
-	#define modeOut(message) into_file(message)
-	#endif
+// é€šè¿‡æ¡ä»¶åˆ¤æ–­å†³å®šæœ€åè°ƒç”¨LOGçš„ä»£ç ä¼šè¢«æ›¿æ¢æˆå‘½ä»¤è¡Œè¾“å‡ºæˆ–è€…ç©ºç™½ï¼Œè€Œåˆ¤æ–­çš„æ¡ä»¶åŒæ ·é€šè¿‡ä¿®æ”¹å®çš„å€¼å†³å®šï¼Œä¹Ÿå¯ä»¥åœ¨é¡¹ç›®å±æ€§ã€‹C / C++ã€‹é¢„å¤„ç†å™¨ã€‹é¢„å¤„ç†å™¨å®šä¹‰é‡Œï¼Œé€šè¿‡è®¾ç½®Debugå’ŒReleaseä¸åŒé…ç½®ï¼Œå¹¶æ·»åŠ MODEï¼1;æ¥æŒ‡å®šDebugé…ç½®ä¸‹ä½¿ç”¨çš„å€¼ã€‚è¿™æ ·è°ƒè¯•Debugæ¨¡å¼æ—¶å°±èƒ½è¾“å‡ºï¼Œè€Œè°ƒè¯•Releaseæˆ–è€…å‘å¸ƒç¨‹åºæ—¶å°±ä¸ç”¨è‡ªè¡Œä¿®æ”¹ä»£ç é‡Œçš„MODEå€¼ã€‚
+// #define MODE 1
+#if MODE == 1
+#define modeOut(message) cout << message << endl;
+#else
+#define modeOut(message) into_file(message)
+#endif
 
-	void into_file(std::string message) {
+	void into_file(std::string message)
+	{
 		//	write log into file
 	}
 
-	void out(const char* message) {
+	void out(const char *message)
+	{
 		modeOut(message);
 	}
 
-	void out(const char* message, const char* name) {
+	void out(const char *message, const char *name)
+	{
 		out(name);
 		out(message);
 	}
 
-	void out(const char* message, const int value) {
+	void out(const char *message, const int value)
+	{
 		out(message);
 		out(value);
 	}
 
-	void out(const std::string& message) {
+	void out(const std::string &message)
+	{
 		modeOut(message);
 	}
 
-	void out(const std::string& message, const int value) {
+	void out(const std::string &message, const int value)
+	{
 		out(message);
 		out(value);
 	}
 
-	void out(log_info l_info) {
+	void out(log_info l_info)
+	{
 		out(l_info.message);
 		out(l_info.name);
 	}

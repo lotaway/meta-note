@@ -1,26 +1,26 @@
 #pragma once
 #include <iostream>
-//	std:array ĞèÒª
+//	std:array éœ€è¦
 #include <array>
-//	cout << std::to_string Ê±ĞèÒª£¬°ïÖúint×ªÎªstring
+//	cout << std::to_string æ—¶éœ€è¦ï¼Œå¸®åŠ©intè½¬ä¸ºstring
 #include <string>
-// stringstreamĞèÒª£¬ÓÃÓÚ½«×Ö·ûµÈÄÚÈİÆ´½Ó³É×Ö·û´®
+// stringstreaméœ€è¦ï¼Œç”¨äºå°†å­—ç¬¦ç­‰å†…å®¹æ‹¼æ¥æˆå­—ç¬¦ä¸²
 #include <sstream>
-//	_ptrÖÇÄÜÖ¸ÕëËùĞèÒªÒıÈë
+//	_ptræ™ºèƒ½æŒ‡é’ˆæ‰€éœ€è¦å¼•å…¥
 #include <memory>
-//	std::vector×Ô¶¨ÒåÊı×éĞèÒª
+//	std::vectorè‡ªå®šä¹‰æ•°ç»„éœ€è¦
 #include <vector>
-//	std::functionËùĞè£¬ÓÃÓÚ¶¨Òå»Øµ÷ºÍÒıÓÃº¯Êı
+//	std::functionæ‰€éœ€ï¼Œç”¨äºå®šä¹‰å›è°ƒå’Œå¼•ç”¨å‡½æ•°
 #include <functional>
-//	ÊıÑ§¼ÆËãÏà¹Ø£¬Èçstd::sortÊı×éÅÅĞòºÍstd::max»ñÈ¡×î´óÖµ¡¢uint32_tÀàĞÍ
+//	æ•°å­¦è®¡ç®—ç›¸å…³ï¼Œå¦‚std::sortæ•°ç»„æ’åºå’Œstd::maxè·å–æœ€å¤§å€¼ã€uint32_tç±»å‹
 #include <algorithm>
-//	make_tupleĞèÒª
+//	make_tupleéœ€è¦
 #include <tuple>
-//	Ïß³Ì
+//	çº¿ç¨‹
 #include <thread>
-//	¿ÉÑ¡ÀàĞÍstd::optional
+//	å¯é€‰ç±»å‹std::optional
 #include <optional>
-//	ÎÄ¼ş¶ÁĞ´std::fstream
+//	æ–‡ä»¶è¯»å†™std::fstream
 #include <fstream>
 //	unordered_map, some kind of hashmap
 #include <unordered_map>
@@ -28,7 +28,7 @@
 #include <set>
 //	std::variant, sigle variant with multiple type possible
 #include <variant>
-//	std::any ÈÎÒâÀàĞÍµÄÊı¾İ
+//	std::any ä»»æ„ç±»å‹çš„æ•°æ®
 #include <any>
-//	C++11£¬ÕıÔòÆ¥Åä£ºstd::regex, std::cmatch, std::search_regex
+//	C++11ï¼Œæ­£åˆ™åŒ¹é…ï¼šstd::regex, std::cmatch, std::search_regex
 #include <regex>

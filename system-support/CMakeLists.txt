@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16.3)
-project(software_support)
+project(system_support)
 
-# ÉèÖÃ±àÒë°æ±¾
+# è®¾ç½®ç¼–è¯‘ç‰ˆæœ¬
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Ìí¼Ó×ÓÏîÄ¿
+# æ·»åŠ å­é¡¹ç›®
 add_subdirectory(app)
 add_subdirectory(engine)

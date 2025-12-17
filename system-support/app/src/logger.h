@@ -1,6 +1,7 @@
 #pragma once
 #include "./include/stdafx.h"
-namespace logger {
+namespace logger
+{
 
 #define PROFILING 1
 #if PROFILING
@@ -11,27 +12,30 @@ namespace logger {
 #define PROFILE_FUNCTION()
 #endif
 
-	//	»ù×¼²âÊÔ£¬Í¨¹ıµ÷ÓÃ¼ÆÊ±Æ÷/Êä³öµ½µÚÈı·½¹¤¾ß/×ÔĞĞÊÕ¼¯¼ÇÂ¼·ÖÎö/£¬ÀûÓÃÉúÃüÖÜÆÚÔÚ¹¹Ôìº¯ÊıºÍÎö¹¹º¯ÊıÍê³É³ÖĞøÊ±¼ä¼ÆËã
-	struct timer {
-		const char* name;
+	//	åŸºå‡†æµ‹è¯•ï¼Œé€šè¿‡è°ƒç”¨è®¡æ—¶å™¨/è¾“å‡ºåˆ°ç¬¬ä¸‰æ–¹å·¥å…·/è‡ªè¡Œæ”¶é›†è®°å½•åˆ†æ/ï¼Œåˆ©ç”¨ç”Ÿå‘½å‘¨æœŸåœ¨æ„é€ å‡½æ•°å’Œææ„å‡½æ•°å®ŒæˆæŒç»­æ—¶é—´è®¡ç®—
+	struct timer
+	{
+		const char *name;
 		std::chrono::high_resolution_clock::time_point start, end;
 		std::chrono::duration<float> duration;
-		timer(const char*);
+		timer(const char *);
 		~timer();
 	};
-	struct log_info {
-		char* name;
-		char* message;
+	struct log_info
+	{
+		char *name;
+		char *message;
 		unsigned int result;
 	};
-	class info {
+	class info
+	{
 		void test();
 	};
 	void out(const int);
-	void out(const char*);
-	void out(const char*, const char*);
-	void out(const char*, int);
-	void out(const std::string&);
-	void out(const std::string&, int);
+	void out(const char *);
+	void out(const char *, const char *);
+	void out(const char *, int);
+	void out(const std::string &);
+	void out(const std::string &, int);
 	void out(log_info);
 };

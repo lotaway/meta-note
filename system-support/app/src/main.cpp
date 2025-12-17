@@ -2,27 +2,28 @@
 #include "./include/stdafx.h"
 #include "logger.h"
 #include "utils.h"
-#include "hazel.h"
 #include "./platform/usb.h"
 
 extern "C"
 {
-#include "hello.h"
+#include "hello_c.h"
 }
 
-void test_val() {
-	//	³£Á¿Ö¸Õë£¬ĞÇºÅ×ó²àÓĞconst£¬±íÊ¾ÊÇÖ¸Ïò³£Á¿µÄÖ¸Õë
-	utils::Tree_node const* num1;
-	num1 = new utils::Tree_node{ 1 }; // ĞŞ¸ÄÖ¸Õë£¬¿ÉĞĞ
-	//*num1 = utils::Tree_node{ 1 };	//	ĞŞ¸Ä±äÁ¿£¬²»¿ÉĞĞ
-	// Ö¸Õë³£Á¿£¬ĞÇºÅÓÒ²àÓĞconst¡£±íÊ¾Ö¸ÕëÊÇ³£Á¿
-	utils::Tree_node* const num2 = new utils::Tree_node{ 2 };
-	*num2 = utils::Tree_node{ 2 };	//	ĞŞ¸Ä±äÁ¿£¬¿ÉĞĞ
-	//num2 = new utils::Tree_node{ 2 }; // ĞŞ¸ÄÖ¸Õë£¬²»ĞĞ
-	// ³£Á¿Ö¸Õë³£Á¿£¬±íÊ¾Ö¸Ïò³£Á¿µÄ³£Á¿Ö¸Õë£¬ÎŞÂÛÊÇÖ¸Õë»¹ÊÇ±äÁ¿¶¼²»¿ÉĞŞ¸Ä
-	const utils::Tree_node* const num3 = new utils::Tree_node{ 3 };
+void test_val()
+{
+	//	å¸¸é‡æŒ‡é’ˆï¼Œæ˜Ÿå·å·¦ä¾§æœ‰constï¼Œè¡¨ç¤ºæ˜¯æŒ‡å‘å¸¸é‡çš„æŒ‡é’ˆ
+	utils::Tree_node const *num1;
+	num1 = new utils::Tree_node{1}; // ä¿®æ”¹æŒ‡é’ˆï¼Œå¯è¡Œ
+	//*num1 = utils::Tree_node{ 1 };	//	ä¿®æ”¹å˜é‡ï¼Œä¸å¯è¡Œ
+	// æŒ‡é’ˆå¸¸é‡ï¼Œæ˜Ÿå·å³ä¾§æœ‰constã€‚è¡¨ç¤ºæŒ‡é’ˆæ˜¯å¸¸é‡
+	utils::Tree_node *const num2 = new utils::Tree_node{2};
+	*num2 = utils::Tree_node{2}; //	ä¿®æ”¹å˜é‡ï¼Œå¯è¡Œ
+	// num2 = new utils::Tree_node{ 2 }; // ä¿®æ”¹æŒ‡é’ˆï¼Œä¸è¡Œ
+	//  å¸¸é‡æŒ‡é’ˆå¸¸é‡ï¼Œè¡¨ç¤ºæŒ‡å‘å¸¸é‡çš„å¸¸é‡æŒ‡é’ˆï¼Œæ— è®ºæ˜¯æŒ‡é’ˆè¿˜æ˜¯å˜é‡éƒ½ä¸å¯ä¿®æ”¹
+	const utils::Tree_node *const num3 = new utils::Tree_node{3};
 }
 
-int main() {
+int main()
+{
 	utils::TestGetMinimumBeauty();
 }

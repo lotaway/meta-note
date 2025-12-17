@@ -1,112 +1,123 @@
 #pragma once
 #include "./include/stdafx.h"
-//	std::mutex »¥³âËø
+//	std::mutex äº’æ–¥é”
 #include <mutex>
-//	std::async Òì²½ÈÎÎñ
+//	std::async å¼‚æ­¥ä»»åŠ¡
 #include <future>
-//	stack Õ»ËùĞèÒª
+//	stack æ ˆæ‰€éœ€è¦
 #include <stack>
-//	¾²Ì¬¿â£¬ĞèÒª´ò°üµ½exeÎÄ¼şÖĞ£¬Ğ§ÂÊ¸üºÃ£¬µ«µ¥ÎÄ¼ş¸ü´ó
-//	¶¯Ì¬¿â£¬Ò»°ãÊÇ·ÅÖÃµ½exeÎÄ¼şÅÔ±ß
-//	ÒıÈëÒÀÀµ¿â
-//#include <GLFW/glfw3.h>
-//	ÒıÈë½â¾ö·½°¸ÖĞµÄÆäËûÏîÄ¿
-// emsdkÎŞ·¨Ê¶±ğ£¬Ö»ÄÜÊ¹ÓÃÒıºÅ¼ÓÏà¶ÔÂ·¾¶"../../engine/src/engine.h"£¬³ıÁËcppºÍ±ê×¼¿âÒÔÍâµÄÎÄ¼ş¶¼Ã»ÓĞ±»±àÒë½øÈ¥wasm
+//	é™æ€åº“ï¼Œéœ€è¦æ‰“åŒ…åˆ°exeæ–‡ä»¶ä¸­ï¼Œæ•ˆç‡æ›´å¥½ï¼Œä½†å•æ–‡ä»¶æ›´å¤§
+//	åŠ¨æ€åº“ï¼Œä¸€èˆ¬æ˜¯æ”¾ç½®åˆ°exeæ–‡ä»¶æ—è¾¹
+//	å¼•å…¥ä¾èµ–åº“
+// #include <GLFW/glfw3.h>
+//	å¼•å…¥è§£å†³æ–¹æ¡ˆä¸­çš„å…¶ä»–é¡¹ç›®
+// emsdkæ— æ³•è¯†åˆ«ï¼Œåªèƒ½ä½¿ç”¨å¼•å·åŠ ç›¸å¯¹è·¯å¾„"../../engine/src/engine.h"ï¼Œé™¤äº†cppå’Œæ ‡å‡†åº“ä»¥å¤–çš„æ–‡ä»¶éƒ½æ²¡æœ‰è¢«ç¼–è¯‘è¿›å»wasm
 #include <engine.h>
 #include "logger.h"
 
-namespace utils {
+namespace utils
+{
 	void use_library();
 	void variable_and_log();
-	void increment_with_pointer(int*);
-	void increment_with_reference(int&);
+	void increment_with_pointer(int *);
+	void increment_with_reference(int &);
 	void pointer_and_reference();
 	void local_static_var();
 	void init_static();
 	enum player_level;
-	enum  class player_status;
-	class player {
+	enum class player_status;
+	class player
+	{
 	private:
 		player_level m_level;
 		player_status m_status;
+
 	public:
 		int m_positionX, m_positionY;
 		int m_speed;
-		//	¹¹Ôìº¯Êı£¬ÊµÀı»¯Ê±µ÷ÓÃµÄ·½·¨£¬Ãû³ÆºÍÀàÃûÒ»Ñù£¬ĞèÒª³õÊ¼»¯ËùÓĞµÄÊµÀı±äÁ¿
-		//	explicit¹Ø¼ü×Ö½ûÖ¹ÒşĞÔ×ª»»£¬ÈçPlayer player = PlayerLevel_EntryLevel;
+		//	æ„é€ å‡½æ•°ï¼Œå®ä¾‹åŒ–æ—¶è°ƒç”¨çš„æ–¹æ³•ï¼Œåç§°å’Œç±»åä¸€æ ·ï¼Œéœ€è¦åˆå§‹åŒ–æ‰€æœ‰çš„å®ä¾‹å˜é‡
+		//	explicitå…³é”®å­—ç¦æ­¢éšæ€§è½¬æ¢ï¼Œå¦‚Player player = PlayerLevel_EntryLevel;
 		explicit player(player_level);
-		//	´İ»ÙÀàÊµÀıÊ±µ÷ÓÃµÄ·½·¨£¬Ãû³ÆÎª¡¾~ÀàÃû¡¿
+		//	æ‘§æ¯ç±»å®ä¾‹æ—¶è°ƒç”¨çš„æ–¹æ³•ï¼Œåç§°ä¸ºã€~ç±»åã€‘
 		virtual ~player();
 		void move(int, int);
 	};
-	//	ÖØÔØ²Ù×÷·û
-	class vec2 {
+	//	é‡è½½æ“ä½œç¬¦
+	class vec2
+	{
 	public:
 		float m_x, m_y;
 		vec2(float, float);
-		vec2 add(const vec2&) const;
-		//	ÖØÔØ²Ù×÷·û¼ÓºÅ
-		vec2 operator+(const vec2&) const;
-		vec2 multiply(const vec2&) const;
-		//	ÖØÔØ²Ù×÷·û³ËºÅ
-		vec2 operator*(const vec2&) const;
-		bool is_equal(const vec2&) const;
-		//	ÖØÔØÏàµÈ²Ù×÷·û
-		bool operator==(const vec2&) const;
+		vec2 add(const vec2 &) const;
+		//	é‡è½½æ“ä½œç¬¦åŠ å·
+		vec2 operator+(const vec2 &) const;
+		vec2 multiply(const vec2 &) const;
+		//	é‡è½½æ“ä½œç¬¦ä¹˜å·
+		vec2 operator*(const vec2 &) const;
+		bool is_equal(const vec2 &) const;
+		//	é‡è½½ç›¸ç­‰æ“ä½œç¬¦
+		bool operator==(const vec2 &) const;
 	};
 
-	class vec4 {
+	class vec4
+	{
 	public:
-		//	Ê¹ÓÃ»¨À¨ºÅ³õÊ¼»¯ÒıÓÃµÄÀà
-		vec2 vec{ 2.0f,2.0f };
-		vec2& get_vec2();
+		//	ä½¿ç”¨èŠ±æ‹¬å·åˆå§‹åŒ–å¼•ç”¨çš„ç±»
+		vec2 vec{2.0f, 2.0f};
+		vec2 &get_vec2();
 	};
-	void fastMove(player&, int, int);
-	//	struct ÊÇÎªÁË¼æÈİcÓï·¨£¬ÓëclassµÄÇø±ğÖ»ÓĞstructÄÚµÄÖµÄ¬ÈÏÊÇpublic£¬¶øclassÄ¬ÈÏ¶¼ÊÇprivate
-	struct normal_person {
+	void fastMove(player &, int, int);
+	//	struct æ˜¯ä¸ºäº†å…¼å®¹cè¯­æ³•ï¼Œä¸classçš„åŒºåˆ«åªæœ‰structå†…çš„å€¼é»˜è®¤æ˜¯publicï¼Œè€Œclassé»˜è®¤éƒ½æ˜¯private
+	struct normal_person
+	{
 		int m_positionX, m_positionY;
 		int m_speed;
-		player* m_like;
+		player *m_like;
 		void move(int, int);
-		void follow(player&);
+		void follow(player &);
 	};
-	//	·ÃÎÊĞŞÊÎ·û
-	class trainer {
-		//	Ö»ÄÜ´ËÀàµ÷ÓÃ
+	//	è®¿é—®ä¿®é¥°ç¬¦
+	class trainer
+	{
+		//	åªèƒ½æ­¤ç±»è°ƒç”¨
 	private:
 		int m_runLevel;
 		int m_runNumber;
-		//	¿É±»´ËÀàºÍ¼Ì³ĞÀàµ÷ÓÃ
+		//	å¯è¢«æ­¤ç±»å’Œç»§æ‰¿ç±»è°ƒç”¨
 	protected:
 		int m_age;
 		int m_sex;
-		//	ËùÓĞ´úÂë¶¼¿Éµ÷ÓÃ
+		//	æ‰€æœ‰ä»£ç éƒ½å¯è°ƒç”¨
 	public:
 		trainer(int, int, int);
 	};
 
-	//	Í¨¹ıĞéº¯ÊıÊµÏÖ³éÏóÀà/½Ó¿Ú
-	class runner {
+	//	é€šè¿‡è™šå‡½æ•°å®ç°æŠ½è±¡ç±»/æ¥å£
+	class runner
+	{
 	public:
 		virtual void run() = 0;
 	};
 
-	//	¼Ì³Ğ
-	class racer : public runner {
+	//	ç»§æ‰¿
+	class racer : public runner
+	{
 	public:
 		char m_cup;
 		int m_rank;
-		//	³õÊ¼»¯ÁĞ±íĞÎÊ½µÄ¹¹Ôìº¯Êı
-		racer(const char&, int);
+		//	åˆå§‹åŒ–åˆ—è¡¨å½¢å¼çš„æ„é€ å‡½æ•°
+		racer(const char &, int);
 		void run() override;
 	};
 
-	class winner : public racer {
+	class winner : public racer
+	{
 	public:
 		std::string get_news();
 	};
 
-	class init_static {
+	class init_static
+	{
 	public:
 		static const int s_defaultSpeed = 2;
 		static int s_maxSpeed;
@@ -116,17 +127,19 @@ namespace utils {
 
 	void init_array();
 
-	void print_string(const std::string&);
+	void print_string(const std::string &);
 
 	void init_string();
 
-	class only_read_fn {
+	class only_read_fn
+	{
 	private:
 		int m_x;
 		mutable int getCount;
+
 	public:
 		only_read_fn();
-		//	Ê¹ÓÃconstÔÚÎ²²¿½«º¯Êı±ê¼ÇÎª²»»áĞŞ¸ÄÀà
+		//	ä½¿ç”¨conståœ¨å°¾éƒ¨å°†å‡½æ•°æ ‡è®°ä¸ºä¸ä¼šä¿®æ”¹ç±»
 		const int get_x() const;
 	};
 
@@ -134,36 +147,44 @@ namespace utils {
 
 	void init_calculate();
 
-	int* createArray();
+	int *createArray();
 
-	//	ÀûÓÃÕ»ÀàÀ´´İ»Ù¶ÑÀà
-	class entity {
+	//	åˆ©ç”¨æ ˆç±»æ¥æ‘§æ¯å †ç±»
+	class entity
+	{
 	public:
 		void dododo();
 	};
 
-	class scope_entity {
+	class scope_entity
+	{
 	private:
-		entity* m_entity;
+		entity *m_entity;
+
 	public:
-		//	¹¹Ôìº¯Êı£¬´«Èë¶ÑÉÏµÄÊµÀıentity
-		scope_entity(entity* e): m_entity(e) {
-		};
-		//	Îö¹¹º¯Êı£¬É¾³ı¶ÑÉÏµÄÊµÀıentity
-		virtual ~scope_entity() {
+		//	æ„é€ å‡½æ•°ï¼Œä¼ å…¥å †ä¸Šçš„å®ä¾‹entity
+		scope_entity(entity *e) : m_entity(e) {
+								  };
+		//	ææ„å‡½æ•°ï¼Œåˆ é™¤å †ä¸Šçš„å®ä¾‹entity
+		virtual ~scope_entity()
+		{
 			delete m_entity;
 		}
-		//	¸´ÖÆ¹¹Ôìº¯Êı£¬ÓÃÓÚ´¦Àí¸´ÖÆÊ±µÄÇé¿ö£¬ĞèÒªÖØĞÂ´´½¨Ò»¸ö¶ÑÊµÀıentity
-		scope_entity(const scope_entity& other): scope_entity(other.m_entity) {
+		//	å¤åˆ¶æ„é€ å‡½æ•°ï¼Œç”¨äºå¤„ç†å¤åˆ¶æ—¶çš„æƒ…å†µï¼Œéœ€è¦é‡æ–°åˆ›å»ºä¸€ä¸ªå †å®ä¾‹entity
+		scope_entity(const scope_entity &other) : scope_entity(other.m_entity)
+		{
 		}
-		//	ÒÆ¶¯¹¹Ôìº¯Êı
-		scope_entity(scope_entity&& other) noexcept: m_entity(std::exchange(other.m_entity, nullptr)) {
+		//	ç§»åŠ¨æ„é€ å‡½æ•°
+		scope_entity(scope_entity &&other) noexcept : m_entity(std::exchange(other.m_entity, nullptr))
+		{
 		}
-		//	¸´ÖÆ¸³Öµ£¬¸³ÖµÊ±ĞèÒª½øĞĞÔ­µØÖ·µÄÎö¹¹ºÍ¶ÔĞÂµØÖ·¸´ÖÆ¹¹Ôì
-		scope_entity& operator=(const scope_entity& other) {
+		//	å¤åˆ¶èµ‹å€¼ï¼Œèµ‹å€¼æ—¶éœ€è¦è¿›è¡ŒåŸåœ°å€çš„ææ„å’Œå¯¹æ–°åœ°å€å¤åˆ¶æ„é€ 
+		scope_entity &operator=(const scope_entity &other)
+		{
 			return *this = scope_entity(other);
 		}
-		scope_entity& operator=(scope_entity&& other) noexcept {
+		scope_entity &operator=(scope_entity &&other) noexcept
+		{
 			std::swap(m_entity, other.m_entity);
 			return *this;
 		}
@@ -173,116 +194,131 @@ namespace utils {
 
 	void init_intelligence_pointer();
 
-	class ss {
+	class ss
+	{
 	private:
-		char* m_buffer;
+		char *m_buffer;
 		unsigned int m_size;
+
 	public:
-		ss(const char*);
-		//	¿½±´Ê±»áµ÷ÓÃµÄ¹¹Ôìº¯Êı
-		ss(const ss&);
+		ss(const char *);
+		//	æ‹·è´æ—¶ä¼šè°ƒç”¨çš„æ„é€ å‡½æ•°
+		ss(const ss &);
 		virtual ~ss();
-		void print() const {
+		void print() const
+		{
 			std::cout << m_buffer << std::endl;
 		}
-		char& operator[](unsigned int index) {
+		char &operator[](unsigned int index)
+		{
 			return m_buffer[index];
 		}
-		//	ÓÑÔª·½·¨ÉùÃ÷£¬¿ÉÈÃË½ÓĞ±äÁ¿Ò²±»Íâ²¿º¯Êıµ÷ÓÃ
-		friend void fri(ss&, const char*);
+		//	å‹å…ƒæ–¹æ³•å£°æ˜ï¼Œå¯è®©ç§æœ‰å˜é‡ä¹Ÿè¢«å¤–éƒ¨å‡½æ•°è°ƒç”¨
+		friend void fri(ss &, const char *);
 	};
 
-	//	ÓÑÔª·½·¨¶¨Òå£¬¿ÉÒÔµ÷ÓÃÉùÃ÷´¦µÄÊµÀıË½ÓĞÊôĞÔ
-	void fri(ss&, const char*);
+	//	å‹å…ƒæ–¹æ³•å®šä¹‰ï¼Œå¯ä»¥è°ƒç”¨å£°æ˜å¤„çš„å®ä¾‹ç§æœ‰å±æ€§
+	void fri(ss &, const char *);
 
 	void string_copy();
 
-	class origin {
+	class origin
+	{
 	public:
 		void print() const;
 	};
 
-	class spec_pointer {
+	class spec_pointer
+	{
 	private:
-		origin* m_origin;
+		origin *m_origin;
+
 	public:
-		spec_pointer(origin*);
-		const origin* operator->() const;
+		spec_pointer(origin *);
+		const origin *operator->() const;
 	};
 
 	void arrow_point();
 
-	struct vex2 {
+	struct vex2
+	{
 		float x, y;
 		vex2(float, float);
 	};
 
-	template<typename _vector>
-	void print_vector(const std::vector<_vector>&);
+	template <typename _vector>
+	void print_vector(const std::vector<_vector> &);
 
 	void init_vector();
 
-	//	Í¨¹ıÁªºÏÌåÉèÖÃ¹²ÏíÄÚ´æµØÖ·µÄË«¹ØÀàĞÍ£¬ÀıÈçÏÂÃæµÄ4¸ö¸¡¶¯ÀàĞÍ¿ÉÒÔÌæ»»³É2¸öVexÀàĞÍ£¨ÒòÎªVexÊÇ2¸ö¸¡¶¯ÀàĞÍ£©
-	union vex4 {
-		struct {
+	//	é€šè¿‡è”åˆä½“è®¾ç½®å…±äº«å†…å­˜åœ°å€çš„åŒå…³ç±»å‹ï¼Œä¾‹å¦‚ä¸‹é¢çš„4ä¸ªæµ®åŠ¨ç±»å‹å¯ä»¥æ›¿æ¢æˆ2ä¸ªVexç±»å‹ï¼ˆå› ä¸ºVexæ˜¯2ä¸ªæµ®åŠ¨ç±»å‹ï¼‰
+	union vex4
+	{
+		struct
+		{
 			float p1, p2, p3, p4;
 		};
-		struct {
+		struct
+		{
 			vex2 a, b;
 		};
 	};
 
 	void init_union();
 
-	//	ÕûĞÍºÍË«ÖØ¾«¶È¸¡¶¯ĞÍÒ²ÊÇË«¹ØÀàĞÍ£¬¿ÉÉèÖÃÎªÁªºÏÌå
-	union number_value {
+	//	æ•´å‹å’ŒåŒé‡ç²¾åº¦æµ®åŠ¨å‹ä¹Ÿæ˜¯åŒå…³ç±»å‹ï¼Œå¯è®¾ç½®ä¸ºè”åˆä½“
+	union number_value
+	{
 		int nvi;
 		double nvd;
 	};
-	//	Êµ¼ùÖĞ»áÊ¹ÓÃÀàËÆxyz¿Õ¼ä×ø±êÍ¬Ê±´ú±írgbÑÕÉ«Ê¹ÓÃ
+	//	å®è·µä¸­ä¼šä½¿ç”¨ç±»ä¼¼xyzç©ºé—´åæ ‡åŒæ—¶ä»£è¡¨rgbé¢œè‰²ä½¿ç”¨
 
-	//	ÓÃÓÚ¶à·µ»ØÖµµÄstruct
-	struct return_struct {
+	//	ç”¨äºå¤šè¿”å›å€¼çš„struct
+	struct return_struct
+	{
 		std::string x;
 		std::string y;
 		int z;
 	};
 
-	//	ÀûÓÃstruct¶à·µ»ØÖµ
+	//	åˆ©ç”¨structå¤šè¿”å›å€¼
 	return_struct return_mutiply_struct();
 
-	//	ÓÃÓÚ´«µİ¶à¸öÒıÓÃ²ÎÊı²¢¶à·µ»ØÖµ
-	void return_params(std::string&, std::string&, int&);
+	//	ç”¨äºä¼ é€’å¤šä¸ªå¼•ç”¨å‚æ•°å¹¶å¤šè¿”å›å€¼
+	void return_params(std::string &, std::string &, int &);
 
-	//	ÓÃÓÚÊı×é¶à·µ»ØÖµ
+	//	ç”¨äºæ•°ç»„å¤šè¿”å›å€¼
 	std::array<std::string, 2> return_array();
 
-	//	·µ»Ø×Ô¶¨ÒåµÄ¶à·µ»ØÖµ
+	//	è¿”å›è‡ªå®šä¹‰çš„å¤šè¿”å›å€¼
 	std::tuple<std::string, std::string, int> return_tuple();
 
-	//	¶à·µ»ØÖµ·½·¨£º1¡¢struct£»2¡¢´«µİÒıÓÃ²ÎÊıÔÙ¸³Öµ£»3¡¢·µ»ØÊı×é£»4¡¢tuple¶¨Òå¶à¸ö²»Í¬ÀàĞÍÖµ¡£
+	//	å¤šè¿”å›å€¼æ–¹æ³•ï¼š1ã€structï¼›2ã€ä¼ é€’å¼•ç”¨å‚æ•°å†èµ‹å€¼ï¼›3ã€è¿”å›æ•°ç»„ï¼›4ã€tupleå®šä¹‰å¤šä¸ªä¸åŒç±»å‹å€¼ã€‚
 	void init_return();
 
-	//	template¿ÉÒÔÍ¨¹ıÖ¸¶¨·ºĞÍÀ´¼õÉÙÎŞÎ½µÄº¯ÊıÖØÔØ¶¨Òå
-	template<typename first_param>
+	//	templateå¯ä»¥é€šè¿‡æŒ‡å®šæ³›å‹æ¥å‡å°‘æ— è°“çš„å‡½æ•°é‡è½½å®šä¹‰
+	template <typename first_param>
 	void template1(first_param param);
 
-	//	template¶¨ÒåÀàÀïµÄ±äÁ¿ÀàĞÍºÍÊı×é´óĞ¡
-	template<typename _arr, int size>
-	class sarray {
+	//	templateå®šä¹‰ç±»é‡Œçš„å˜é‡ç±»å‹å’Œæ•°ç»„å¤§å°
+	template <typename _arr, int size>
+	class sarray
+	{
 	private:
 		_arr arr[size];
+
 	public:
 		int getSize() const;
 	};
 
 	void initTemplate();
 
-	template<typename _value>
-	//	Èç¹ûĞÎ²ÎÀï¶¨ÒåµÄ»Øµ÷º¯ÊıÊÇÄäÃûÀàĞÍ»áµ¼ÖÂlambdaÎŞ·¨Ê¹ÓÃ[]²¶»ñ×÷ÓÃÓò±äÁ¿£¬»á±¨´í²ÎÊı²»·ûºÏ
-	//void each(const std::vector<Value>& values, void(*handler)(Value));
-	//	ĞÎ²ÎÀïÓÃ±ê×¼¿â·½·¨Ä£°å¶¨Òå»Øµ÷º¯ÊıÀàĞÍ£¬lambda²ÅÄÜÊ¹ÓÃ[]²¶»ñ×÷ÓÃÓò±äÁ¿
-	void each(const std::vector<_value>&, const std::function<void(_value)>&);
+	template <typename _value>
+	//	å¦‚æœå½¢å‚é‡Œå®šä¹‰çš„å›è°ƒå‡½æ•°æ˜¯åŒ¿åç±»å‹ä¼šå¯¼è‡´lambdaæ— æ³•ä½¿ç”¨[]æ•è·ä½œç”¨åŸŸå˜é‡ï¼Œä¼šæŠ¥é”™å‚æ•°ä¸ç¬¦åˆ
+	// void each(const std::vector<Value>& values, void(*handler)(Value));
+	//	å½¢å‚é‡Œç”¨æ ‡å‡†åº“æ–¹æ³•æ¨¡æ¿å®šä¹‰å›è°ƒå‡½æ•°ç±»å‹ï¼Œlambdaæ‰èƒ½ä½¿ç”¨[]æ•è·ä½œç”¨åŸŸå˜é‡
+	void each(const std::vector<_value> &, const std::function<void(_value)> &);
 
 	void init_auto();
 
@@ -306,22 +342,23 @@ namespace utils {
 
 	void testCheckPassword();
 
-	struct Tree_node {
+	struct Tree_node
+	{
 		int val;
-		std::vector<Tree_node*> children;
+		std::vector<Tree_node *> children;
 		Tree_node(int val)
 			: val(val) {}
-		Tree_node(int val, std::vector<Tree_node*>& children)
+		Tree_node(int val, std::vector<Tree_node *> &children)
 			: val(val), children(children) {}
 	};
 
-	std::vector<int> tree_node_to_array(Tree_node*);
+	std::vector<int> tree_node_to_array(Tree_node *);
 
 	void test_tree_node2array();
 
 	void testQuickSort();
 
-	double findMedianSortedArrays(std::vector<int>&, std::vector<int>&);
+	double findMedianSortedArrays(std::vector<int> &, std::vector<int> &);
 
 	void initFindMedianSortedArrays();
 
@@ -357,15 +394,15 @@ namespace utils {
 
 	void test_count_time();
 
-	std::vector<int> add_negabinary(std::vector<int>&, std::vector<int>&);
+	std::vector<int> add_negabinary(std::vector<int> &, std::vector<int> &);
 
 	void test_add_negabinary();
 
-	bool regex_match(const std::string&, const std::string&);
+	bool regex_match(const std::string &, const std::string &);
 
 	void test_regex_match();
 
-	int GetMinimumBeauty(std::vector<int>&, int);
+	int GetMinimumBeauty(std::vector<int> &, int);
 
 	void TestGetMinimumBeauty();
 }

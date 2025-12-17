@@ -7,4 +7,4 @@
 ## Direct 目录说明
 
 * system-management 桌面端管理（笔记、通讯、rag+vlm+agent+mcp）
-* system-support 系统支持（提供客户端和服务端支持）
+* system-support 系统支持（提供客户端和服务端支持），主要用于为软件提供ONNX或者Node API支持
