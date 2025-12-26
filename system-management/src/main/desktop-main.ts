@@ -6,6 +6,7 @@ import { WebSocketServer } from 'ws'
 import ffmpeg from "fluent-ffmpeg"
 import chatGPTMonitor from "./desktop-chatgpt"
 import dotenv from 'dotenv'
+import { IPC_CHANNELS } from "./constants"
 
 import { llmService } from "./services/llm"
 import { ragService } from "./services/rag_service"
@@ -181,11 +182,11 @@ ipcMain.handle("rag:add", async (event, content: string, metadata: any) => {
     return await ragService.addDocument(content, metadata)
 })
 
-ipcMain.handle("open-chatgpt-window", () => {
+ipcMain.handle(IPC_CHANNELS.OPEN_CHATGPT_WINDOW, () => {
     chatGPTMonitor.setupChatGPTMonitor()
 })
 
-ipcMain.handle("open-external-login", () => {
+ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
     chatGPTMonitor.openExternalLogin()
 })
 

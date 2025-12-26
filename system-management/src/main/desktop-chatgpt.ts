@@ -1,6 +1,7 @@
 import { BrowserWindow, session, shell } from 'electron'
 import http from 'node:http'
 import { EventEmitter } from 'node:events'
+import { CHATGPT_CONSTANTS } from './constants'
 
 interface ConversationEvent {
   message?: {
@@ -11,14 +12,12 @@ interface ConversationEvent {
   }
 }
 
-const HOST = "https://chatgpt.com"
-
 export function setSessionToken(token: string) {
   const cookie = {
-    url: HOST,
-    name: '__Secure-next-auth.session-token',
+    url: CHATGPT_CONSTANTS.CHATGPT_HOST,
+    name: CHATGPT_CONSTANTS.SESSION_COOKIE_NAME,
     value: token,
-    domain: '.chatgpt.com',
+    domain: CHATGPT_CONSTANTS.COOKIE_DOMAIN,
     path: '/',
     secure: true,
     httpOnly: true,
@@ -28,7 +27,7 @@ export function setSessionToken(token: string) {
   session.defaultSession.cookies.set(cookie).then(() => {
     console.log('[ChatGPT] Session token applied successfully')
     if (monitorWindow) {
-      monitorWindow.loadURL(HOST)
+      monitorWindow.loadURL(CHATGPT_CONSTANTS.CHATGPT_HOST)
     }
   }).catch(err => {
     console.error('[ChatGPT] Failed to set cookie:', err)
@@ -36,10 +35,12 @@ export function setSessionToken(token: string) {
 }
 
 export function openExternalLogin() {
-  shell.openExternal(`${HOST}/auth/login`)
+  shell.openExternal(`${CHATGPT_CONSTANTS.CHATGPT_HOST}/auth/login`)
 }
 
-import injectScript from './chatgpt-inject.js?raw'
+import rawInjectScript from './chatgpt-inject.js?raw'
+
+const injectScript = rawInjectScript.replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX);
 
 const eventBus = new EventEmitter()
 let monitorWindow: BrowserWindow | null = null
@@ -52,8 +53,8 @@ export function setupChatGPTMonitor() {
   }
 
   monitorWindow = new BrowserWindow({
-    width: 1000,
-    height: 800,
+    width: 1200,
+    height: 900,
     title: 'ChatGPT Monitor',
     webPreferences: {
       nodeIntegration: false,
@@ -66,11 +67,10 @@ export function setupChatGPTMonitor() {
   })
 
   monitorWindow.webContents.on('console-message', (event, level, message) => {
-    if (message.startsWith('SSE_RAW:')) {
-      const base64Data = message.substring(8)
+    if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
+      const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
       try {
         const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-        // console.log('[ChatGPT Monitor] Chunk received:', rawChunk.substring(0, 50) + '...')
         eventBus.emit('sse-chunk', rawChunk)
       } catch (e) {
         console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
@@ -89,7 +89,7 @@ export function setupChatGPTMonitor() {
   monitorWindow.webContents.on('did-finish-load', inject)
   monitorWindow.webContents.on('did-navigate', inject)
 
-  monitorWindow.loadURL(HOST)
+  monitorWindow.loadURL(CHATGPT_CONSTANTS.CHATGPT_HOST)
 
   startLocalServer()
 }
@@ -109,78 +109,73 @@ function startLocalServer() {
       return
     }
 
-    if (req.url === '/chat/completions' && req.method === 'POST') {
-      let body = ''
-      req.on('data', chunk => { body += chunk })
-      req.on('end', async () => {
-        try {
-          const { prompt } = JSON.parse(body)
-          if (!prompt) {
-            res.writeHead(400)
-            res.end('Missing prompt')
-            return
-          }
-
-          if (!monitorWindow) {
-            res.writeHead(500)
-            res.end('ChatGPT window not initialized. Please click the button in UI first.')
-            return
-          }
-
-          console.log('[API] New prompt request received:', prompt.substring(0, 50) + '...')
-
-          res.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'
-          })
-
-          const onChunk = (chunk: string) => {
-            res.write(chunk)
-            if (chunk.includes('[DONE]')) {
-              console.log('[API] Response finished ([DONE] received)')
-              cleanup()
-            }
-          }
-
-          const cleanup = () => {
-            eventBus.off('sse-chunk', onChunk)
-            if (!res.writableEnded) {
-              res.end()
-            }
-          }
-
-          eventBus.on('sse-chunk', onChunk)
-          try {
-            const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
-            if (!result.success) {
-              console.error('[API] Automation failed:', result.error)
-              res.write(`data: {"error": "${result.error}"}\n\n`)
-              cleanup()
-            }
-          } catch (error: any) {
-            console.error('[API] Execution failed:', error)
-            res.write(`data: {"error": "Execution failed: ${error.message}"}\n\n`)
-            cleanup()
-          }
-
-          req.on('close', () => {
-              console.log('[API] Client disconnected')
-              cleanup()
-          })
-        } catch (err) {
-          console.error('[API] Internal error:', err)
-          if (!res.headersSent) {
-            res.writeHead(500)
-          }
-          res.end(String(err))
-        }
-      })
-    } else {
+    if (req.url !== '/chat/completions' || req.method !== 'POST') {
       res.writeHead(404)
       res.end('Not Found')
+      return;
     }
+    let body = ''
+    req.on('data', chunk => { body += chunk })
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body)
+        let prompt = payload.prompt
+        if (!prompt && payload.messages && Array.isArray(payload.messages)) {
+          const lastMsg = payload.messages[payload.messages.length - 1]
+          prompt = lastMsg.content
+        }
+
+        if (!prompt) {
+          res.writeHead(400)
+          res.end(JSON.stringify({ error: 'Missing prompt or messages' }))
+          return
+        }
+
+        if (!monitorWindow) {
+          res.writeHead(500)
+          res.end(JSON.stringify({ error: 'ChatGPT window not initialized' }))
+          return
+        }
+
+        console.log('[API] Processing prompt:', prompt.substring(0, 50) + '...')
+
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'X-Accel-Buffering': 'no'
+        })
+
+        const onChunk = (chunk: string) => {
+          res.write(chunk)
+          if (chunk.includes('[DONE]')) {
+            cleanup()
+          }
+        }
+
+        const cleanup = () => {
+          eventBus.off('sse-chunk', onChunk)
+          if (!res.writableEnded) {
+            res.end()
+          }
+        }
+
+        eventBus.on('sse-chunk', onChunk)
+
+        const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
+        if (!result.success) {
+          console.error('[API] Automation result:', result.error)
+          res.write(`data: {"error": "${result.error}"}\n\n`)
+          cleanup()
+        }
+
+        req.on('close', cleanup)
+      } catch (err: any) {
+        console.error('[API] Server Error:', err)
+        if (!res.headersSent) res.writeHead(500)
+        res.end(String(err))
+      }
+    })
   })
 
   server.listen(PORT, () => {

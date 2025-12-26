@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron"
 import os from "os"
+import { IPC_CHANNELS } from "./constants"
 
 type ReceiveFn = (...args: any) => void
 
@@ -17,10 +18,10 @@ const desktopFn = {
         return os.networkInterfaces()
     },
     openChatGPTWindow: () => {
-        return ipcRenderer.invoke('open-chatgpt-window')
+        return ipcRenderer.invoke(IPC_CHANNELS.OPEN_CHATGPT_WINDOW)
     },
     openExternalLogin: () => {
-        return ipcRenderer.invoke('open-external-login')
+        return ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN)
     }
 }
 
@@ -31,8 +32,8 @@ if (process.contextIsolated) {
     window.desktop = desktopFn
 }
 
-export {}
+export { }
 window.addEventListener("DOMContentLoaded", () => {
 
 })
-export {}
+export { }
