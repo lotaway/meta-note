@@ -70,16 +70,24 @@ export function setupChatGPTMonitor() {
       const base64Data = message.substring(8)
       try {
         const rawChunk = decodeURIComponent(escape(atob(base64Data)))
+        // console.log('[ChatGPT Monitor] Chunk received:', rawChunk.substring(0, 50) + '...')
         eventBus.emit('sse-chunk', rawChunk)
       } catch (e) {
-        console.error('Failed to decode raw chunk:', e)
+        console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
       }
+    } else {
+      console.log(`[ChatGPT Web] ${message}`)
     }
   })
 
-  monitorWindow.webContents.on('did-finish-load', () => {
-    monitorWindow?.webContents.executeJavaScript(injectScript).catch(console.error)
-  })
+  const inject = () => {
+    monitorWindow?.webContents.executeJavaScript(injectScript)
+      .then(() => console.log('[ChatGPT Monitor] Injection success'))
+      .catch(err => console.error('[ChatGPT Monitor] Injection failed:', err))
+  }
+
+  monitorWindow.webContents.on('did-finish-load', inject)
+  monitorWindow.webContents.on('did-navigate', inject)
 
   monitorWindow.loadURL(HOST)
 
@@ -115,39 +123,57 @@ function startLocalServer() {
 
           if (!monitorWindow) {
             res.writeHead(500)
-            res.end('ChatGPT window not initialized')
+            res.end('ChatGPT window not initialized. Please click the button in UI first.')
             return
           }
+
+          console.log('[API] New prompt request received:', prompt.substring(0, 50) + '...')
 
           res.writeHead(200, {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive'
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'
           })
 
           const onChunk = (chunk: string) => {
             res.write(chunk)
             if (chunk.includes('[DONE]')) {
+              console.log('[API] Response finished ([DONE] received)')
               cleanup()
             }
           }
 
           const cleanup = () => {
             eventBus.off('sse-chunk', onChunk)
-            if (!res.writableEnded) res.end()
+            if (!res.writableEnded) {
+              res.end()
+            }
           }
 
           eventBus.on('sse-chunk', onChunk)
-
-          const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
-          if (!result.success) {
-            res.write(`data: {"error": "${result.error}"}\n\n`)
+          try {
+            const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
+            if (!result.success) {
+              console.error('[API] Automation failed:', result.error)
+              res.write(`data: {"error": "${result.error}"}\n\n`)
+              cleanup()
+            }
+          } catch (error: any) {
+            console.error('[API] Execution failed:', error)
+            res.write(`data: {"error": "Execution failed: ${error.message}"}\n\n`)
             cleanup()
           }
 
-          req.on('close', cleanup)
+          req.on('close', () => {
+              console.log('[API] Client disconnected')
+              cleanup()
+          })
         } catch (err) {
-          res.writeHead(500)
+          console.error('[API] Internal error:', err)
+          if (!res.headersSent) {
+            res.writeHead(500)
+          }
           res.end(String(err))
         }
       })
