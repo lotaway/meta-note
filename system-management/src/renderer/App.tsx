@@ -61,6 +61,26 @@ export default function App() {
           >
             Open ChatGPT Monitor
           </button>
+          <button 
+            className="premium-button"
+            onClick={() => (window as any).desktop.openExternalLogin()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#4285f4',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              marginLeft: '10px',
+              boxShadow: '0 2px 10px rgba(66, 133, 244, 0.3)'
+            }}
+          >
+            Google Login (System Browser)
+          </button>
+        </div>
+        <div style={{ color: '#666', fontSize: '12px', marginBottom: '20px' }}>
+          * If Google login fails in Electron, use the button above to login in your system browser.
         </div>
         <Files2video>
         </Files2video>

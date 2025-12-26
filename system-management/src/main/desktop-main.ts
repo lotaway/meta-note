@@ -37,7 +37,7 @@ async function createWindow() {
             devTools: isDev,
             nodeIntegration: true,
             contextIsolation: false,
-            preload: path.join(__dirname, "./preload.js")
+            preload: path.join(__dirname, "../preload/preload.js")
         }
     })
     remote.initialize()
@@ -67,6 +67,17 @@ app.on("activate", () => {
 app.on('open-url', (event, url) => {
     event.preventDefault()
     console.log('Received URL:', url)
+    try {
+        const u = new URL(url)
+        if (u.protocol === `${APP_PROTOCOL}:` && u.host === 'auth') {
+            const token = u.searchParams.get('token')
+            if (token) {
+                chatGPTMonitor.setSessionToken(token)
+            }
+        }
+    } catch (e) {
+        console.error('Failed to parse incoming URL:', e)
+    }
 })
 const args = process.argv
 console.log('Args:', args)
@@ -172,6 +183,10 @@ ipcMain.handle("rag:add", async (event, content: string, metadata: any) => {
 
 ipcMain.handle("open-chatgpt-window", () => {
     chatGPTMonitor.setupChatGPTMonitor()
+})
+
+ipcMain.handle("open-external-login", () => {
+    chatGPTMonitor.openExternalLogin()
 })
 
 export { llmService, ragService, agentService }

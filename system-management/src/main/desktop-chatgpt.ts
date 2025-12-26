@@ -1,4 +1,4 @@
-import { BrowserWindow, session } from 'electron'
+import { BrowserWindow, session, shell } from 'electron'
 import http from 'node:http'
 import { EventEmitter } from 'node:events'
 
@@ -9,6 +9,34 @@ interface ConversationEvent {
       parts: string[]
     }
   }
+}
+
+const HOST = "https://chatgpt.com"
+
+export function setSessionToken(token: string) {
+  const cookie = {
+    url: HOST,
+    name: '__Secure-next-auth.session-token',
+    value: token,
+    domain: '.chatgpt.com',
+    path: '/',
+    secure: true,
+    httpOnly: true,
+    sameSite: 'lax' as any
+  }
+
+  session.defaultSession.cookies.set(cookie).then(() => {
+    console.log('[ChatGPT] Session token applied successfully')
+    if (monitorWindow) {
+      monitorWindow.loadURL(HOST)
+    }
+  }).catch(err => {
+    console.error('[ChatGPT] Failed to set cookie:', err)
+  })
+}
+
+export function openExternalLogin() {
+  shell.openExternal(`${HOST}/auth/login`)
 }
 
 import injectScript from './chatgpt-inject.js?raw'
@@ -53,7 +81,7 @@ export function setupChatGPTMonitor() {
     monitorWindow?.webContents.executeJavaScript(injectScript).catch(console.error)
   })
 
-  monitorWindow.loadURL('https://chatgpt.com')
+  monitorWindow.loadURL(HOST)
 
   startLocalServer()
 }
@@ -140,5 +168,7 @@ export function getConversationCache(): ConversationEvent[] {
 
 export default {
   setupChatGPTMonitor,
-  getConversationCache
+  getConversationCache,
+  setSessionToken,
+  openExternalLogin
 }
