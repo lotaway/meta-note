@@ -1,5 +1,6 @@
-import { app, BrowserWindow, session } from 'electron'
-import { PassThrough } from 'node:stream'
+import { BrowserWindow, session } from 'electron'
+import http from 'node:http'
+import { EventEmitter } from 'node:events'
 
 interface ConversationEvent {
   message?: {
@@ -8,99 +9,133 @@ interface ConversationEvent {
       parts: string[]
     }
   }
-  // 其他可能的字段
 }
 
-const conversationCache: ConversationEvent[] = []
+import injectScript from './chatgpt-inject.js?raw'
+
+const eventBus = new EventEmitter()
+let monitorWindow: BrowserWindow | null = null
+let server: http.Server | null = null
 
 export function setupChatGPTMonitor() {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+  if (monitorWindow) {
+    monitorWindow.focus()
+    return
+  }
+
+  monitorWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    title: 'ChatGPT Monitor',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
     }
   })
 
-  win.loadURL('https://chatgpt.com')
+  monitorWindow.on('closed', () => {
+    monitorWindow = null
+  })
 
-  const defaultSession = session.defaultSession
-
-  defaultSession.webRequest.onBeforeRequest(
-    {
-      urls: ['https://chatgpt.com/backend-api/f/conversation*']
-    },
-    (details, callback) => {
-      callback({ cancel: false })
-      // request.params.messages[0].id
-    }
-  )
-
-  defaultSession.webRequest.onHeadersReceived(
-    {
-      urls: ['https://chatgpt.com/backend-api/f/conversation*']
-    },
-    (details, callback) => {
-      // const responseHeaders = {
-      //   ...details.responseHeaders,
-      //   'Content-Type': ['text/event-stream'],
-      //   'Cache-Control': ['no-cache'],
-      //   'Connection': ['keep-alive']
-      // }
-      if (details.method === 'POST' && details.statusCode === 200) {
-        processResponseStream(details)
+  monitorWindow.webContents.on('console-message', (event, level, message) => {
+    if (message.startsWith('SSE_RAW:')) {
+      const base64Data = message.substring(8)
+      try {
+        const rawChunk = decodeURIComponent(escape(atob(base64Data)))
+        eventBus.emit('sse-chunk', rawChunk)
+      } catch (e) {
+        console.error('Failed to decode raw chunk:', e)
       }
-      callback({
-        cancel: false,
-        // responseHeaders
-      })
     }
-  )
+  })
+
+  monitorWindow.webContents.on('did-finish-load', () => {
+    monitorWindow?.webContents.executeJavaScript(injectScript).catch(console.error)
+  })
+
+  monitorWindow.loadURL('https://chatgpt.com')
+
+  startLocalServer()
 }
 
-function processResponseStream(details: Electron.OnHeadersReceivedListenerDetails) {
-  const defaultSession = session.defaultSession
+function startLocalServer() {
+  if (server) return
 
-  defaultSession.webRequest.onResponseStarted(
-    { urls: [details.url] },
-    (responseDetails) => {
-      if (responseDetails.method === 'POST' && responseDetails.statusCode === 200) {
-        const responseStream = new PassThrough()
-        let buffer = ''
+  const PORT = 5051
+  server = http.createServer(async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
-        responseStream.on('data', (chunk: Buffer) => {
-          buffer += chunk.toString()
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204)
+      res.end()
+      return
+    }
 
-          // Process SSE data
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
+    if (req.url === '/chat/completions' && req.method === 'POST') {
+      let body = ''
+      req.on('data', chunk => { body += chunk })
+      req.on('end', async () => {
+        try {
+          const { prompt } = JSON.parse(body)
+          if (!prompt) {
+            res.writeHead(400)
+            res.end('Missing prompt')
+            return
+          }
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const eventData = line.substring(6).trim()
-              if (eventData !== '[DONE]') {
-                try {
-                  const parsedData = JSON.parse(eventData)
-                  conversationCache.push(parsedData)
-                  console.log('Received conversation event:', parsedData)
-                } catch (e) {
-                  console.error('Failed to parse SSE data:', e)
-                }
-              }
+          if (!monitorWindow) {
+            res.writeHead(500)
+            res.end('ChatGPT window not initialized')
+            return
+          }
+
+          res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+          })
+
+          const onChunk = (chunk: string) => {
+            res.write(chunk)
+            if (chunk.includes('[DONE]')) {
+              cleanup()
             }
           }
-        })
-        return { redirectURL: 'data:text/plain,' + encodeURIComponent(buffer) }
-      }
-      return {}
+
+          const cleanup = () => {
+            eventBus.off('sse-chunk', onChunk)
+            if (!res.writableEnded) res.end()
+          }
+
+          eventBus.on('sse-chunk', onChunk)
+
+          const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
+          if (!result.success) {
+            res.write(`data: {"error": "${result.error}"}\n\n`)
+            cleanup()
+          }
+
+          req.on('close', cleanup)
+        } catch (err) {
+          res.writeHead(500)
+          res.end(String(err))
+        }
+      })
+    } else {
+      res.writeHead(404)
+      res.end('Not Found')
     }
-  )
+  })
+
+  server.listen(PORT, () => {
+    console.log(`[ChatGPT Server] Listening on http://localhost:${PORT}/chat/completions`)
+  })
 }
 
-
 export function getConversationCache(): ConversationEvent[] {
-  return [...conversationCache]
+  return []
 }
 
 export default {
