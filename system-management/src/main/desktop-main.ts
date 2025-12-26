@@ -22,7 +22,7 @@ const isMac = process.platform === "darwin"
 
 const APP_PROTOCOL = process.env.APP_PROTOCOL || "meta-note"
 const WEBSOCKET_PORT = parseInt(process.env.WEBSOCKET_PORT || "5050", 10)
-const DEV_SERVER_PORT = parseInt(process.env.DEV_SERVER_PORT || "30002", 10)
+const DEV_SERVER_PORT = parseInt(process.env.DEV_SERVER_PORT || "5173", 10)
 const WINDOW_WIDTH = parseInt(process.env.WINDOW_WIDTH || "1200", 10)
 const WINDOW_HEIGHT = parseInt(process.env.WINDOW_HEIGHT || "800", 10)
 
