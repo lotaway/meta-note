@@ -47,6 +47,9 @@ const desktopFn = {
     },
     getChatGPTConversations: () => {
       return chatGPTMonitor.getConversationCache()
+    },
+    openChatGPTWindow: () => {
+      ipcRenderer.invoke('open-chatgpt-window')
     }
 }
 if (process.contextIsolated) {

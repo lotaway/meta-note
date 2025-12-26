@@ -170,4 +170,8 @@ ipcMain.handle("rag:add", async (event, content: string, metadata: any) => {
     return await ragService.addDocument(content, metadata)
 })
 
+ipcMain.handle("open-chatgpt-window", () => {
+    chatGPTMonitor.setupChatGPTMonitor()
+})
+
 export { llmService, ragService, agentService }

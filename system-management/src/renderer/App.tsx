@@ -44,6 +44,24 @@ export default function App() {
           <span className="item-info">x: {mousePosition.x},</span>
           <span className="item-info">y: {mousePosition.y}</span>
         </div>
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <button 
+            className="premium-button"
+            onClick={() => (window as any).desktop.openChatGPTWindow()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#10a37f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 10px rgba(16, 163, 127, 0.3)'
+            }}
+          >
+            Open ChatGPT Monitor
+          </button>
+        </div>
         <Files2video>
         </Files2video>
       </div>
