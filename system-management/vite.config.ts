@@ -15,6 +15,9 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron/main',
             minify: false,
+            rollupOptions: {
+              external: ['better-sqlite3', '@electron/remote', 'fluent-ffmpeg', 'ws']
+            }
           },
         },
       },
@@ -27,6 +30,9 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron/preload',
             minify: false,
+            rollupOptions: {
+              external: ['better-sqlite3', '@electron/remote']
+            }
           },
         },
       },
