@@ -9,8 +9,6 @@ import dotenv from 'dotenv'
 import { IPC_CHANNELS } from "./constants"
 
 import { llmService } from "./services/llm"
-import { ragService } from "./services/rag_service"
-import { agentService } from "./services/agent_service"
 
 dotenv.config()
 
@@ -170,18 +168,6 @@ ipcMain.handle("llm:completion", async (event, prompt: string) => {
     return await llmService.completion(prompt)
 })
 
-ipcMain.handle("agent:run", async (event, query: string) => {
-    return await agentService.run(query)
-})
-
-ipcMain.handle("rag:search", async (event, query: string) => {
-    return await ragService.search(query)
-})
-
-ipcMain.handle("rag:add", async (event, content: string, metadata: any) => {
-    return await ragService.addDocument(content, metadata)
-})
-
 ipcMain.handle(IPC_CHANNELS.OPEN_CHATGPT_WINDOW, () => {
     chatGPTMonitor.setupChatGPTMonitor()
 })
@@ -190,4 +176,4 @@ ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
     chatGPTMonitor.openExternalLogin()
 })
 
-export { llmService, ragService, agentService }
+export { llmService }
