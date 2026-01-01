@@ -14,5 +14,6 @@
     "noEmit": true
   },
   "include": ["src"],
+  "exclude": ["src/main/chatgpt-inject.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

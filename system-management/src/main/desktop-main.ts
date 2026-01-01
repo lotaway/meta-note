@@ -83,10 +83,52 @@ console.log('Args:', args)
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT })
 console.log(`WebSocketServer started on port ${WEBSOCKET_PORT}`)
 wss.on('connection', ws => {
+    const socket = (ws as any)._socket
+    if (socket && socket.remoteAddress && socket.remotePort) {
+        console.log(`[WebSocket] New connection from ${socket.remoteAddress}:${socket.remotePort}`)
+    } else {
+        console.log('[WebSocket] New connection established')
+    }
+
     ws.on('message', (data: object) => {
-        console.log('From extension:', data.toString())
+        const messageStr = data.toString()
+        console.log('[WebSocket] Received:', messageStr)
+
+        try {
+            const message = JSON.parse(messageStr)
+            if (message.type === 'login_request') {
+                console.log('[WebSocket] Login request received, opening external login...')
+                chatGPTMonitor.openExternalLogin()
+                ws.send(JSON.stringify({
+                    type: 'login_response',
+                    status: 'success',
+                    message: 'External login initiated'
+                }))
+            } else {
+                console.log('[WebSocket] Unknown message type:', message.type)
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    error: 'Unknown message type'
+                }))
+            }
+        } catch (err) {
+            console.log('[WebSocket] Non-JSON message or parse error:', messageStr)
+            ws.send(`Hello from ${APP_PROTOCOL}!`)
+        }
     })
-    ws.send(`Hello from ${APP_PROTOCOL}!`)
+
+    ws.on('error', (error) => {
+        console.error('[WebSocket] Connection error:', error)
+    })
+
+    ws.on('close', () => {
+        console.log('[WebSocket] Connection closed')
+    })
+    ws.send(JSON.stringify({
+        type: 'welcome',
+        protocol: APP_PROTOCOL,
+        timestamp: Date.now()
+    }))
 })
 
 app.on("window-all-closed", async () => {

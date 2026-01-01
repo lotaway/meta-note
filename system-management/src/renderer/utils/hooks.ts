@@ -16,16 +16,16 @@ interface MousePosition {
 }
 
 export function useDebounce(callback: FrameRequestCallback, delay = 0) {
-    const timerRef = useRef<NodeJS.Timeout>()
-    
+    const timerRef = useRef<NodeJS.Timeout>(null)
+
     if (timerRef.current) {
         clearTimeout(timerRef.current)
     }
-    
+
     timerRef.current = setTimeout(() => {
         window.requestAnimationFrame(callback)
     }, delay)
-    
+
     return timerRef
 }
 
@@ -76,7 +76,7 @@ export function useWindowSize() {
 }
 
 export function useMousePosition() {
-    const timerRef = useRef<NodeJS.Timeout>()
+    const timerRef = useRef<NodeJS.Timeout>(null)
     const [mousePosition, setMousePosition] = useState<MousePosition>({
         x: 0,
         y: 0
@@ -85,11 +85,11 @@ export function useMousePosition() {
     useEffect(() => {
         function mouseMoveHandle(event: MouseEvent) {
             if (!event) return
-            
+
             if (timerRef.current) {
                 clearTimeout(timerRef.current)
             }
-            
+
             timerRef.current = setTimeout(() => {
                 window.requestAnimationFrame(() => {
                     setMousePosition({

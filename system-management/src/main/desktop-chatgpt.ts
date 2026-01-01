@@ -35,12 +35,17 @@ export function setSessionToken(token: string) {
 }
 
 export function openExternalLogin() {
-  shell.openExternal(`${CHATGPT_CONSTANTS.CHATGPT_HOST}/auth/login`)
+  const appProtocol = process.env.APP_PROTOCOL || 'meta-note'
+  const redirectUri = encodeURIComponent(`${appProtocol}://auth`)
+  const loginUrl = `${CHATGPT_CONSTANTS.CHATGPT_HOST}/auth/login?redirect_uri=${redirectUri}`
+
+  console.log('[ChatGPT] Opening external login:', loginUrl)
+  shell.openExternal(loginUrl)
 }
 
-import rawInjectScript from './chatgpt-inject.js?raw'
+import rawInjectScript from './chatgpt-inject.ts?raw'
 
-const injectScript = rawInjectScript.replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX);
+const injectScript = rawInjectScript.replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX)
 
 const eventBus = new EventEmitter()
 let monitorWindow: BrowserWindow | null = null
@@ -112,7 +117,7 @@ function startLocalServer() {
     if (req.url !== '/chat/completions' || req.method !== 'POST') {
       res.writeHead(404)
       res.end('Not Found')
-      return;
+      return
     }
     let body = ''
     req.on('data', chunk => { body += chunk })
