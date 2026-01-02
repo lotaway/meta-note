@@ -16,7 +16,7 @@ interface MousePosition {
 }
 
 export function useDebounce(callback: FrameRequestCallback, delay = 0) {
-    const timerRef = useRef<NodeJS.Timeout>(null)
+    const timerRef = useRef<NodeJS.Timeout | null>(null)
 
     if (timerRef.current) {
         clearTimeout(timerRef.current)
@@ -76,7 +76,7 @@ export function useWindowSize() {
 }
 
 export function useMousePosition() {
-    const timerRef = useRef<NodeJS.Timeout>(null)
+    const timerRef = useRef<NodeJS.Timeout | null>(null)
     const [mousePosition, setMousePosition] = useState<MousePosition>({
         x: 0,
         y: 0

@@ -1,4 +1,4 @@
-import * as CONSTANTS from "./constants"
+import * as CONSTANTS from "../constants"
 
 (function (): void {
   if (!window.location.hostname.endsWith("chatgpt.com")) {

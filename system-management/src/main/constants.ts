@@ -5,6 +5,7 @@ export const IPC_CHANNELS = {
 
 export const CHATGPT_CONSTANTS = {
     SSE_RAW_PREFIX: '__SSE_PREFIX__',
+    SSE_CHUNK_EVENT: 'sse-chunk',
     SESSION_COOKIE_NAME: '__Secure-next-auth.session-token',
     CHATGPT_HOST: 'https://chatgpt.com',
     COOKIE_DOMAIN: '.chatgpt.com',

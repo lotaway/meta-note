@@ -83,17 +83,17 @@ export function setupChatGPTMonitor() {
   })
 
   monitorWindow.webContents.on('console-message', (event, level, message) => {
-    if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
-      const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
-      try {
-        const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-        eventBus.emit('sse-chunk', rawChunk)
-      } catch (e) {
-        console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
+      if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
+        const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
+        try {
+          const rawChunk = decodeURIComponent(escape(atob(base64Data)))
+          eventBus.emit(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
+        } catch (e) {
+          console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
+        }
+      } else {
+        console.log(`[ChatGPT Web] ${message}`)
       }
-    } else {
-      console.log(`[ChatGPT Web] ${message}`)
-    }
   })
 
   const inject = () => {
@@ -110,8 +110,6 @@ export function setupChatGPTMonitor() {
   monitorWindow.webContents.on('dom-ready', inject)
 
   monitorWindow.loadURL(CHATGPT_CONSTANTS.CHATGPT_HOST)
-
-  startLocalServer()
 }
 
 function startLocalServer() {

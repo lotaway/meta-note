@@ -4,9 +4,12 @@ import path from "node:path"
 import fs from "node:fs"
 import { WebSocketServer } from 'ws'
 import ffmpeg from "fluent-ffmpeg"
+import http from 'node:http'
 import chatGPTMonitor from "./desktop-chatgpt"
+import deepSeekMonitor from "./desktop-deepseek"
 import dotenv from 'dotenv'
 import { IPC_CHANNELS } from "./constants"
+import { controllers } from "./controllers"
 
 import { llmService } from "./services/llm"
 
@@ -63,73 +66,11 @@ app.on("activate", () => {
         })
     }
 })
-app.on('open-url', (event, url) => {
-    event.preventDefault()
-    console.log('Received URL:', url)
-    try {
-        const u = new URL(url)
-        if (u.protocol === `${APP_PROTOCOL}:` && u.host === 'auth') {
-            const token = u.searchParams.get('token')
-            if (token) {
-                chatGPTMonitor.setSessionToken(token)
-            }
-        }
-    } catch (e) {
-        console.error('Failed to parse incoming URL:', e)
-    }
-})
+
 const args = process.argv
 console.log('Args:', args)
 const wss = new WebSocketServer({ port: WEBSOCKET_PORT })
 console.log(`WebSocketServer started on port ${WEBSOCKET_PORT}`)
-wss.on('connection', ws => {
-    const socket = (ws as any)._socket
-    if (socket && socket.remoteAddress && socket.remotePort) {
-        console.log(`[WebSocket] New connection from ${socket.remoteAddress}:${socket.remotePort}`)
-    } else {
-        console.log('[WebSocket] New connection established')
-    }
-
-    ws.on('message', (data: object) => {
-        const messageStr = data.toString()
-        console.log('[WebSocket] Received:', messageStr)
-
-        try {
-            const message = JSON.parse(messageStr)
-            if (message.type === 'login_request') {
-                console.log('[WebSocket] Login request received, opening external login...')
-                chatGPTMonitor.openExternalLogin()
-                ws.send(JSON.stringify({
-                    type: 'login_response',
-                    status: 'success',
-                    message: 'External login initiated'
-                }))
-            } else {
-                console.log('[WebSocket] Unknown message type:', message.type)
-                ws.send(JSON.stringify({
-                    type: 'error',
-                    error: 'Unknown message type'
-                }))
-            }
-        } catch (err) {
-            console.log('[WebSocket] Non-JSON message or parse error:', messageStr)
-            ws.send(`Hello from ${APP_PROTOCOL}!`)
-        }
-    })
-
-    ws.on('error', (error) => {
-        console.error('[WebSocket] Connection error:', error)
-    })
-
-    ws.on('close', () => {
-        console.log('[WebSocket] Connection closed')
-    })
-    ws.send(JSON.stringify({
-        type: 'welcome',
-        protocol: APP_PROTOCOL,
-        timestamp: Date.now()
-    }))
-})
 
 app.on("window-all-closed", async () => {
     await llmService.stop()
@@ -137,17 +78,8 @@ app.on("window-all-closed", async () => {
 })
 
 void app.whenReady().then(() => {
-    function init() {
-        app.setAsDefaultProtocolClient(APP_PROTOCOL)
-        void createWindow().catch(err => {
-            console.log("创建窗口失败：" + JSON.stringify(err))
-        })
-        // chatGPTMonitor.setupChatGPTMonitor()
-        // llmService.start().catch(err => console.error("Failed to start LLM service:", err))
-    }
-
     // 延迟解决莫名其妙的ready未完成问题：https://github.com/electron/electron/issues/16809
-    isLinux ? setTimeout(init, 300) : init()
+    isLinux ? setTimeout(originalInit, 300) : originalInit()
 })
 
 class Handler {
@@ -216,6 +148,154 @@ ipcMain.handle(IPC_CHANNELS.OPEN_CHATGPT_WINDOW, () => {
 
 ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
     chatGPTMonitor.openExternalLogin()
+})
+
+let unifiedServer: http.Server | null = null
+const UNIFIED_PORT = 5051
+
+function startUnifiedServer() {
+    if (unifiedServer) return
+
+    unifiedServer = http.createServer(async (req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+        if (req.method === 'OPTIONS') {
+            res.writeHead(204)
+            res.end()
+            return
+        }
+
+        for (const controller of controllers) {
+            if (controller.checker(req)) {
+                const result = controller.handler(req, res)
+                if (result instanceof Promise) {
+                    result.catch(err => {
+                        console.error('[Controller] Handler error:', err)
+                        if (!res.headersSent) {
+                            res.writeHead(500)
+                            res.end(JSON.stringify({ error: 'Internal server error' }))
+                        }
+                    })
+                }
+                return
+            }
+        }
+
+        res.writeHead(404)
+        res.end('Not Found')
+    })
+
+    unifiedServer.listen(UNIFIED_PORT, () => {
+        console.log(`[Unified Server] Listening on http://localhost:${UNIFIED_PORT}`)
+    })
+}
+
+const originalInit = () => {
+    app.setAsDefaultProtocolClient(APP_PROTOCOL)
+    void createWindow().catch(err => {
+        console.log("创建窗口失败：" + JSON.stringify(err))
+    })
+    startUnifiedServer()
+    // chatGPTMonitor.setupChatGPTMonitor()
+    // llmService.start().catch(err => console.error("Failed to start LLM service:", err))
+}
+
+app.on('open-url', (event, url) => {
+    event.preventDefault()
+    console.log('Received URL:', url)
+    try {
+        const u = new URL(url)
+        if (u.protocol === `${APP_PROTOCOL}:`) {
+            if (u.host === 'auth') {
+                const token = u.searchParams.get('token')
+                if (token) {
+                    chatGPTMonitor.setSessionToken(token)
+                }
+            } else if (u.host === 'auth-deepseek') {
+                const token = u.searchParams.get('token')
+                if (token) {
+                    deepSeekMonitor.setDeepSeekSessionToken(token)
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to parse incoming URL:', e)
+    }
+})
+
+wss.on('connection', ws => {
+    const socket = (ws as any)._socket
+    if (socket && socket.remoteAddress && socket.remotePort) {
+        console.log(`[WebSocket] New connection from ${socket.remoteAddress}:${socket.remotePort}`)
+    } else {
+        console.log('[WebSocket] New connection established')
+    }
+
+    ws.on('message', (data: object) => {
+        const messageStr = data.toString()
+        console.log('[WebSocket] Received:', messageStr)
+
+        try {
+            const message = JSON.parse(messageStr)
+            if (message.type === 'login_request') {
+                const model = message.model || 'chatgpt'
+                console.log(`[WebSocket] Login request received for ${model}, opening external login...`)
+
+                if (model === 'chatgpt') {
+                    chatGPTMonitor.openExternalLogin()
+                } else if (model === 'deepseek') {
+                    deepSeekMonitor.openDeepSeekExternalLogin()
+                } else {
+                    ws.send(JSON.stringify({
+                        type: 'login_response',
+                        status: 'error',
+                        error: 'Unsupported model'
+                    }))
+                    return
+                }
+
+                ws.send(JSON.stringify({
+                    type: 'login_response',
+                    status: 'success',
+                    message: `External login initiated for ${model}`,
+                    model
+                }))
+            } else {
+                console.log('[WebSocket] Unknown message type:', message.type)
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    error: 'Unknown message type'
+                }))
+            }
+        } catch (err) {
+            console.log('[WebSocket] Non-JSON message or parse error:', messageStr)
+            ws.send(`Hello from ${APP_PROTOCOL}!`)
+        }
+    })
+
+    ws.on('error', (error) => {
+        console.error('[WebSocket] Connection error:', error)
+    })
+
+    ws.on('close', () => {
+        console.log('[WebSocket] Connection closed')
+    })
+    ws.send(JSON.stringify({
+        type: 'welcome',
+        protocol: APP_PROTOCOL,
+        timestamp: Date.now(),
+        supported_models: ['chatgpt', 'deepseek']
+    }))
+})
+
+ipcMain.handle('open-deepseek-window', () => {
+    deepSeekMonitor.setupDeepSeekMonitor()
+})
+
+ipcMain.handle('open-deepseek-external-login', () => {
+    deepSeekMonitor.openDeepSeekExternalLogin()
 })
 
 export { llmService }

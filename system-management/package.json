@@ -5,7 +5,8 @@
   "main": "dist-electron/main/desktop-main.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "tsc && vite build",
+    "deploy": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none vite\" \"wait-on tcp:5173 && electron .\"",
     "rebuild:sqlite3": "./node_modules/.bin/electron-rebuild -f -w better-sqlite3"
@@ -32,7 +33,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^17.2.3",
     "electron": "33",
-    "electron-builder": "^24.9.1",
+    "electron-builder": "^26.0.12",
     "electron-is-dev": "^2.0.0",
     "electron-rebuild": "^3.2.9",
     "typescript": "^5.2.2",

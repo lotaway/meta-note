@@ -2,9 +2,33 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
+import fs from 'fs'
+import path from 'path'
+
+function getInjectEntries() {
+  const injectsDir = path.join(__dirname, 'src/main/injects')
+  if (!fs.existsSync(injectsDir)) {
+    return []
+  }
+
+  const files = fs.readdirSync(injectsDir)
+  return files
+    .filter(file => file.endsWith('.ts') && file.includes('-inject'))
+    .map(file => {
+      const name = file.replace('.ts', '')
+      return {
+        entry: `src/main/injects/${file}`,
+        name: name,
+        fileName: `${name}.js`
+      }
+    })
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // build: {
+  //   outDir: 'dist-electron/renderer',
+  // },
   plugins: [
     react(),
     electron([
@@ -21,8 +45,8 @@ export default defineConfig({
           },
         },
       },
-      {
-        entry: 'src/main/chatgpt-inject.ts',
+      ...getInjectEntries().map(inject => ({
+        entry: inject.entry,
         onstart(options) {
           options.reload()
         },
@@ -32,13 +56,13 @@ export default defineConfig({
             minify: false,
             rollupOptions: {
               output: {
-                entryFileNames: 'chatgpt-inject.js',
-                format: 'iife',
+                entryFileNames: inject.fileName,
+                format: 'iife' as const,
               },
             },
           },
         },
-      },
+      })),
       {
         entry: 'src/main/preload.ts',
         onstart(options) {

@@ -1,0 +1,34 @@
+event: ready
+data: {"request_message_id":1,"response_message_id":2}
+
+event: update_session
+data: {"updated_at":1767356217.232296}
+
+data: {"v":{"response":{"message_id":2,"parent_id":1,"model":"","role":"ASSISTANT","thinking_enabled":false,"ban_edit":false,"ban_regenerate":false,"status":"WIP","accumulated_token_usage":0,"files":[],"feedback":null,"inserted_at":1767356217.221293,"search_enabled":false,"fragments":[],"has_pending_fragment":true,"auto_continue":false}}}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"fragments","o":"APPEND","v":[{"id":1,"type":"RESPONSE","content":"要让","references":[],"stage_id":1}]},{"p":"has_pending_fragment","o":"SET","v":false}]}
+
+data: {"p":"response/fragments/-1/content","o":"APPEND","v":"LL"}
+
+data: {"v":" )\n"}
+
+data: {"v":"   "}
+
+data: {"v":"================================================================"}
+
+data: {"v":"。"}
+
+data: {"p":"response","o":"BATCH","v":[{"p":"status","v":"FINISHED"},{"p":"accumulated_token_usage","v":1475}]}
+
+event: finish
+data: {}
+
+event: update_session
+data: {"updated_at":1767356262.169461}
+
+event: title
+data: {"content":"LLM输出IDE可用Git Diff格式"}
+
+event: close
+data: {"click_behavior":"none","auto_resume":false}
+
