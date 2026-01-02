@@ -39,7 +39,7 @@ export function setSessionToken(token: string) {
 export function openExternalLogin() {
   const appProtocol = process.env.APP_PROTOCOL || 'meta-note'
   const redirectUri = encodeURIComponent(`${appProtocol}://auth`)
-  const loginUrl = `${CHATGPT_CONSTANTS.CHATGPT_HOST}/auth/login?redirect_uri=${redirectUri}`
+  const loginUrl = `${CHATGPT_CONSTANTS.CHATGPT_HOST}/auth/login?redirect_uri=${redirectUri}&callbackUrl=${redirectUri}`
 
   console.log('[ChatGPT] Opening external login:', loginUrl)
   shell.openExternal(loginUrl)
@@ -104,6 +104,7 @@ export function setupChatGPTMonitor() {
 
   monitorWindow.webContents.on('did-finish-load', inject)
   monitorWindow.webContents.on('did-navigate', inject)
+  monitorWindow.webContents.on('dom-ready', inject)
 
   monitorWindow.loadURL(CHATGPT_CONSTANTS.CHATGPT_HOST)
 
@@ -117,7 +118,7 @@ function startLocalServer() {
   server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204)
@@ -125,77 +126,115 @@ function startLocalServer() {
       return
     }
 
-    if (req.url !== '/chat/completions' || req.method !== 'POST') {
-      res.writeHead(404)
-      res.end('Not Found')
-      return
-    }
-    let body = ''
-    req.on('data', chunk => { body += chunk })
-    req.on('end', async () => {
-      try {
-        const payload = JSON.parse(body)
-        let prompt = payload.prompt
-        if (!prompt && payload.messages && Array.isArray(payload.messages)) {
-          const lastMsg = payload.messages[payload.messages.length - 1]
-          prompt = lastMsg.content
-        }
-
-        if (!prompt) {
-          res.writeHead(400)
-          res.end(JSON.stringify({ error: 'Missing prompt or messages' }))
-          return
-        }
-
-        if (!monitorWindow) {
-          res.writeHead(500)
-          res.end(JSON.stringify({ error: 'ChatGPT window not initialized' }))
-          return
-        }
-
-        console.log('[API] Processing prompt:', prompt.substring(0, 50) + '...')
-
-        res.writeHead(200, {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-          'X-Accel-Buffering': 'no'
+    if (req.method === 'POST') {
+      if (req.url === '/v1/auth/token') {
+        let body = ''
+        req.on('data', chunk => { body += chunk })
+        req.on('end', () => {
+          try {
+            const { token } = JSON.parse(body)
+            if (token) {
+              setSessionToken(token)
+              res.writeHead(200, { 'Content-Type': 'application/json' })
+              res.end(JSON.stringify({ status: 'success' }))
+              console.log('[API] Received session token from external source')
+            } else {
+              res.writeHead(400)
+              res.end(JSON.stringify({ error: 'Missing token' }))
+            }
+          } catch (err) {
+            res.writeHead(400)
+            res.end(JSON.stringify({ error: 'Invalid JSON' }))
+          }
         })
-
-        const onChunk = (chunk: string) => {
-          res.write(chunk)
-          if (chunk.includes('[DONE]')) {
-            cleanup()
-          }
-        }
-
-        const cleanup = () => {
-          eventBus.off('sse-chunk', onChunk)
-          if (!res.writableEnded) {
-            res.end()
-          }
-        }
-
-        eventBus.on('sse-chunk', onChunk)
-
-        const result = await monitorWindow.webContents.executeJavaScript(`window.automateChat(${JSON.stringify(prompt)})`)
-        if (!result.success) {
-          console.error('[API] Automation result:', result.error)
-          res.write(`data: {"error": "${result.error}"}\n\n`)
-          cleanup()
-        }
-
-        req.on('close', cleanup)
-      } catch (err: any) {
-        console.error('[API] Server Error:', err)
-        if (!res.headersSent) res.writeHead(500)
-        res.end(String(err))
+        return
       }
-    })
+
+      if (req.url === '/v1/chat/completions') {
+        let body = ''
+        req.on('data', chunk => { body += chunk })
+        req.on('end', async () => {
+          try {
+            const payload = JSON.parse(body)
+            let prompt = payload.prompt
+            if (!prompt && payload.messages && Array.isArray(payload.messages)) {
+              const lastMsg = payload.messages[payload.messages.length - 1]
+              prompt = lastMsg.content
+            }
+
+            if (!prompt) {
+              res.writeHead(400)
+              res.end(JSON.stringify({ error: 'Missing prompt or messages' }))
+              return
+            }
+
+            if (!monitorWindow) {
+              res.writeHead(500)
+              res.end(JSON.stringify({ error: 'ChatGPT window not initialized' }))
+              return
+            }
+
+            console.log('[API] Processing prompt:', prompt.substring(0, Math.min(prompt.length, 200)) + '...')
+
+            res.writeHead(200, {
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no'
+            })
+
+            const onChunk = (chunk: string) => {
+              res.write(chunk)
+              if (chunk.includes('[DONE]')) {
+                cleanup()
+              }
+            }
+
+            const cleanup = () => {
+              eventBus.off('sse-chunk', onChunk)
+              if (!res.writableEnded) {
+                res.end()
+              }
+            }
+
+            eventBus.on('sse-chunk', onChunk)
+
+            const result = await monitorWindow.webContents.executeJavaScript(`
+              (async () => {
+                let retries = 2;
+                while (retries > 0 && typeof window.automateChat !== 'function') {
+                  await new Promise(r => setTimeout(r, 500));
+                  retries--;
+                }
+                if (typeof window.automateChat !== 'function') {
+                  throw new Error('window.automateChat is not defined after waiting');
+                }
+                return await window.automateChat(${JSON.stringify(prompt)});
+              })()
+            `)
+            if (!result.success) {
+              console.error('[API] Automation result:', result.error)
+              res.write(`data: {"error": "${result.error}"}\n\n`)
+              cleanup()
+            }
+
+            req.on('close', cleanup)
+          } catch (err: any) {
+            console.error('[API] Server Error:', err)
+            if (!res.headersSent) res.writeHead(500)
+            res.end(String(err))
+          }
+        })
+        return
+      }
+    }
+
+    res.writeHead(404)
+    res.end('Not Found')
   })
 
   server.listen(PORT, () => {
-    console.log(`[ChatGPT Server] Listening on http://localhost:${PORT}/chat/completions`)
+    console.log(`[ChatGPT Server] Listening on http://localhost:${PORT}`)
   })
 }
 

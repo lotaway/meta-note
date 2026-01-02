@@ -1,7 +1,10 @@
 (function (): void {
-  if (!window.location.host.startsWith("https://chatgpt.com")) {
+  if (!window.location.hostname.endsWith("chatgpt.com")) {
+    console.log('[Monitor] Script injected but wrong host:', window.location.hostname)
     return
   }
+
+  console.log('[Monitor] Initializing Internal Script on:', window.location.href)
 
   const originalFetch = window.fetch
 
@@ -45,7 +48,8 @@
     return response
   }
 
-  window.automateChat = async (prompt: string): Promise<{ success: boolean; error?: string }> => {
+  (window as any).automateChat = async (prompt: string): Promise<{ success: boolean; error?: string }> => {
+    console.log('[Monitor] automateChat called with prompt length:', prompt.length)
     try {
       const textarea = document.querySelector<HTMLTextAreaElement>('#prompt-textarea') ||
         document.querySelector<HTMLElement>('div[contenteditable="true"]')
