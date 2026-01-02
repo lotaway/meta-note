@@ -4,8 +4,6 @@ import { EventEmitter } from 'node:events'
 import { CHATGPT_CONSTANTS } from './constants'
 import fs from 'node:fs'
 import path from 'node:path'
-import { ChatgptConversationData } from '../types/ChatgptConversationData'
-import { CompletionData } from '../types/CompletionData'
 import { controllers } from './controllers'
 
 interface ConversationEvent {
@@ -83,17 +81,17 @@ export function setupChatGPTMonitor() {
   })
 
   monitorWindow.webContents.on('console-message', (event, level, message) => {
-      if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
-        const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
-        try {
-          const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-          eventBus.emit(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
-        } catch (e) {
-          console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
-        }
-      } else {
-        console.log(`[ChatGPT Web] ${message}`)
+    if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
+      const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
+      try {
+        const rawChunk = decodeURIComponent(escape(atob(base64Data)))
+        eventBus.emit(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
+      } catch (e) {
+        console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
       }
+    } else {
+      console.log(`[ChatGPT Web] ${message}`)
+    }
   })
 
   const inject = () => {
@@ -110,48 +108,6 @@ export function setupChatGPTMonitor() {
   monitorWindow.webContents.on('dom-ready', inject)
 
   monitorWindow.loadURL(CHATGPT_CONSTANTS.CHATGPT_HOST)
-}
-
-function startLocalServer() {
-  if (server) return
-
-  const PORT = 5051
-  server = http.createServer(async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204)
-      res.end()
-      return
-    }
-
-    if (req.method === 'POST') {
-      for (const controller of controllers) {
-        if (controller.checker(req)) {
-          const result = controller.handler(req, res)
-          if (result instanceof Promise) {
-            result.catch(err => {
-              console.error('[Controller] Handler error:', err)
-              if (!res.headersSent) {
-                res.writeHead(500)
-                res.end(JSON.stringify({ error: 'Internal server error' }))
-              }
-            })
-          }
-          return
-        }
-      }
-    }
-
-    res.writeHead(404)
-    res.end('Not Found')
-  })
-
-  server.listen(PORT, () => {
-    console.log(`[ChatGPT Server] Listening on http://localhost:${PORT}`)
-  })
 }
 
 export function getConversationCache(): ConversationEvent[] {

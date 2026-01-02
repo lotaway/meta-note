@@ -24,6 +24,7 @@ const isMac = process.platform === "darwin"
 
 const APP_PROTOCOL = process.env.APP_PROTOCOL || "meta-note"
 const WEBSOCKET_PORT = parseInt(process.env.WEBSOCKET_PORT || "5050", 10)
+const WEB_SERVER_PORT = parseInt(process.env.WEB_SERVER_PORT || "5051", 10)
 const DEV_SERVER_PORT = parseInt(process.env.DEV_SERVER_PORT || "5173", 10)
 const WINDOW_WIDTH = parseInt(process.env.WINDOW_WIDTH || "1200", 10)
 const WINDOW_HEIGHT = parseInt(process.env.WINDOW_HEIGHT || "800", 10)
@@ -150,13 +151,12 @@ ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
     chatGPTMonitor.openExternalLogin()
 })
 
-let unifiedServer: http.Server | null = null
-const UNIFIED_PORT = 5051
+let webServer: http.Server | null = null
 
-function startUnifiedServer() {
-    if (unifiedServer) return
+function startWebServer() {
+    if (webServer) return
 
-    unifiedServer = http.createServer(async (req, res) => {
+    webServer = http.createServer(async (req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -187,8 +187,8 @@ function startUnifiedServer() {
         res.end('Not Found')
     })
 
-    unifiedServer.listen(UNIFIED_PORT, () => {
-        console.log(`[Unified Server] Listening on http://localhost:${UNIFIED_PORT}`)
+    webServer.listen(WEB_SERVER_PORT, () => {
+        console.log(`[Web Server] Listening on http://localhost:${WEB_SERVER_PORT}`)
     })
 }
 
@@ -197,7 +197,7 @@ const originalInit = () => {
     void createWindow().catch(err => {
         console.log("创建窗口失败：" + JSON.stringify(err))
     })
-    startUnifiedServer()
+    startWebServer()
     // chatGPTMonitor.setupChatGPTMonitor()
     // llmService.start().catch(err => console.error("Failed to start LLM service:", err))
 }

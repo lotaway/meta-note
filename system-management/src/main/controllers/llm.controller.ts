@@ -85,6 +85,45 @@ const transformDeepSeekToCompletion = (data: DeepSeekConversationData): Completi
     return null
 }
 
+
+const DEFAULT_MODEL_INFO = {
+    "name": "unknown",
+    "version": "1.0.0",
+    "object": "model",
+    "owned_by": "lotaway",
+    "api_version": "v1",
+}
+
+
+export class HealthController implements RouteController {
+    checker(req: IncomingMessage): boolean {
+        return req.method === 'POST' && req.url === ROUTE_PATHS.SHOW
+    }
+
+    async handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
+        res.end({ "ok": true })
+    }
+}
+
+export class TagsController implements RouteController {
+    checker(req: IncomingMessage): boolean {
+        return req.method === 'GET' && req.url === ROUTE_PATHS.TAGS
+    }
+
+    async handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
+        res.end(JSON.stringify([
+            {
+                ...DEFAULT_MODEL_INFO,
+                name: 'chatgpt',
+            },
+            {
+                ...DEFAULT_MODEL_INFO,
+                name: 'deepseek',
+            }
+        ]))
+    }
+}
+
 export class ChatCompletionsController implements RouteController {
     checker(req: IncomingMessage): boolean {
         return req.method === 'POST' && req.url === ROUTE_PATHS.CHAT_COMPLETIONS
