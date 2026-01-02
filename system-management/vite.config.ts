@@ -22,6 +22,24 @@ export default defineConfig({
         },
       },
       {
+        entry: 'src/main/chatgpt-inject.ts',
+        onstart(options) {
+          options.reload()
+        },
+        vite: {
+          build: {
+            outDir: 'dist-electron/main',
+            minify: false,
+            rollupOptions: {
+              output: {
+                entryFileNames: 'chatgpt-inject.js',
+                format: 'iife',
+              },
+            },
+          },
+        },
+      },
+      {
         entry: 'src/main/preload.ts',
         onstart(options) {
           options.reload()
@@ -31,6 +49,9 @@ export default defineConfig({
             outDir: 'dist-electron/preload',
             minify: false,
             rollupOptions: {
+              output: {
+                entryFileNames: 'preload.js',
+              },
               external: ['better-sqlite3', '@electron/remote']
             }
           },

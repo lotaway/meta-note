@@ -16,9 +16,9 @@ interface States {
 }
 
 export default function App() {
-  const [name] = useState<string>("VideoCron")
+  const [name] = useState<string>("Meta Note")
   const [commonData, setCommonData] = useState<States>({
-    welcomeTitle: `welcome to use VideoCron`,
+    welcomeTitle: `welcome to use Meta Note`,
     status: Status.NoInit
   })
   const scrollInfo = useScroll()
@@ -47,7 +47,7 @@ export default function App() {
         <div style={{ marginTop: '20px', marginBottom: '20px' }}>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.openChatGPTWindow()}
+            onClick={() => (window as any).desktop.requestOpenChatGPTWindow()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#10a37f',
@@ -63,7 +63,7 @@ export default function App() {
           </button>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.openExternalLogin()}
+            onClick={() => (window as any).desktop.requestOpenExternalLogin()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#4285f4',

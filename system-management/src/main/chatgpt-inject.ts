@@ -95,9 +95,9 @@
   function handleLoginClick(): void {
     console.log('[Monitor] Login button clicked, starting OAuth flow')
 
-    if ((window as any).desktop && typeof (window as any).desktop.openExternalLogin === 'function') {
-      console.log('[Monitor] Calling window.desktop.openExternalLogin()');
-      (window as any).desktop.openExternalLogin().then(() => {
+    if ((window as any).desktop && typeof (window as any).desktop.requestOpenExternalLogin === 'function') {
+      console.log('[Monitor] Calling window.desktop.requestOpenExternalLogin()');
+      (window as any).desktop.requestOpenExternalLogin().then(() => {
         console.log('[Monitor] External login initiated via desktop API')
       }).catch((err: Error) => {
         console.error('[Monitor] Failed to call desktop API:', err)

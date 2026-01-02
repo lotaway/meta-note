@@ -17,10 +17,10 @@ const desktopFn = {
     getOSNetworkInterfaces() {
         return os.networkInterfaces()
     },
-    openChatGPTWindow: () => {
+    requestOpenChatGPTWindow: () => {
         return ipcRenderer.invoke(IPC_CHANNELS.OPEN_CHATGPT_WINDOW)
     },
-    openExternalLogin: () => {
+    requestOpenExternalLogin: () => {
         return ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN)
     }
 }

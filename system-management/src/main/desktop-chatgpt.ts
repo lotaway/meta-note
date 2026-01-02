@@ -2,6 +2,8 @@ import { BrowserWindow, session, shell } from 'electron'
 import http from 'node:http'
 import { EventEmitter } from 'node:events'
 import { CHATGPT_CONSTANTS } from './constants'
+import fs from 'node:fs'
+import path from 'node:path'
 
 interface ConversationEvent {
   message?: {
@@ -43,9 +45,15 @@ export function openExternalLogin() {
   shell.openExternal(loginUrl)
 }
 
-import rawInjectScript from './chatgpt-inject.ts?raw'
+const injectScriptPath = path.join(__dirname, 'chatgpt-inject.js')
 
-const injectScript = rawInjectScript.replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX)
+function getInjectScript() {
+  if (fs.existsSync(injectScriptPath)) {
+    return fs.readFileSync(injectScriptPath, 'utf8').replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX)
+  }
+  console.error('[ChatGPT Monitor] Inject script not found at:', injectScriptPath)
+  return ''
+}
 
 const eventBus = new EventEmitter()
 let monitorWindow: BrowserWindow | null = null
@@ -86,7 +94,10 @@ export function setupChatGPTMonitor() {
   })
 
   const inject = () => {
-    monitorWindow?.webContents.executeJavaScript(injectScript)
+    const script = getInjectScript()
+    if (!script) return
+
+    monitorWindow?.webContents.executeJavaScript(script)
       .then(() => console.log('[ChatGPT Monitor] Injection success'))
       .catch(err => console.error('[ChatGPT Monitor] Injection failed:', err))
   }

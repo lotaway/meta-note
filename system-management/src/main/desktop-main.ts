@@ -142,8 +142,8 @@ void app.whenReady().then(() => {
         void createWindow().catch(err => {
             console.log("创建窗口失败：" + JSON.stringify(err))
         })
-        chatGPTMonitor.setupChatGPTMonitor()
-        llmService.start().catch(err => console.error("Failed to start LLM service:", err))
+        // chatGPTMonitor.setupChatGPTMonitor()
+        // llmService.start().catch(err => console.error("Failed to start LLM service:", err))
     }
 
     // 延迟解决莫名其妙的ready未完成问题：https://github.com/electron/electron/issues/16809
