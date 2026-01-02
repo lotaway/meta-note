@@ -1,3 +1,5 @@
+import * as CONSTANTS from "./constants"
+
 (function (): void {
   if (!window.location.hostname.endsWith("chatgpt.com")) {
     console.log('[Monitor] Script injected but wrong host:', window.location.hostname)
@@ -37,7 +39,7 @@
           const chunk = decoder.decode(value, { stream: true })
           if (chunk) {
             const base64 = btoa(unescape(encodeURIComponent(chunk)))
-            console.log('__SSE_PREFIX__' + base64)
+            console.log(CONSTANTS.CHATGPT_CONSTANTS.SSE_RAW_PREFIX + base64)
           }
         }
       } catch (err) {

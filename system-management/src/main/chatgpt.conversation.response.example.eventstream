@@ -1,0 +1,996 @@
+event: delta_encoding
+data: "v1"
+
+data: {
+    "type": "resume_conversation_token",
+    "token": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb25kdWl0X3V1aWQiOiJkZnQ0MzdhnWRkMzg0NjYwYTE4ODY5ZDI2YzE4MmZhNiIsImNvbmR1aXRfbG9jYXRpb24iOiIxMC4xMzAuMS4xNTU6ODMwNiIsImNsdXN0ZXIiOiJ1bmlmaWVkLTg4IiwiaWF0IjoxNzY3MzM2OTM5LCJleHAiOjE3NjczMzc1Mzl9.UzoSPgZmDExygOGSy6eNzBUfOPULdKiwBtIcFiyke4u8_Qq9eJI895B_LrmxpOX3ytSz5GNIj_ptFpCKTifDbg",
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea"
+}
+
+data: {
+    "type": "input_message",
+    "input_message": {
+        "id": "34138fdf-539d-41dc-a9e9-96204ed46e66",
+        "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+        },
+        "create_time": 1767336937.947,
+        "update_time": null,
+        "content": {
+            "content_type": "text",
+            "parts": [
+                "\u662f\u5426\u53ef\u4ee5\u8ba4\u4e3askill\u66f4\u504f\u5411\u4e8e\u5b9a\u5236\u7684\u8fc7\u7a0b\u80f6\u6c34\u4ee3\u7801\uff0c\u8d1f\u8d23\u5904\u7406\u4e00\u4e2a\u5b8c\u6574\u8fde\u8d2f\u7684\u4e8b\u4ef6\uff0c\u800cmcp\u662f\u6807\u51c6\u7684\u5171\u7528\u65b9\u6cd5\uff0c\u4e00\u822c\u53ea\u8d1f\u8d23\u4e00\u4e2a\u5177\u4f53\u7684\u52a8\u4f5c"
+            ]
+        },
+        "status": "finished_successfully",
+        "end_turn": null,
+        "weight": 1.0,
+        "metadata": {
+            "selected_github_repos": [],
+            "selected_all_github_repos": false,
+            "serialization_metadata": {
+                "custom_symbol_offsets": []
+            },
+            "request_id": "a8c1ca88-c4d8-467e-80a2-eb31da2e90c5",
+            "message_source": null,
+            "turn_exchange_id": "a19627f8-1365-423e-9e18-8ab3ba88a6e6",
+            "useragent": {
+                "client_type": "web",
+                "is_mobile": false,
+                "is_mobile_app": false,
+                "is_desktop_app": false,
+                "is_native_app": false,
+                "is_native_app_apple": false,
+                "is_mobile_app_ios": false,
+                "is_desktop_app_macos": false,
+                "is_aura_app_macos": false,
+                "is_aura_web": false,
+                "is_sora_ios": false,
+                "is_agora_ios": false,
+                "is_agora_android": false,
+                "is_desktop_app_windows": false,
+                "is_electron_app": false,
+                "is_mobile_app_android": false,
+                "is_mobile_web": false,
+                "is_mobile_web_ios": false,
+                "is_mobile_web_android": false,
+                "is_ios": false,
+                "is_android": false,
+                "is_macos": true,
+                "is_windows": false,
+                "is_linux": false,
+                "is_chatgpt_client": false,
+                "is_sora_client": false,
+                "is_agora_client": false,
+                "is_browserbased_app": true,
+                "is_chatgpt_api": false,
+                "is_slack": false,
+                "is_chatkit_web": false,
+                "is_chatkit_synthetic": false,
+                "is_kakao_talk": false,
+                "app_version": null,
+                "build_number": null,
+                "user_agent": "mozilla/5.0 (macintosh; intel mac os x 10_15_7) applewebkit/537.36 (khtml, like gecko) chrome/143.0.0.0 safari/537.36 edg/143.0.0.0",
+                "app_environment": null,
+                "os_version": null,
+                "device_model": null,
+                "user_client_type": "desktop_web"
+            },
+            "paragen_stream_type": "default",
+            "parent_id": "9750e560-f6fc-48fe-8900-069068acfb52"
+        },
+        "recipient": "all",
+        "channel": null
+    },
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea"
+}
+
+event: delta
+data: {
+    "p": "",
+    "o": "add",
+    "v": {
+        "message": {
+            "id": "5cf1c6e0-76f6-4380-b884-a6f92cf508bf",
+            "author": {
+                "role": "system",
+                "name": null,
+                "metadata": {}
+            },
+            "create_time": 1767336939.5647764,
+            "update_time": null,
+            "content": {
+                "content_type": "text",
+                "parts": [
+                    ""
+                ]
+            },
+            "status": "finished_successfully",
+            "end_turn": true,
+            "weight": 0.0,
+            "metadata": {
+                "rebase_system_message": true,
+                "request_id": "a8c1ca88-c4d8-467e-80a2-eb31da2e90c5",
+                "message_type": "next",
+                "model_slug": "gpt-5-2",
+                "default_model_slug": "auto",
+                "parent_id": "34138fdf-539d-41dc-a9e9-96204ed46e66",
+                "turn_exchange_id": "a19627f8-1365-423e-9e18-8ab3ba88a6e6",
+                "is_visually_hidden_from_conversation": true,
+                "model_switcher_deny": []
+            },
+            "recipient": "all",
+            "channel": null
+        },
+        "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea",
+        "error": null
+    },
+    "c": 0
+}  
+
+event: delta
+data: {
+    "v": {
+        "message": {
+            "id": "afeff544-afa7-4fcb-9491-9cf3a7a1c432",
+            "author": {
+                "role": "assistant",
+                "name": null,
+                "metadata": {}
+            },
+            "create_time": 1767336939.626615,
+            "update_time": null,
+            "content": {
+                "content_type": "text",
+                "parts": [
+                    ""
+                ]
+            },
+            "status": "in_progress",
+            "end_turn": null,
+            "weight": 1.0,
+            "metadata": {
+                "citations": [],
+                "content_references": [],
+                "request_id": "a8c1ca88-c4d8-467e-80a2-eb31da2e90c5",
+                "message_type": "next",
+                "model_slug": "gpt-5-2",
+                "default_model_slug": "auto",
+                "parent_id": "5cf1c6e0-76f6-4380-b884-a6f92cf508bf",
+                "turn_exchange_id": "a19627f8-1365-423e-9e18-8ab3ba88a6e6",
+                "model_switcher_deny": []
+            },
+            "recipient": "all",
+            "channel": "final"
+        },
+        "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea",
+        "error": null
+    },
+    "c": 1
+}      
+
+data: {
+    "type": "server_ste_metadata",
+    "metadata": {
+        "conduit_prewarmed": true,
+        "plan_type": "free",
+        "user_agent": "web_desktop",
+        "service": null,
+        "tool_name": null,
+        "fast_convo": true,
+        "warmup_state": "warm",
+        "is_first_turn": false,
+        "cluster_region": "koreacentral",
+        "model_slug": "gpt-5-2",
+        "region": null,
+        "is_multimodal": false,
+        "did_auto_switch_to_reasoning": false,
+        "auto_switcher_race_winner": null,
+        "is_autoswitcher_enabled": false,
+        "is_search": null,
+        "did_prompt_contain_image": false,
+        "search_tool_call_count": null,
+        "search_tool_query_types": null,
+        "message_id": "afeff544-afa7-4fcb-9491-9cf3a7a1c432",
+        "request_id": "a8c1ca88-c4d8-467e-80a2-eb31da2e90c5"
+    },
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea"
+}
+
+data: {
+    "type": "message_marker",
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea",
+    "message_id": "afeff544-afa7-4fcb-9491-9cf3a7a1c432",
+    "marker": "user_visible_token",
+    "event": "first"
+}
+
+event: delta
+data: {
+    "p": "/message/content/parts/0",
+    "o": "append",
+    "v": "\u53ef\u4ee5\uff0c\u8fd9"
+}       
+
+event: delta
+data: {
+    "v": "\u4e2a\u7406\u89e3"
+}     
+
+event: delta
+data: {
+    "v": "**\u6574\u4f53"
+} 
+
+event: delta
+data: {
+    "v": "\u65b9\u5411\u662f\u5bf9\u7684**\uff0c"
+} 
+
+event: delta
+data: {
+    "v": "\u4f46\u9700\u8981\u505a\u4e24\u4e2a**\u5173\u952e\u4fee\u6b63\u548c\u7cbe"
+}     
+
+event: delta
+data: {
+    "v": "\u786e\u5316**\uff0c\u5426\u5219\u5bb9\u6613\u5728\u67b6"
+}       
+
+event: delta
+data: {
+    "v": "\u6784\u8bbe\u8ba1\u65f6\u8d70\u504f\u3002\n\n"
+} 
+
+event: delta
+data: {
+    "v": "---\n\n## \u4e00\u53e5\u8bdd\u7ed3\u8bba\uff08\u4fee\u6b63"
+}     
+
+event: delta
+data: {
+    "v": "\u540e\uff09\n\n**Skill ="
+}      
+
+event: delta
+data: {
+    "v": " \u9762\u5411\u201c\u5b8c\u6574\u4efb\u52a1"
+}    
+
+event: delta
+data: {
+    "v": "\u6d41\u7a0b\u201d\u7684\u7f16\u6392\u4e0e"
+}     
+
+event: delta
+data: {
+    "v": "\u7ea6\u675f\u5c42\uff08\u8fc7\u7a0b\u80f6"
+}     
+
+event: delta
+data: {
+    "v": "\u6c34\uff09**  \n**MCP"
+}
+
+event: delta
+data: {
+    "v": " = \u9762\u5411\u201c\u539f\u5b50\u80fd\u529b\u201d\u7684\u6807\u51c6\u5316"
+}    
+
+event: delta
+data: {
+    "v": "\u52a8\u4f5c\u63a5\u53e3**\n\n---\n\n## "
+}       
+
+event: delta
+data: {
+    "v": "\u9700\u8981\u4fee\u6b63\u7684\u4e24\u4e2a\u70b9\n\n### \u4fee\u6b63"
+}   
+
+event: delta
+data: {
+    "v": "\u70b9 1\uff1aSkill \u4e0d\u662f\u201c\u4ee3\u7801"
+}     
+
+event: delta
+data: {
+    "v": "\u201d\uff0c\u800c\u662f**"
+}     
+
+event: delta
+data: {
+    "v": "\u6d41\u7a0b\u4e0e\u89c4\u5219\u7684\u80f6"
+}     
+
+event: delta
+data: {
+    "v": "\u6c34**\n\u4f60\u8bf4\u7684\u662f\u201c"
+}       
+
+event: delta
+data: {
+    "v": "\u8fc7\u7a0b\u80f6\u6c34\u4ee3\u7801\u201d\uff0c\u66f4\u51c6\u786e\u7684"
+}       
+
+event: delta
+data: {
+    "v": "\u8bf4\u6cd5\u662f\uff1a\n\n- Skill \u672c\u8d28\u662f"
+} 
+
+event: delta
+data: {
+    "v": " **\u6d41\u7a0b\u8bf4\u660e + \u89e6"
+}   
+
+event: delta
+data: {
+    "v": "\u53d1\u6761\u4ef6 + \u7ea6\u675f\u89c4\u5219"
+}  
+
+event: delta
+data: {
+    "v": "**\n- Script \u53ea\u662f Skill \u7684\u4e00\u4e2a"
+}     
+
+event: delta
+data: {
+    "v": "\u80fd\u529b\u8868\u73b0\u5f62\u5f0f\n-"
+}
+
+event: delta
+data: {
+    "v": " Skill \u7684\u6838\u5fc3\u4ef7\u503c\u5728"
+}    
+
+event: delta
+data: {
+    "v": "\u4e8e\uff1a\n  - \u4f55"
+}       
+
+event: delta
+data: {
+    "v": "\u65f6\u505a\n  -"
+}      
+
+event: delta
+data: {
+    "v": " \u505a\u5230\u4ec0\u4e48\u7a0b\u5ea6\n  - \u505a\u5b8c"
+}
+
+event: delta
+data: {
+    "v": "\u540e\u8fd8\u8981\u505a\u4ec0\u4e48\n\n\u5b83**\u4e0d\u8d1f\u8d23"
+}     
+
+event: delta
+data: {
+    "v": "\u63d0\u4f9b\u901a\u7528\u80fd\u529b**\uff0c"
+}   
+
+event: delta
+data: {
+    "v": "\u800c\u662f\u8d1f\u8d23\uff1a\n- \u628a"
+}       
+
+event: delta
+data: {
+    "v": "\u591a\u4e2a\u80fd\u529b\u201c\u7c98"
+}   
+
+event: delta
+data: {
+    "v": "\u201d\u6210\u4e00\u4e2a**\u8bed\u4e49"
+} 
+
+event: delta
+data: {
+    "v": "\u5b8c\u6574\u7684\u4efb\u52a1**\n\n---\n\n###"
+} 
+
+event: delta
+data: {
+    "v": " \u4fee\u6b63\u70b9 2\uff1aMCP \u4e0d\u53ea\u662f\u201c"
+}
+
+event: delta
+data: {
+    "v": "\u4e00\u4e2a\u52a8\u4f5c\u201d\uff0c\u800c\u662f**\u4e00\u4e2a\u7a33\u5b9a\u7684"
+}       
+
+event: delta
+data: {
+    "v": "\u80fd\u529b\u8fb9\u754c**\nMCP"
+}
+
+event: delta
+data: {
+    "v": " \u66f4\u51c6\u786e\u7684\u5b9a\u4e49\u662f"
+}    
+
+event: delta
+data: {
+    "v": "\uff1a\n\n- \u4e00\u4e2a **\u957f\u671f\u7a33\u5b9a**\n"
+}
+
+event: delta
+data: {
+    "v": "- **\u8de8 Agent / \u8de8"
+}      
+
+event: delta
+data: {
+    "v": " Skill \u53ef\u590d\u7528**\n- **\u6709"
+}
+
+event: delta
+data: {
+    "v": "\u660e\u786e\u8f93\u5165\u8f93\u51fa\u8bed\u4e49"
+}       
+
+event: delta
+data: {
+    "v": "**\n- **\u4e0e\u4e1a\u52a1\u6d41\u7a0b"
+} 
+
+event: delta
+data: {
+    "v": "\u65e0\u5173**\n\n\u7684\u80fd\u529b"
+}   
+
+event: delta
+data: {
+    "v": "\u63d0\u4f9b\u8005\n\n\u4e00\u4e2a MCP \u901a"
+}  
+
+event: delta
+data: {
+    "v": "\u5e38\u53ea\u505a\u4e00\u7c7b\u4e8b"
+}   
+
+event: delta
+data: {
+    "v": "\uff1a\n- \u67e5\u8be2\u6570\u636e\n- \u5199\u5165\u6570\u636e"
+} 
+
+event: delta
+data: {
+    "v": "\n- \u8c03\u7528\u5916\u90e8\u7cfb\u7edf"
+}       
+
+event: delta
+data: {
+    "v": "\n- \u6267\u884c\u8ba1\u7b97"
+}   
+
+event: delta
+data: {
+    "v": "\n\n\u4f46**\u4e00\u6b21\u8c03\u7528\u4e0d"
+}     
+
+event: delta
+data: {
+    "v": "\u4e00\u5b9a\u53ea\u5e72\u201c\u4e00\u884c"
+}     
+
+event: delta
+data: {
+    "v": "\u4ee3\u7801\u201d**\uff0c\u800c\u662f\u53ea\u627f\u62c5"
+}       
+
+event: delta
+data: {
+    "v": "**\u4e00\u4e2a\u804c\u8d23"
+}     
+
+event: delta
+data: {
+    "v": "**\n\n---\n\n## \u66f4\u7cbe"
+}   
+
+event: delta
+data: {
+    "v": "\u786e\u7684\u5bf9\u7167\u8868\n\n|"
+}    
+
+event: delta
+data: {
+    "v": " \u7ef4\u5ea6 | Agent Skill | MCP |\n|----|"
+}    
+
+event: delta
+data: {
+    "v": "----|----|\n| \u5173\u6ce8\u70b9 |"
+}     
+
+event: delta
+data: {
+    "v": " \u4efb\u52a1\u5982\u4f55\u5b8c\u6210 |"
+}
+
+event: delta
+data: {
+    "v": " \u80fd\u529b\u5982\u4f55\u63d0\u4f9b |\n|"
+}     
+
+event: delta
+data: {
+    "v": " \u7c92\u5ea6 | \u7c97"
+} 
+
+event: delta
+data: {
+    "v": "\uff08\u4efb\u52a1\u7ea7\uff09 | "
+}      
+
+event: delta
+data: {
+    "v": "\u7ec6\uff08"
+}   
+
+event: delta
+data: {
+    "v": "\u80fd\u529b\u7ea7\uff09 |\n| \u751f\u547d\u5468\u671f |"
+}       
+
+: ping - 2026-01-02 06: 55: 54.582206+00: 00
+
+event: delta
+data: {
+    "v": " \u6613\u53d8\u3001\u9891\u7e41"
+}
+
+event: delta
+data: {
+    "v": "\u8c03\u6574 | \u7a33\u5b9a\u3001\u957f\u671f\u5b58\u5728 |\n| \u662f\u5426\u4f9d"
+}      
+
+event: delta
+data: {
+    "v": "\u8d56\u4e0a\u4e0b\u6587 | \u5f3a"
+}      
+
+event: delta
+data: {
+    "v": "\u4f9d\u8d56 |"
+} 
+
+event: delta
+data: {
+    "v": " \u57fa\u672c\u65e0"
+}    
+
+event: delta
+data: {
+    "v": " |\n| \u662f\u5426\u6d41\u7a0b\u76f8\u5173"
+}     
+
+event: delta
+data: {
+    "v": " | \u5f3a\u76f8\u5173 | \u65e0\u5173 |\n"
+}       
+
+event: delta
+data: {
+    "v": "| \u662f\u5426\u53ef\u590d\u7528 |"
+}     
+
+event: delta
+data: {
+    "v": " \u6709\u9650\u590d\u7528 | \u9ad8\u590d\u7528"
+} 
+
+event: delta
+data: {
+    "v": " |\n| \u662f\u5426"
+}     
+
+event: delta
+data: {
+    "v": "\u9002\u5408\u590d\u6742\u903b"
+} 
+
+event: delta
+data: {
+    "v": "\u8f91 | \u9002\u5408"
+}  
+
+event: delta
+data: {
+    "v": "\u7f16\u6392 | \u4e0d\u9002\u5408 |\n|"
+} 
+
+event: delta
+data: {
+    "v": " \u662f\u5426\u9002\u5408\u6570\u636e"
+}  
+
+event: delta
+data: {
+    "v": "\u8bbf\u95ee | \u4e0d\u63a8\u8350 | \u5f3a\u70c8\u63a8\u8350 |\n\n---\n\n## \u7528\u4f60\u8fd9\u53e5\u8bdd\u7684\u201c\u5de5\u7a0b\u7248\u7ffb\u8bd1\u201d\n\n"
+} 
+
+event: delta
+data: {
+    "v": "> skill \u66f4\u504f\u5411\u4e8e\u5b9a\u5236\u7684\u8fc7\u7a0b\u80f6\u6c34\u4ee3\u7801"
+} 
+
+event: delta
+data: {
+    "v": "\uff0c\u8d1f\u8d23\u5904\u7406\u4e00\u4e2a\u5b8c\u6574\u8fde\u8d2f\u7684\u4e8b\u4ef6\uff0c\u800c mcp \u662f\u6807\u51c6\u7684\u5171\u7528\u65b9\u6cd5\uff0c\u4e00"
+}      
+
+event: delta
+data: {
+    "v": "\u822c\u53ea\u8d1f\u8d23\u4e00\u4e2a\u5177\u4f53\u7684\u52a8\u4f5c\n\n\u5de5\u7a0b\u4e0a\u53ef\u4ee5\u7ffb\u8bd1"
+}       
+
+event: delta
+data: {
+    "v": "\u4e3a\uff1a\n\n> **Skill \u662f\u201c"
+} 
+
+event: delta
+data: {
+    "v": "\u4efb\u52a1\u7ea7 Orchestrator + \u89c4\u5219"
+} 
+
+event: delta
+data: {
+    "v": "\u8bf4\u660e\u4e66\u201d**  \n> **MCP \u662f\u201c\u80fd\u529b\u7ea7 API /"
+}     
+
+event: delta
+data: {
+    "v": " Service\u201d**\n\n---\n\n## \u4e00\u4e2a\u975e\u5e38"
+} 
+
+event: delta
+data: {
+    "v": "\u5178\u578b\u7684\u6b63\u786e\u62c6\u6cd5\n\n"
+} 
+
+event: delta
+data: {
+    "v": "### \u573a\u666f\uff1a\u4f1a\u8bae\u603b\u7ed3 +"
+}       
+
+event: delta
+data: {
+    "v": " \u5408\u89c4\u68c0\u67e5 + \u4e0a\u4f20\u5f52\u6863\n\n"
+}       
+
+event: delta
+data: {
+    "v": "#### MCP \u505a\u4ec0\u4e48\n- `get"
+}    
+
+event: delta
+data: {
+    "v": "_finance_policy`\n-"
+}    
+
+event: delta
+data: {
+    "v": " `check_budget_limit`\n- `upload_file`\n- `"
+}    
+
+event: delta
+data: {
+    "v": "query_project_owner`\n\n\u6bcf\u4e00\u4e2a\uff1a\n"
+}     
+
+event: delta
+data: {
+    "v": "- \u8f93\u5165\u6e05\u6670\n- \u8f93\u51fa\u786e\u5b9a\n- \u4e0e\u201c"
+} 
+
+event: delta
+data: {
+    "v": "\u4f1a\u8bae\u201d\u8fd9\u4e2a\u6982\u5ff5\u65e0"
+}       
+
+event: delta
+data: {
+    "v": "\u5173\n\n---\n\n#### Skill \u505a\u4ec0\u4e48\n- \u5224\u65ad\u662f\u5426"
+}     
+
+event: delta
+data: {
+    "v": "\u662f\u4f1a\u8bae\u603b\u7ed3\n- \u7ec4\u7ec7"
+} 
+
+event: delta
+data: {
+    "v": "\u603b\u7ed3\u7ed3\u6784\n- \u5224\u65ad\u662f\u5426\u6d89\u53ca"
+}       
+
+event: delta
+data: {
+    "v": "\u91d1\u94b1\n- \u51b3"
+} 
+
+event: delta
+data: {
+    "v": "\u5b9a\u662f\u5426\u8c03\u7528\u5408\u89c4\u76f8\u5173 MCP\n-"
+}  
+
+event: delta
+data: {
+    "v": " \u51b3\u5b9a\u662f\u5426\u9700\u8981\u4e0a\u4f20\n-"
+}   
+
+event: delta
+data: {
+    "v": " \u89c4\u5b9a\u8f93\u51fa\u683c\u5f0f\u4e0e"
+}    
+
+event: delta
+data: {
+    "v": "\u4fa7\u91cd\u70b9\n\nSkill **\u4e0d"
+}   
+
+event: delta
+data: {
+    "v": "\u5173\u5fc3\u6570\u636e\u5e93\u5728\u54ea**\nSkill"
+}    
+
+event: delta
+data: {
+    "v": " **\u4e0d\u5173\u5fc3\u63a5\u53e3\u600e\u4e48\u8fde"
+}    
+
+event: delta
+data: {
+    "v": "**\nSkill \u53ea\u5173\u5fc3\uff1a\n\n>"
+}
+
+event: delta
+data: {
+    "v": " \u201c\u8fd9\u4ef6\u4e8b\u5e94\u8be5\u600e\u4e48\u88ab\u5b8c\u6210"
+}    
+
+event: delta
+data: {
+    "v": "\u201d\n\n---\n\n## \u4e00\u4e2a\u975e\u5e38\u91cd\u8981\u7684"
+} 
+
+event: delta
+data: {
+    "v": "\u8bbe\u8ba1\u539f\u5219\uff08\u5f88\u591a\u4eba\u4f1a\u8e29\u5751"
+}     
+
+event: delta
+data: {
+    "v": "\uff09\n\n### \u274c \u9519\u8bef\u7528\u6cd5\n"
+}
+
+event: delta
+data: {
+    "v": "- \u628a\u6570\u636e\u5e93\u8bbf\u95ee\u903b\u8f91"
+}     
+
+event: delta
+data: {
+    "v": "\u5199\u8fdb Skill script\n- \u628a\u590d\u6742\u4e1a\u52a1\u5224\u65ad"
+}
+
+event: delta
+data: {
+    "v": "\u5806\u8fdb Skill\n"
+}   
+
+event: delta
+data: {
+    "v": "- \u628a Skill \u5f53\u6210\u5fae"
+}      
+
+event: delta
+data: {
+    "v": "\u670d\u52a1\u7528\n\n### \u2705 \u6b63\u786e"
+}  
+
+event: delta
+data: {
+    "v": "\u7528\u6cd5\n- MCP = \u80fd\u529b"
+}     
+
+event: delta
+data: {
+    "v": "\u5e95\u5ea7\n- Skill = \u4efb\u52a1\u7f16\u6392\u5c42"
+} 
+
+event: delta
+data: {
+    "v": "\n- Agent = \u51b3"
+}     
+
+event: delta
+data: {
+    "v": "\u7b56\u4e0e\u8c03\u7528\u8005\n\n---\n\n"
+}      
+
+event: delta
+data: {
+    "v": "## \u518d\u7ed9\u4f60\u4e00\u4e2a\u5224\u65ad"
+}  
+
+event: delta
+data: {
+    "v": "\u51c6\u5219\uff08"
+}     
+
+event: delta
+data: {
+    "v": "\u5f88\u597d\u7528\uff09\n\n\u95ee\u81ea\u5df1\u4e00\u53e5\u8bdd\uff1a\n\n> **\u201c\u5982\u679c\u660e\u5929"
+}   
+
+event: delta
+data: {
+    "v": "\u6362\u4e00\u4e2a Agent / \u6362"
+}      
+
+event: delta
+data: {
+    "v": "\u4e00\u4e2a Skill\uff0c\u8fd9\u4e2a\u4e1c\u897f\u8fd8"
+} 
+
+event: delta
+data: {
+    "v": "\u503c\u4e0d\u503c\u5f97\u5b58\u5728\uff1f\u201d**\n\n- **\u503c\u5f97 \u2192"
+}  
+
+event: delta
+data: {
+    "v": " MCP**\n- **\u4e0d\u503c\u5f97 \u2192 Skill**\n\n---\n\n\u5982\u679c"
+}   
+
+event: delta
+data: {
+    "v": "\u4f60\u613f\u610f\uff0c\u4e0b\u4e00\u6b65\u6211\u53ef\u4ee5\u76f4\u63a5\u5e2e\u4f60\uff1a\n- \u7ed9\u4f60"
+}     
+
+event: delta
+data: {
+    "v": "\u4e00\u5957 **Skill /"
+} 
+
+event: delta
+data: {
+    "v": " MCP \u62c6\u5206 checklist**\n-"
+}       
+
+event: delta
+data: {
+    "v": " \u6216\u8005\u62ff\u4f60\u6b63\u5728\u505a\u7684 Agent \u9879\u76ee\uff0c"
+}     
+
+: ping - 2026-01-02 06: 56: 09.583182+00: 00
+
+event: delta
+data: {
+    "v": "\u76f4\u63a5\u5e2e\u4f60\u62c6\u4e00\u7248\u5408\u7406\u67b6\u6784"
+}     
+
+event: delta
+data: {
+    "p": "",
+    "o": "patch",
+    "v": [
+        {
+            "p": "/message/status",
+            "o": "replace",
+            "v": "finished_successfully"
+        },
+        {
+            "p": "/message/end_turn",
+            "o": "replace",
+            "v": true
+        },
+        {
+            "p": "/message/metadata",
+            "o": "append",
+            "v": {
+                "sonic_classification_result": {
+                    "latency_ms": 0.08553010411560535,
+                    "simple_search_prob": 0.12707766067841011,
+                    "complex_search_prob": 0.0028047922382380412,
+                    "no_search_prob": 0.8701175470833519,
+                    "search_complexity_decision": "no_search",
+                    "search_decision": false,
+                    "simple_search_threshold": 0.0,
+                    "complex_search_threshold": 0.4,
+                    "no_search_threshold": 0.2,
+                    "threshold_order": [
+                        "no_search",
+                        "complex",
+                        "simple"
+                    ],
+                    "classifier_config_name": "sonic_classifier_5p2_3cls_ev3",
+                    "classifier_config": {
+                        "model_name": "snc-pg-sw-3cls-ev3",
+                        "renderer_name": "harmony_v4.0.15_16k_orion_text_only_no_asr_2k_action",
+                        "classifier_config_name": "sonic_classifier_5p2_3cls_ev3",
+                        "model_config_name": "chatgpt_sonic_classifier_model_config",
+                        "disable_sonic_prefetch_classifier": false,
+                        "force_disabled_rate": 0.0,
+                        "force_enabled_rate": 0.0,
+                        "num_messages": 20,
+                        "only_user_messages": false,
+                        "remove_memory": true,
+                        "support_mm": true,
+                        "n_ctx": 2048,
+                        "max_action_length": 4,
+                        "dynamic_set_max_message_size": false,
+                        "max_message_tokens": 2000,
+                        "append_base_config": false,
+                        "no_search_token": "1",
+                        "simple_search_token": "7",
+                        "complex_search_token": "5",
+                        "simple_search_threshold": 0.0,
+                        "complex_search_threshold": 0.4,
+                        "no_search_threshold": 0.2,
+                        "prefetch_threshold": null,
+                        "first_turn_prefetch_threshold": 0.6,
+                        "force_search_first_turn_threshold": 1e-05,
+                        "threshold_order": [
+                            "no_search",
+                            "complex",
+                            "simple"
+                        ],
+                        "passthrough_tool_calls": null,
+                        "passthrough_tool_name_exclusions": [
+                            "genui"
+                        ],
+                        "timeout": 1.0
+                    },
+                    "classifier_snapshot_id": null,
+                    "decision_source": "classifier",
+                    "passthrough_tool_names": []
+                },
+                "is_complete": true,
+                "finish_details": {
+                    "type": "stop",
+                    "stop_tokens": [
+                        200002
+                    ]
+                }
+            }
+        }
+    ]
+}    
+
+data: {
+    "type": "message_stream_complete",
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea"
+}
+
+data: {
+    "type": "conversation_detail_metadata",
+    "banner_info": null,
+    "blocked_features": [],
+    "model_limits": [],
+    "limits_progress": [
+        {
+            "feature_name": "deep_research",
+            "remaining": 5,
+            "reset_after": "2026-02-01T06:56:11.308732+00:00"
+        },
+        {
+            "feature_name": "file_upload",
+            "remaining": 5,
+            "reset_after": "2026-01-03T06:56:11.308781+00:00"
+        },
+        {
+            "feature_name": "paste_text_to_file",
+            "remaining": 3,
+            "reset_after": "2026-01-03T06:56:11.308820+00:00"
+        }
+    ],
+    "default_model_slug": "auto",
+    "conversation_id": "6957658b-2bfc-8322-b746-32f0e2a026ea"
+}
+
+data: [DONE
+]

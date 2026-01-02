@@ -4,6 +4,8 @@ import { EventEmitter } from 'node:events'
 import { CHATGPT_CONSTANTS } from './constants'
 import fs from 'node:fs'
 import path from 'node:path'
+import { ChatgptConversationData } from '../types/ChatgptConversationData'
+import { CompletionData } from '../types/CompletionData'
 
 interface ConversationEvent {
   message?: {
@@ -49,7 +51,7 @@ const injectScriptPath = path.join(__dirname, 'chatgpt-inject.js')
 
 function getInjectScript() {
   if (fs.existsSync(injectScriptPath)) {
-    return fs.readFileSync(injectScriptPath, 'utf8').replace('__SSE_PREFIX__', CHATGPT_CONSTANTS.SSE_RAW_PREFIX)
+    return fs.readFileSync(injectScriptPath, 'utf8')
   }
   console.error('[ChatGPT Monitor] Inject script not found at:', injectScriptPath)
   return ''
@@ -183,19 +185,73 @@ function startLocalServer() {
               'X-Accel-Buffering': 'no'
             })
 
-            const onChunk = (chunk: string) => {
-              res.write(chunk)
-              if (chunk.includes('[DONE]')) {
-                cleanup()
+            const transformChatgptToCompletion = (data: ChatgptConversationData): CompletionData | null => {
+              if ((data as any) === '[DONE]') return null;
+
+              const completion: CompletionData = {
+                id: data.message?.id || (data as any).message_id,
+                choices: [{
+                  index: 0,
+                  delta: {}
+                }]
               }
+
+              if (data.p?.includes('/message/content/parts/0') && data.o === 'append' && typeof data.v === 'string') {
+                completion.choices[0].delta.content = data.v
+                return completion
+              }
+
+              if (!data.p && !data.o && typeof data.v === 'string') {
+                completion.choices[0].delta.content = data.v
+                return completion
+              }
+
+              if (data.v?.message?.content?.parts?.[0] && data.v.message.author.role === 'assistant') {
+                completion.choices[0].delta.content = data.v.message.content.parts[0]
+                completion.id = data.v.message.id
+                return completion
+              }
+
+              return null
+            }
+
+            const DATA_PREFIX = "data: "
+            const onChunk = (lines: string) => {
+              lines.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.startsWith(DATA_PREFIX))
+                .forEach(line => {
+                  const dataStr = line.substring(DATA_PREFIX.length).trim()
+                  if (dataStr === '[DONE]') {
+                    res.write('data: [DONE]\n\n')
+                    cleanup()
+                    return
+                  }
+
+                  try {
+                    const data = JSON.parse(dataStr) as ChatgptConversationData
+                    const completion = transformChatgptToCompletion(data)
+                    if (!completion || completion.choices[0].delta.content === undefined) {
+                      return
+                    }
+                    res.write(`${DATA_PREFIX}${JSON.stringify(completion)}\n\n`)
+                  } catch (e) {
+
+                  }
+                })
             }
 
             const cleanup = () => {
+              clearTimeout(timeout)
               eventBus.off('sse-chunk', onChunk)
               if (!res.writableEnded) {
                 res.end()
               }
             }
+
+            const timeout = setTimeout(() => {
+              cleanup()
+            }, 2 * 60 * 1000)
 
             eventBus.on('sse-chunk', onChunk)
 
