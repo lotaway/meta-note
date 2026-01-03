@@ -32,12 +32,22 @@ class DeepSeekMonitor extends EnhancedBrowserWindow {
   public async setSessionToken(token: string): Promise<void> {
     console.log('[DeepSeek] Setting session token:', token)
   }
+
+  public destroy() {
+    super.destroy()
+    deepSeekMonitor = null
+  }
+
+  public close() {
+    super.close()
+    deepSeekMonitor = null
+  }
 }
 
 let deepSeekMonitor: DeepSeekMonitor | null = null
 
 export function getDeepSeekMonitor(recreate: boolean = false): DeepSeekMonitor {
-  if (!deepSeekMonitor) {
+  if (!deepSeekMonitor || !deepSeekMonitor.exists()) {
     deepSeekMonitor = new DeepSeekMonitor()
     deepSeekMonitor.load()
   }

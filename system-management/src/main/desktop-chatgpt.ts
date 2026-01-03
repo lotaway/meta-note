@@ -41,12 +41,22 @@ class ChatGPTMonitor extends EnhancedBrowserWindow {
 
     await this.setSessionCookie(cookie)
   }
+
+  public destroy(): void {
+    super.destroy()
+    chatGPTMonitor = null
+  }
+
+  public close() {
+    super.close()
+    chatGPTMonitor = null
+  }
 }
 
 let chatGPTMonitor: ChatGPTMonitor | null = null
 
 export function getChatGPTMonitor(): ChatGPTMonitor {
-  if (!chatGPTMonitor) {
+  if (!chatGPTMonitor || !chatGPTMonitor.exists()) {
     chatGPTMonitor = new ChatGPTMonitor()
     chatGPTMonitor.load()
   }

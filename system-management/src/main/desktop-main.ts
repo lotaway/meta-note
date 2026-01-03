@@ -12,6 +12,7 @@ import { IPC_CHANNELS } from "./constants"
 import { controllers } from "./controllers"
 
 import { llmService } from "./services/llm"
+import { RouteController } from "./controllers/route-controller.interface"
 
 dotenv.config()
 
@@ -153,9 +154,34 @@ ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
 
 let webServer: http.Server | null = null
 
+class MainController implements RouteController {
+    checker(req: http.IncomingMessage): boolean {
+        return req.method === 'GET' && req.url === '/view/info'
+    }
+
+    async handler(req: http.IncomingMessage, res: http.ServerResponse) {
+        if (!mainWindow) {
+            res.writeHead(500)
+            res.end('No main window')
+            return
+        }
+
+        res.setHeader('Content-Type', 'text/html')
+        const image = await mainWindow.webContents.capturePage()
+            .catch(err => {
+                console.debug(`截图失败:${err}`)
+                res.writeHead(500)
+                res.end(`截图失败:${err}`)
+            }) as Electron.NativeImage
+        res.writeHead(200)
+        res.end(image.toPNG())
+    }
+}
+
 function startWebServer() {
     if (webServer) return
 
+    controllers.add(new MainController())
     webServer = http.createServer(async (req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
