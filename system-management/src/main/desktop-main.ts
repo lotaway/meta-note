@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron"
+import { app, BrowserWindow, desktopCapturer, ipcMain, screen, systemPreferences } from "electron"
 import * as remote from "@electron/remote/main"
 import path from "node:path"
 import fs from "node:fs"
@@ -153,10 +153,11 @@ ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
 })
 
 let webServer: http.Server | null = null
+const DEFAULT_QUALITY = 80
 
-class MainController implements RouteController {
+class MainWindowScreenshotController implements RouteController {
     checker(req: http.IncomingMessage): boolean {
-        return req.method === 'GET' && req.url === '/view/info'
+        return req.method === 'GET' && req.url === '/screenshot/app'
     }
 
     async handler(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -174,14 +175,69 @@ class MainController implements RouteController {
                 res.end(`截图失败:${err}`)
             }) as Electron.NativeImage
         res.writeHead(200)
-        res.end(image.toPNG())
+        res.end(image.toJPEG(DEFAULT_QUALITY))
+    }
+}
+
+class DesktopScreenshotController implements RouteController {
+    checker(req: http.IncomingMessage): boolean {
+        return req.method === 'GET' && req.url === '/screenshot/desktop'
+    }
+
+    async handler(req: http.IncomingMessage, res: http.ServerResponse) {
+        if (!mainWindow) {
+            res.writeHead(500)
+            res.end('No main window')
+            return
+        }
+
+        res.setHeader('Content-Type', 'text/html')
+        const accessStatus = systemPreferences.getMediaAccessStatus("screen")
+        if (accessStatus === "denied") {
+            console.debug("Screen access denied")
+            res.writeHead(403)
+            res.end("Screen access denied")
+        }
+        const displays = screen.getAllDisplays()
+        const screenshots = []
+        for (const display of displays) {
+            const sources = await desktopCapturer.getSources({
+                types: ['screen'],
+                thumbnailSize: {
+                    width: display.size.width,
+                    height: display.size.height
+                }
+            })
+                .catch(err => {
+                    console.debug(`截图失败:${err}`)
+                })
+            const displaySource = sources?.find(
+                s => s.display_id === display.id.toString()
+            ) ?? null
+            if (displaySource) {
+                screenshots.push({
+                    display: display,
+                    image: displaySource.thumbnail.toJPEG(DEFAULT_QUALITY),
+                })
+            }
+        }
+        if (screenshots.length > 0) {
+            // screenshots[0] is main screen
+            res.writeHead(200)
+            res.end(screenshots)
+        }
+        else {
+            res.writeHead(500)
+            res.end(`截图失败`)
+        }
     }
 }
 
 function startWebServer() {
     if (webServer) return
 
-    controllers.add(new MainController())
+    controllers.add(new DesktopScreenshotController())
+    controllers.add(new MainWindowScreenshotController())
     webServer = http.createServer(async (req, res) => {
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
