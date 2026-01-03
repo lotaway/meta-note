@@ -4,8 +4,8 @@ import { ChatgptConversationData } from '../../types/ChatgptConversationData'
 import { CompletionData } from '../../types/CompletionData'
 import { RouteController } from './route-controller.interface'
 
-import { monitorWindow, chatgptEventBus } from '../desktop-chatgpt'
-import { deepSeekMonitorWindow, deepSeekEventBus } from '../desktop-deepseek'
+import { getChatGPTMonitor, getChatGPTEventBus } from '../desktop-chatgpt'
+import { getDeepSeekMonitor, getDeepSeekEventBus } from '../desktop-deepseek'
 
 interface DeepSeekConversationData {
     v?: any
@@ -166,6 +166,7 @@ export class ChatCompletionsController implements RouteController {
     }
 
     private async handleChatGPT(req: IncomingMessage, res: ServerResponse, prompt: string): Promise<void> {
+        const monitorWindow = getChatGPTMonitor()
         if (!monitorWindow) {
             res.writeHead(500)
             res.end(JSON.stringify({ error: 'ChatGPT window not initialized' }))
@@ -210,7 +211,7 @@ export class ChatCompletionsController implements RouteController {
 
         const cleanup = () => {
             clearTimeout(timeout)
-            chatgptEventBus.off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+            getChatGPTEventBus().off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
             if (!res.writableEnded) {
                 res.end()
             }
@@ -220,7 +221,7 @@ export class ChatCompletionsController implements RouteController {
             cleanup()
         }, 2 * 60 * 1000)
 
-        chatgptEventBus.on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+        getChatGPTEventBus().on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
 
         const result = await monitorWindow.webContents.executeJavaScript(`
             (async () => {
@@ -245,6 +246,7 @@ export class ChatCompletionsController implements RouteController {
     }
 
     private async handleDeepSeek(req: IncomingMessage, res: ServerResponse, prompt: string): Promise<void> {
+        const deepSeekMonitorWindow = getDeepSeekMonitor()
         if (!deepSeekMonitorWindow) {
             res.writeHead(500)
             res.end(JSON.stringify({ error: 'DeepSeek window not initialized' }))
@@ -289,7 +291,7 @@ export class ChatCompletionsController implements RouteController {
 
         const cleanup = () => {
             clearTimeout(timeout)
-            deepSeekEventBus.off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+            getDeepSeekEventBus().off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
             if (!res.writableEnded) {
                 res.end()
             }
@@ -299,7 +301,7 @@ export class ChatCompletionsController implements RouteController {
             cleanup()
         }, 2 * 60 * 1000)
 
-        deepSeekEventBus.on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+        getDeepSeekEventBus().on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
 
         const result = await deepSeekMonitorWindow.webContents.executeJavaScript(`
             (async () => {
