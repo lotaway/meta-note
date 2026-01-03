@@ -54,8 +54,7 @@ import * as CONSTANTS from "../constants"
     console.log('[DeepSeek Monitor] automateDeepSeek called with prompt length:', prompt.length)
     try {
       const textarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="消息"]') ||
-        document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]') ||
-        document.querySelector<HTMLElement>('div[contenteditable="true"]')
+        document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]')
 
       if (!textarea) {
         return { success: false, error: 'Input area not found' }
@@ -65,8 +64,6 @@ import * as CONSTANTS from "../constants"
 
       if (textarea.tagName === 'TEXTAREA') {
         (textarea as HTMLTextAreaElement).value = ''
-      } else {
-        (textarea as HTMLElement).innerText = ''
       }
 
       const sendBtn = document.querySelector<HTMLButtonElement>('button._7436101') ||
@@ -82,6 +79,8 @@ import * as CONSTANTS from "../constants"
       sendBtn?.click()
 
       document.execCommand('insertText', false, prompt)
+      if (textarea.value === "")
+        textarea.value = prompt
       textarea.dispatchEvent(new Event('input', { bubbles: true }))
       textarea.dispatchEvent(new Event('change', { bubbles: true }))
 
