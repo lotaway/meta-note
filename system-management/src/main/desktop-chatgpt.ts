@@ -22,13 +22,28 @@ const CHATGPT_CONSTANTS = {
 
 class ChatGPTMonitor extends EnhancedBrowserWindow {
   constructor() {
+    const partition = 'persist:chatgpt'
+
     super({
       url: CHATGPT_CONSTANTS.HOST,
       title: 'ChatGPT Monitor',
       injectScriptPath: path.join(__dirname, 'chatgpt-inject.js'),
       sseRawPrefix: CHATGPT_CONSTANTS.SSE_RAW_PREFIX,
-      sseChunkEvent: CHATGPT_CONSTANTS.SSE_CHUNK_EVENT
+      sseChunkEvent: CHATGPT_CONSTANTS.SSE_CHUNK_EVENT,
+      partition
     })
+
+    const proxyUrl = process.env.PROXY_URL
+    if (proxyUrl && proxyUrl.trim()) {
+      const sessionInstance = session.fromPartition(partition)
+      sessionInstance.setProxy({ proxyRules: proxyUrl.trim() })
+        .then(() => {
+          console.log(`[${this.title}] Proxy set successfully: ${proxyUrl}`)
+        })
+        .catch((err: Error) => {
+          console.error(`[${this.title}] Failed to set proxy:`, err)
+        })
+    }
   }
 
   public async setSessionToken(token: string): Promise<void> {

@@ -29,6 +29,7 @@ const WEB_SERVER_PORT = parseInt(process.env.WEB_SERVER_PORT || "5051", 10)
 const DEV_SERVER_PORT = parseInt(process.env.DEV_SERVER_PORT || "5173", 10)
 const WINDOW_WIDTH = parseInt(process.env.WINDOW_WIDTH || "1200", 10)
 const WINDOW_HEIGHT = parseInt(process.env.WINDOW_HEIGHT || "800", 10)
+const PROXY_URL = process.env.PROXY_URL || ""
 
 let mainWindow: InstanceType<typeof BrowserWindow> | null = null
 
