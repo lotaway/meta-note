@@ -3,7 +3,7 @@ export const IPC_CHANNELS = {
     OPEN_EXTERNAL_LOGIN: 'open-external-login',
 } as const
 
-export const CHATGPT_CONSTANTS = {
+export const AI_CHAT_CONSTANTS = {
     SSE_RAW_PREFIX: '__SSE_PREFIX__',
     SSE_CHUNK_EVENT: 'sse-chunk',
     SESSION_COOKIE_NAME: '__Secure-next-auth.session-token',

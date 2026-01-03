@@ -1,10 +1,10 @@
 import { IncomingMessage, ServerResponse } from 'node:http'
-import { ROUTE_PATHS, CHATGPT_CONSTANTS } from '../constants'
+import { ROUTE_PATHS, AI_CHAT_CONSTANTS } from '../constants'
 import { ChatgptConversationData } from '../../types/ChatgptConversationData'
 import { CompletionData } from '../../types/CompletionData'
 import { RouteController } from './route-controller.interface'
 
-import { monitorWindow, eventBus } from '../desktop-chatgpt'
+import { monitorWindow, chatgptEventBus } from '../desktop-chatgpt'
 import { deepSeekMonitorWindow, deepSeekEventBus } from '../desktop-deepseek'
 
 interface DeepSeekConversationData {
@@ -210,7 +210,7 @@ export class ChatCompletionsController implements RouteController {
 
         const cleanup = () => {
             clearTimeout(timeout)
-            eventBus.off(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+            chatgptEventBus.off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
             if (!res.writableEnded) {
                 res.end()
             }
@@ -220,7 +220,7 @@ export class ChatCompletionsController implements RouteController {
             cleanup()
         }, 2 * 60 * 1000)
 
-        eventBus.on(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+        chatgptEventBus.on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
 
         const result = await monitorWindow.webContents.executeJavaScript(`
             (async () => {
@@ -289,7 +289,7 @@ export class ChatCompletionsController implements RouteController {
 
         const cleanup = () => {
             clearTimeout(timeout)
-            deepSeekEventBus.off(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+            deepSeekEventBus.off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
             if (!res.writableEnded) {
                 res.end()
             }
@@ -299,7 +299,7 @@ export class ChatCompletionsController implements RouteController {
             cleanup()
         }, 2 * 60 * 1000)
 
-        deepSeekEventBus.on(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+        deepSeekEventBus.on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
 
         const result = await deepSeekMonitorWindow.webContents.executeJavaScript(`
             (async () => {

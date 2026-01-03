@@ -1,7 +1,7 @@
 import { BrowserWindow, session, shell } from 'electron'
 import http from 'node:http'
 import { EventEmitter } from 'node:events'
-import { CHATGPT_CONSTANTS } from './constants'
+import { AI_CHAT_CONSTANTS } from './constants'
 import fs from 'node:fs'
 import path from 'node:path'
 import { CompletionData } from '../types/CompletionData'
@@ -70,11 +70,11 @@ export function setupDeepSeekMonitor() {
   })
 
   deepSeekMonitorWindow.webContents.on('console-message', (event, level, message) => {
-    if (message.startsWith(CHATGPT_CONSTANTS.SSE_RAW_PREFIX)) {
-      const base64Data = message.substring(CHATGPT_CONSTANTS.SSE_RAW_PREFIX.length)
+    if (message.startsWith(AI_CHAT_CONSTANTS.SSE_RAW_PREFIX)) {
+      const base64Data = message.substring(AI_CHAT_CONSTANTS.SSE_RAW_PREFIX.length)
       try {
         const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-        deepSeekEventBus.emit(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
+        deepSeekEventBus.emit(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
       } catch (e) {
         console.error('[DeepSeek Monitor] Failed to decode raw chunk:', e)
       }
@@ -240,7 +240,7 @@ function startDeepSeekLocalServer() {
 
             const cleanup = () => {
               clearTimeout(timeout)
-              deepSeekEventBus.off(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+              deepSeekEventBus.off(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
               if (!res.writableEnded) {
                 res.end()
               }
@@ -250,7 +250,7 @@ function startDeepSeekLocalServer() {
               cleanup()
             }, 2 * 60 * 1000)
 
-            deepSeekEventBus.on(CHATGPT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
+            deepSeekEventBus.on(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, onChunk)
 
             const result = await deepSeekMonitorWindow.webContents.executeJavaScript(`
               (async () => {

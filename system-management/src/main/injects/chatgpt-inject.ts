@@ -39,7 +39,7 @@ import * as CONSTANTS from "../constants"
           const chunk = decoder.decode(value, { stream: true })
           if (chunk) {
             const base64 = btoa(unescape(encodeURIComponent(chunk)))
-            console.log(CONSTANTS.CHATGPT_CONSTANTS.SSE_RAW_PREFIX + base64)
+            console.log(CONSTANTS.AI_CHAT_CONSTANTS.SSE_RAW_PREFIX + base64)
           }
         }
       } catch (err) {
