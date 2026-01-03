@@ -22,12 +22,15 @@ export class BaseBrowserWindow extends BrowserWindow {
       ...browserWindowOptions
     } = options
 
+    const isDev = process.env.NODE_ENV === 'development'
+
     const webPreferences: BrowserWindowConstructorOptions['webPreferences'] = {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/preload.js'),
       partition,
       nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
+      contextIsolation: false,
+      sandbox: false,
+      devTools: isDev,
       ...browserWindowOptions.webPreferences
     }
 
@@ -50,7 +53,23 @@ export class BaseBrowserWindow extends BrowserWindow {
   }
 
   public load(): void {
-    this.loadURL(this.url)
+    console.log(`[${this.title}] Loading URL: ${this.url}`)
+
+    try {
+      this.loadURL(this.url)
+      console.log(`[${this.title}] URL load initiated`)
+    } catch (error) {
+      console.error(`[${this.title}] Failed to load URL:`, error)
+
+      setTimeout(() => {
+        console.log(`[${this.title}] Retrying load...`)
+        try {
+          this.loadURL(this.url)
+        } catch (retryError) {
+          console.error(`[${this.title}] Retry failed:`, retryError)
+        }
+      }, 1000)
+    }
   }
   public async setSessionCookie(cookie: {
     url: string

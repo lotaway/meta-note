@@ -22,6 +22,14 @@ export class EnhancedBrowserWindow extends BaseBrowserWindow {
     this.sseRawPrefix = options.sseRawPrefix || '__SSE_PREFIX__'
     this.sseChunkEvent = options.sseChunkEvent || 'sse-chunk'
 
+    if (process.env.NODE_ENV === 'development') {
+      this.webContents.openDevTools()
+    }
+
+    this.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error(`[${this.title}] Failed to load ${validatedURL}:`, errorDescription, `(code: ${errorCode})`)
+    })
+
     this.setupConsoleMonitoring()
     this.setupInjection()
   }

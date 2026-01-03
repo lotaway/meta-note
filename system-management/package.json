@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "main": "dist-electron/main/desktop-main.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "deploy": "tsc && vite build && electron-builder",
-    "preview": "vite preview",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none vite\" \"wait-on tcp:5173 && electron .\"",
+    "dev": "cross-env NODE_OPTIONS= vite",
+    "build": "tsc && cross-env NODE_OPTIONS= vite build",
+    "deploy": "tsc && cross-env NODE_OPTIONS= vite build && electron-builder",
+    "preview": "cross-env NODE_OPTIONS= vite preview",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none NODE_OPTIONS= vite\" \"wait-on tcp:5173 && cross-env NODE_OPTIONS= electron . --disable-features=NODE_OPTIONS\"",
     "rebuild:sqlite3": "./node_modules/.bin/electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {

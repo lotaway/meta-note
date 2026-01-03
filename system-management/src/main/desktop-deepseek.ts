@@ -36,20 +36,22 @@ class DeepSeekMonitor extends EnhancedBrowserWindow {
 
 let deepSeekMonitor: DeepSeekMonitor | null = null
 
-export function getDeepSeekMonitor(): DeepSeekMonitor {
+export function getDeepSeekMonitor(recreate: boolean = false): DeepSeekMonitor {
   if (!deepSeekMonitor) {
     deepSeekMonitor = new DeepSeekMonitor()
+    deepSeekMonitor.load()
+  }
+  else if (recreate) {
+    deepSeekMonitor.reload()
   }
   return deepSeekMonitor
 }
 
-export function setupDeepSeekMonitor(): void {
-  const monitor = getDeepSeekMonitor()
+export function setupDeepSeekMonitor(recreate: boolean = false): void {
+  const monitor = getDeepSeekMonitor(recreate)
   if (monitor.exists()) {
     monitor.focus()
-    return
   }
-  monitor.load()
 }
 
 export function setDeepSeekSessionToken(token: string): void {

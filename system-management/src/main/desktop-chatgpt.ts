@@ -48,6 +48,7 @@ let chatGPTMonitor: ChatGPTMonitor | null = null
 export function getChatGPTMonitor(): ChatGPTMonitor {
   if (!chatGPTMonitor) {
     chatGPTMonitor = new ChatGPTMonitor()
+    chatGPTMonitor.load()
   }
   return chatGPTMonitor
 }
@@ -56,9 +57,7 @@ export function setupChatGPTMonitor(): void {
   const monitor = getChatGPTMonitor()
   if (monitor.exists()) {
     monitor.focus()
-    return
   }
-  monitor.load()
 }
 
 export function setSessionToken(token: string): void {
