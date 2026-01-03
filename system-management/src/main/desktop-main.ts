@@ -251,19 +251,21 @@ function startWebServer() {
         }
 
         for (const controller of controllers) {
-            if (controller.checker(req)) {
-                const result = controller.handler(req, res)
-                if (result instanceof Promise) {
-                    result.catch(err => {
-                        console.error('[Controller] Handler error:', err)
-                        if (!res.headersSent) {
-                            res.writeHead(500)
-                            res.end(JSON.stringify({ error: 'Internal server error' }))
-                        }
-                    })
-                }
+            if (!controller.checker(req)) {
+                continue
+            }
+            console.info("match router", req.url)
+            const result = controller.handler(req, res)
+            if (!(result instanceof Promise)) {
                 return
             }
+            result.catch(err => {
+                console.error('[Controller] Handler error:', err)
+                if (!res.headersSent) {
+                    res.writeHead(500)
+                    res.end(JSON.stringify({ error: 'Internal server error' }))
+                }
+            })
         }
 
         res.writeHead(404)

@@ -14,8 +14,8 @@ export const AI_CHAT_CONSTANTS = {
 } as const
 
 export const ROUTE_PATHS = {
-    SHOW: '/show',
-    TAGS: '/tags',
+    SHOW: '/api/show',
+    TAGS: '/api/tags',
     AUTH_TOKEN: '/v1/auth/token',
     CHAT_COMPLETIONS: '/v1/chat/completions',
 } as const

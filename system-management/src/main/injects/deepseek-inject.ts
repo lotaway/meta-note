@@ -54,7 +54,7 @@ import * as CONSTANTS from "../constants"
     console.log('[DeepSeek Monitor] automateDeepSeek called with prompt length:', prompt.length)
     try {
       const textarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="消息"]') ||
-        document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message"]') ||
+        document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]') ||
         document.querySelector<HTMLElement>('div[contenteditable="true"]')
 
       if (!textarea) {
@@ -69,16 +69,23 @@ import * as CONSTANTS from "../constants"
         (textarea as HTMLElement).innerText = ''
       }
 
+      const sendBtn = document.querySelector<HTMLButtonElement>('button._7436101') ||
+        document.querySelector<HTMLButtonElement>('button.bcc55ca1') ||
+        (() => {
+          const btns = document.querySelectorAll<HTMLButtonElement>('button.ds-icon-button')
+          if (btns.length === 0) {
+            return null
+          }
+          return btns[btns.length - 1]
+        })() ||
+        document.querySelector<HTMLButtonElement>('button svg')
+      sendBtn?.click()
+
       document.execCommand('insertText', false, prompt)
       textarea.dispatchEvent(new Event('input', { bubbles: true }))
       textarea.dispatchEvent(new Event('change', { bubbles: true }))
 
       await new Promise<void>(r => setTimeout(r, 800))
-
-      const sendBtn = document.querySelector<HTMLButtonElement>('button[type="submit"]') ||
-        document.querySelector<HTMLButtonElement>('button[aria-label*="发送"]') ||
-        document.querySelector<HTMLButtonElement>('button[aria-label*="Send"]') ||
-        document.querySelector<HTMLButtonElement>('button svg')
 
       if (!sendBtn || sendBtn.disabled) {
         const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
