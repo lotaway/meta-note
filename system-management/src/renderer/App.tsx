@@ -78,6 +78,40 @@ export default function App() {
           >
             Google Login (System Browser)
           </button>
+          <button
+            className="premium-button"
+            onClick={() => (window as any).desktop.requestOpenDeepseekWindow()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              marginLeft: '10px',
+              boxShadow: '0 2px 10px rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            Open Deepseek Monitor
+          </button>
+          <button
+            className="premium-button"
+            onClick={() => (window as any).desktop.requestOpenDeepseekExternalLogin()}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#6366f1',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              marginLeft: '10px',
+              boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)'
+            }}
+          >
+            Deepseek Login (System Browser)
+          </button>
         </div>
         <div style={{ color: '#666', fontSize: '12px', marginBottom: '20px' }}>
           * If Google login fails in Electron, use the button above to login in your system browser.

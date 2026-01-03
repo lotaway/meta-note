@@ -1,10 +1,7 @@
-import { BrowserWindow, session, shell } from 'electron'
-import http from 'node:http'
-import { EventEmitter } from 'node:events'
-import { AI_CHAT_CONSTANTS } from './constants'
-import fs from 'node:fs'
+import { session, shell } from 'electron'
 import path from 'node:path'
-import { controllers } from './controllers'
+import { AI_CHAT_CONSTANTS } from './constants'
+import { EnhancedBrowserWindow } from './browser/enhanced-browser-window'
 
 interface ConversationEvent {
   message?: {
@@ -15,98 +12,74 @@ interface ConversationEvent {
   }
 }
 
-export function setSessionToken(token: string) {
-  const cookie = {
-    url: AI_CHAT_CONSTANTS.CHATGPT_HOST,
-    name: AI_CHAT_CONSTANTS.SESSION_COOKIE_NAME,
-    value: token,
-    domain: AI_CHAT_CONSTANTS.COOKIE_DOMAIN,
-    path: '/',
-    secure: true,
-    httpOnly: true,
-    sameSite: 'lax' as any
+const CHATGPT_CONSTANTS = {
+  HOST: AI_CHAT_CONSTANTS.CHATGPT_HOST,
+  SSE_RAW_PREFIX: AI_CHAT_CONSTANTS.SSE_RAW_PREFIX,
+  SSE_CHUNK_EVENT: AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT,
+  SESSION_COOKIE_NAME: AI_CHAT_CONSTANTS.SESSION_COOKIE_NAME,
+  COOKIE_DOMAIN: AI_CHAT_CONSTANTS.COOKIE_DOMAIN
+} as const
+
+class ChatGPTMonitor extends EnhancedBrowserWindow {
+  constructor() {
+    super({
+      url: CHATGPT_CONSTANTS.HOST,
+      title: 'ChatGPT Monitor',
+      injectScriptPath: path.join(__dirname, 'chatgpt-inject.js'),
+      sseRawPrefix: CHATGPT_CONSTANTS.SSE_RAW_PREFIX,
+      sseChunkEvent: CHATGPT_CONSTANTS.SSE_CHUNK_EVENT
+    })
   }
 
-  session.defaultSession.cookies.set(cookie).then(() => {
-    console.log('[ChatGPT] Session token applied successfully')
-    if (monitorWindow) {
-      monitorWindow.loadURL(AI_CHAT_CONSTANTS.CHATGPT_HOST)
+  public async setSessionToken(token: string): Promise<void> {
+    const cookie = {
+      url: CHATGPT_CONSTANTS.HOST,
+      name: CHATGPT_CONSTANTS.SESSION_COOKIE_NAME,
+      value: token,
+      domain: CHATGPT_CONSTANTS.COOKIE_DOMAIN
     }
-  }).catch(err => {
-    console.error('[ChatGPT] Failed to set cookie:', err)
+
+    await this.setSessionCookie(cookie)
+  }
+}
+
+let chatGPTMonitor: ChatGPTMonitor | null = null
+
+export function getChatGPTMonitor(): ChatGPTMonitor {
+  if (!chatGPTMonitor) {
+    chatGPTMonitor = new ChatGPTMonitor()
+  }
+  return chatGPTMonitor
+}
+
+export function setupChatGPTMonitor(): void {
+  const monitor = getChatGPTMonitor()
+  if (monitor.exists()) {
+    monitor.focus()
+    return
+  }
+  monitor.load()
+}
+
+export function setSessionToken(token: string): void {
+  const monitor = getChatGPTMonitor()
+  monitor.setSessionToken(token).catch(err => {
+    console.error('[ChatGPT] Failed to set session token:', err)
   })
 }
 
-export function openExternalLogin() {
+export function openExternalLogin(): void {
   const appProtocol = process.env.APP_PROTOCOL || 'meta-note'
   const redirectUri = encodeURIComponent(`${appProtocol}://auth`)
-  const loginUrl = `${AI_CHAT_CONSTANTS.CHATGPT_HOST}/auth/login?redirect_uri=${redirectUri}&callbackUrl=${redirectUri}`
+  const loginUrl = `${CHATGPT_CONSTANTS.HOST}/auth/login?redirect_uri=${redirectUri}&callbackUrl=${redirectUri}`
 
   console.log('[ChatGPT] Opening external login:', loginUrl)
   shell.openExternal(loginUrl)
 }
 
-const injectScriptPath = path.join(__dirname, 'chatgpt-inject.js')
-
-function getInjectScript() {
-  if (fs.existsSync(injectScriptPath)) {
-    return fs.readFileSync(injectScriptPath, 'utf8')
-  }
-  console.error('[ChatGPT Monitor] Inject script not found at:', injectScriptPath)
-  return ''
-}
-
-export const chatgptEventBus = new EventEmitter()
-export let monitorWindow: BrowserWindow | null = null
-
-export function setupChatGPTMonitor() {
-  if (monitorWindow) {
-    monitorWindow.focus()
-    return
-  }
-
-  monitorWindow = new BrowserWindow({
-    width: 1200,
-    height: 900,
-    title: 'ChatGPT Monitor',
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true
-    }
-  })
-
-  monitorWindow.on('closed', () => {
-    monitorWindow = null
-  })
-
-  monitorWindow.webContents.on('console-message', (event, level, message) => {
-    if (message.startsWith(AI_CHAT_CONSTANTS.SSE_RAW_PREFIX)) {
-      const base64Data = message.substring(AI_CHAT_CONSTANTS.SSE_RAW_PREFIX.length)
-      try {
-        const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-        chatgptEventBus.emit(AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT, rawChunk)
-      } catch (e) {
-        console.error('[ChatGPT Monitor] Failed to decode raw chunk:', e)
-      }
-    } else {
-      console.log(`[ChatGPT Web] ${message}`)
-    }
-  })
-
-  const inject = () => {
-    const script = getInjectScript()
-    if (!script) return
-
-    monitorWindow?.webContents.executeJavaScript(script)
-      .then(() => console.log('[ChatGPT Monitor] Injection success'))
-      .catch(err => console.error('[ChatGPT Monitor] Injection failed:', err))
-  }
-
-  monitorWindow.webContents.on('did-finish-load', inject)
-  monitorWindow.webContents.on('did-navigate', inject)
-  monitorWindow.webContents.on('dom-ready', inject)
-
-  monitorWindow.loadURL(AI_CHAT_CONSTANTS.CHATGPT_HOST)
+export function getChatGPTEventBus() {
+  const monitor = getChatGPTMonitor()
+  return monitor.getEventBus()
 }
 
 export function getConversationCache(): ConversationEvent[] {
@@ -117,5 +90,6 @@ export default {
   setupChatGPTMonitor,
   getConversationCache,
   setSessionToken,
-  openExternalLogin
+  openExternalLogin,
+  getChatGPTEventBus
 }

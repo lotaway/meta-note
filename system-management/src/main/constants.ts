@@ -1,6 +1,8 @@
 export const IPC_CHANNELS = {
     OPEN_CHATGPT_WINDOW: 'open-chatgpt-window',
     OPEN_EXTERNAL_LOGIN: 'open-external-login',
+    OPEN_DEEPSEEK_WINDOW: 'open-deepseek-window',
+    OPEN_DEEPSEEK_EXTERNAL_LOGIN: 'open-deepseek-external-login',
 } as const
 
 export const AI_CHAT_CONSTANTS = {

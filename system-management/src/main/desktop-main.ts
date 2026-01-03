@@ -290,11 +290,11 @@ wss.on('connection', ws => {
     }))
 })
 
-ipcMain.handle('open-deepseek-window', () => {
+ipcMain.handle(IPC_CHANNELS.OPEN_DEEPSEEK_WINDOW, () => {
     deepSeekMonitor.setupDeepSeekMonitor()
 })
 
-ipcMain.handle('open-deepseek-external-login', () => {
+ipcMain.handle(IPC_CHANNELS.OPEN_DEEPSEEK_EXTERNAL_LOGIN, () => {
     deepSeekMonitor.openDeepSeekExternalLogin()
 })
 
