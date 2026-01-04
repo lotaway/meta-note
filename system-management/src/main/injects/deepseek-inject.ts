@@ -66,16 +66,16 @@ import * as CONSTANTS from "../constants"
         (textarea as HTMLTextAreaElement).value = ''
       }
 
-      const sendBtn = document.querySelector<HTMLButtonElement>('button._7436101') ||
-        document.querySelector<HTMLButtonElement>('button.bcc55ca1') ||
+      const sendBtn = document.querySelector<HTMLDivElement>('div._7436101') ||
+        document.querySelector<HTMLDivElement>('div.bcc55ca1') ||
         (() => {
-          const btns = document.querySelectorAll<HTMLButtonElement>('button.ds-icon-button')
+          const btns = document.querySelectorAll<HTMLDivElement>('div.ds-icon-button')
           if (btns.length === 0) {
             return null
           }
           return btns[btns.length - 1]
         })() ||
-        document.querySelector<HTMLButtonElement>('button svg')
+        document.querySelector<HTMLDivElement>('div[role="button"] svg')
       sendBtn?.click()
 
       document.execCommand('insertText', false, prompt)
@@ -86,10 +86,10 @@ import * as CONSTANTS from "../constants"
 
       await new Promise<void>(r => setTimeout(r, 800))
 
-      if (!sendBtn || sendBtn.disabled) {
-        const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('button'))
+      if (!sendBtn || sendBtn.classList.contains('disabled')) {
+        const btns = Array.from(document.querySelectorAll<HTMLDivElement>('div'))
         const fallbackBtn = btns.filter(b => b.querySelector('svg')).pop()
-        if (fallbackBtn && !fallbackBtn.disabled) {
+        if (fallbackBtn && !fallbackBtn.classList.contains('disabled')) {
           fallbackBtn.click()
           return { success: true }
         }
