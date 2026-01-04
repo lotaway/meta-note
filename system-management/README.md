@@ -19,17 +19,17 @@ cp .env.example .env
 
 ### 开发模式
 ```bash
-npm run dev
+yarn dev
 ```
 
 ### 构建应用
 ```bash
-npm run build
+yarn build
 ```
 
 ### 启动Electron应用
 ```bash
-npm start
+yarn start
 ```
 
 ## 技术栈

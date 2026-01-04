@@ -24,23 +24,26 @@ function getInjectEntries() {
     })
 }
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  // build: {
-  //   outDir: 'dist-electron/renderer',
-  // },
   plugins: [
     react(),
     electron([
       {
-        // Main-Process entry file of the Electron App.
         entry: 'src/main/desktop-main.ts',
         vite: {
           build: {
             outDir: 'dist-electron/main',
             minify: false,
             rollupOptions: {
-              external: ['better-sqlite3', '@electron/remote', 'fluent-ffmpeg', 'ws']
+              external: [
+                'better-sqlite3',
+                '@electron/remote',
+                'fluent-ffmpeg',
+                'ws',
+                'reflect-metadata',
+                'rxjs',
+                /^@nestjs\/.*/
+              ]
             }
           },
         },

@@ -1,18 +1,18 @@
+import "reflect-metadata"
 import { app, BrowserWindow, desktopCapturer, ipcMain, screen, systemPreferences } from "electron"
 import * as remote from "@electron/remote/main"
 import path from "node:path"
 import fs from "node:fs"
 import { WebSocketServer } from 'ws'
 import ffmpeg from "fluent-ffmpeg"
-import http from 'node:http'
 import chatGPTMonitor from "./desktop-chatgpt"
 import deepSeekMonitor from "./desktop-deepseek"
 import dotenv from 'dotenv'
 import { IPC_CHANNELS } from "./constants"
-import { controllers } from "./controllers"
 
 import { llmService } from "./services/llm"
-import { RouteController } from "./controllers/route-controller.interface"
+import { bootstrapNestJS } from "./nestjs/main"
+import { ElectronService } from "./nestjs/services/electron.service"
 
 dotenv.config()
 
@@ -153,138 +153,19 @@ ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_LOGIN, () => {
     chatGPTMonitor.openExternalLogin()
 })
 
-let webServer: http.Server | null = null
-const DEFAULT_QUALITY = 80
 
-class MainWindowScreenshotController implements RouteController {
-    checker(req: http.IncomingMessage): boolean {
-        return req.method === 'GET' && req.url === '/screenshot/app'
-    }
-
-    async handler(req: http.IncomingMessage, res: http.ServerResponse) {
-        if (!mainWindow) {
-            res.writeHead(500)
-            res.end('No main window')
-            return
-        }
-
-        res.setHeader('Content-Type', 'text/html')
-        const image = await mainWindow.webContents.capturePage()
-            .catch(err => {
-                console.debug(`截图失败:${err}`)
-                res.writeHead(500)
-                res.end(`截图失败:${err}`)
-            }) as Electron.NativeImage
-        res.writeHead(200)
-        res.end(image.toJPEG(DEFAULT_QUALITY))
-    }
-}
-
-class DesktopScreenshotController implements RouteController {
-    checker(req: http.IncomingMessage): boolean {
-        return req.method === 'GET' && req.url === '/screenshot/desktop'
-    }
-
-    async handler(req: http.IncomingMessage, res: http.ServerResponse) {
-        if (!mainWindow) {
-            res.writeHead(500)
-            res.end('No main window')
-            return
-        }
-
-        res.setHeader('Content-Type', 'text/html')
-        const accessStatus = systemPreferences.getMediaAccessStatus("screen")
-        if (accessStatus === "denied") {
-            console.debug("Screen access denied")
-            res.writeHead(403)
-            res.end("Screen access denied")
-        }
-        const displays = screen.getAllDisplays()
-        const screenshots = []
-        for (const display of displays) {
-            const sources = await desktopCapturer.getSources({
-                types: ['screen'],
-                thumbnailSize: {
-                    width: display.size.width,
-                    height: display.size.height
-                }
-            })
-                .catch(err => {
-                    console.debug(`截图失败:${err}`)
-                })
-            const displaySource = sources?.find(
-                s => s.display_id === display.id.toString()
-            ) ?? null
-            if (displaySource) {
-                screenshots.push({
-                    display: display,
-                    image: displaySource.thumbnail.toJPEG(DEFAULT_QUALITY),
-                })
-            }
-        }
-        if (screenshots.length > 0) {
-            // screenshots[0] is main screen
-            res.writeHead(200)
-            res.end(screenshots)
-        }
-        else {
-            res.writeHead(500)
-            res.end(`截图失败`)
-        }
-    }
-}
-
-function startWebServer() {
-    if (webServer) return
-
-    controllers.add(new DesktopScreenshotController())
-    controllers.add(new MainWindowScreenshotController())
-    webServer = http.createServer(async (req, res) => {
-        res.setHeader('Access-Control-Allow-Origin', '*')
-        res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-
-        if (req.method === 'OPTIONS') {
-            res.writeHead(204)
-            res.end()
-            return
-        }
-
-        for (const controller of controllers) {
-            if (!controller.checker(req)) {
-                continue
-            }
-            console.info("match router", req.url)
-            const result = controller.handler(req, res)
-            if (!(result instanceof Promise)) {
-                return
-            }
-            result.catch(err => {
-                console.error('[Controller] Handler error:', err)
-                if (!res.headersSent) {
-                    res.writeHead(500)
-                    res.end(JSON.stringify({ error: 'Internal server error' }))
-                }
-            })
-        }
-
-        res.writeHead(404)
-        res.end('Not Found')
-    })
-
-    webServer.listen(WEB_SERVER_PORT, () => {
-        console.log(`[Web Server] Listening on http://localhost:${WEB_SERVER_PORT}`)
-    })
-}
-
-const originalInit = () => {
+const originalInit = async () => {
     app.setAsDefaultProtocolClient(APP_PROTOCOL)
-    void createWindow().catch(err => {
-        console.log("创建窗口失败：" + JSON.stringify(err))
-    })
-    startWebServer()
-    // chatGPTMonitor.setupChatGPTMonitor()
-    // llmService.start().catch(err => console.error("Failed to start LLM service:", err))
+    try {
+        await createWindow()
+        const nestApp = await bootstrapNestJS()
+        const electronService = nestApp.get(ElectronService)
+        if (mainWindow) {
+            electronService.setMainWindow(mainWindow)
+        }
+    } catch (err) {
+        console.log("Initialization failed：" + JSON.stringify(err))
+    }
 }
 
 app.on('open-url', (event, url) => {

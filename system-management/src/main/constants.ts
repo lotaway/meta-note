@@ -18,4 +18,13 @@ export const ROUTE_PATHS = {
     TAGS: '/api/tags',
     AUTH_TOKEN: '/v1/auth/token',
     CHAT_COMPLETIONS: '/v1/chat/completions',
+    STUDY_REQUEST: '/api/study/request',
+} as const
+
+export const STUDY_CONSTANTS = {
+    STUDY_LIST_TOPIC: 'study_list',
+    STUDYING_LIST_TOPIC: 'studying_list',
+    STUDY_SUCCESS_COUNT_KEY: 'study_success_count',
+    STUDY_TIME_KEY: 'study_total_time',
+    STUDY_LIST_ERROR_KEY: 'study_list_error',
 } as const
