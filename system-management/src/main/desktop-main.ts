@@ -13,6 +13,13 @@ import { IPC_CHANNELS } from "./constants"
 import { llmService } from "./services/llm"
 import { bootstrapNestJS } from "./nestjs/main"
 import { ElectronService } from "./nestjs/services/electron.service"
+import { LLMController } from "./nestjs/controllers/llm.controller"
+import { ConfigController } from "./nestjs/controllers/config.controller"
+import { AuthController } from "./nestjs/controllers/auth.controller"
+import { StudyController } from "./nestjs/controllers/study.controller"
+import { ScreenshotController } from "./nestjs/controllers/screenshot.controller"
+import express from 'express'
+import { HttpStatus } from '@nestjs/common'
 
 dotenv.config()
 
@@ -32,6 +39,12 @@ const WINDOW_HEIGHT = parseInt(process.env.WINDOW_HEIGHT || "800", 10)
 const PROXY_URL = process.env.PROXY_URL || ""
 
 let mainWindow: InstanceType<typeof BrowserWindow> | null = null
+let llmControllerInstance: LLMController | null = null
+let configControllerInstance: ConfigController | null = null
+let authControllerInstance: AuthController | null = null
+let studyControllerInstance: StudyController | null = null
+let screenshotControllerInstance: ScreenshotController | null = null
+let httpServer: any = null
 
 async function createWindow() {
     mainWindow = new BrowserWindow({
@@ -160,12 +173,164 @@ const originalInit = async () => {
         await createWindow()
         const nestApp = await bootstrapNestJS()
         const electronService = nestApp.get(ElectronService)
+        const studyService = nestApp.get(StudyService)
+        llmControllerInstance = new LLMController()
+        configControllerInstance = new ConfigController()
+        authControllerInstance = new AuthController()
+        studyControllerInstance = new StudyController(studyService)
+        screenshotControllerInstance = new ScreenshotController()
+
         if (mainWindow) {
             electronService.setMainWindow(mainWindow)
         }
+        startHTTPServer()
     } catch (err) {
         console.log("Initialization failed：" + JSON.stringify(err))
     }
+}
+
+function startHTTPServer() {
+    const app = express()
+    app.use(express.json())
+
+    app.get('/api/config', (req, res) => {
+        try {
+            const result = configControllerInstance!.getConfig()
+            res.json(result)
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    app.get('/api/show', (req, res) => {
+        try {
+            const result = llmControllerInstance!.getShow()
+            res.json(result)
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    app.get('/api/tags', (req, res) => {
+        try {
+            const result = llmControllerInstance!.getTags()
+            res.json(result)
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    app.post('/v1/chat/completions', async (req, res) => {
+        try {
+            const payload = req.body
+            const result = await llmControllerInstance!.chatCompletions(
+                payload,
+                () => chatGPTMonitor.getChatGPTMonitor(),
+                () => chatGPTMonitor.getChatGPTEventBus(),
+                () => deepSeekMonitor.getDeepSeekMonitor(),
+                () => deepSeekMonitor.getDeepSeekEventBus()
+            )
+
+            if (result.status && result.status >= 400) {
+                res.status(result.status).json({ error: result.error })
+                return
+            }
+
+            if (payload.stream) {
+                res.writeHead(HttpStatus.OK, {
+                    'Content-Type': 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'X-Accel-Buffering': 'no'
+                })
+                // @TODO 
+                res.write(`data: ${JSON.stringify({ message: 'Streaming not yet implemented' })}\n\n`)
+                res.write('data: [DONE]\n\n')
+                res.end()
+            } else {
+                res.json(result.data || result)
+            }
+        } catch (error: any) {
+            console.error('Error in chat completions:', error)
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    app.post('/v1/auth/token', async (req, res) => {
+        try {
+            const payload = req.body
+            const result = await authControllerInstance!.handleToken(
+                payload,
+                (token: string) => chatGPTMonitor.setSessionToken(token),
+                (token: string) => deepSeekMonitor.setDeepSeekSessionToken(token)
+            )
+
+            if (result.status && result.status >= 400) {
+                res.status(result.status).json({ error: result.error })
+            } else {
+                res.json(result)
+            }
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+    app.post('/api/study/request', async (req, res) => {
+        try {
+            const payload = req.body
+            const result = await studyControllerInstance!.handleRequest(payload)
+
+            if (result.status && result.status >= 400) {
+                res.status(result.status).json({ error: result.error })
+            } else {
+                res.json(result)
+            }
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+    app.get('/screenshot/app', async (req, res) => {
+        try {
+            const result = await screenshotControllerInstance!.getAppScreenshot(mainWindow)
+
+            if (result.status && result.status >= 400) {
+                res.status(result.status).json({ error: result.error })
+            } else if (result.contentType) {
+                res.set('Content-Type', result.contentType)
+                res.send(result.data)
+            } else {
+                res.json(result)
+            }
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    app.get('/screenshot/desktop', async (req, res) => {
+        try {
+            const result = await screenshotControllerInstance!.getDesktopScreenshot(
+                mainWindow,
+                desktopCapturer,
+                screen,
+                systemPreferences
+            )
+
+            if (result.status && result.status >= 400) {
+                res.status(result.status).json({ error: result.error })
+            } else {
+                res.json(result)
+            }
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
+        }
+    })
+
+    const port = WEB_SERVER_PORT
+    httpServer = app.listen(port, () => {
+        console.log(`HTTP server started on port ${port}`)
+    })
+    httpServer.on('error', (error: any) => {
+        console.error('HTTP server error:', error)
+    })
 }
 
 app.on('open-url', (event, url) => {

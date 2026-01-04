@@ -1,49 +1,42 @@
-import { Controller, Get, Res, HttpStatus } from '@nestjs/common';
-import * as express from 'express';
-import { ElectronService } from '../services/electron.service';
-import { desktopCapturer, screen, systemPreferences } from 'electron';
-
-@Controller('screenshot')
 export class ScreenshotController {
-    constructor(private readonly electronService: ElectronService) { }
-
-    @Get('app')
-    async getAppScreenshot(@Res() res: express.Response) {
-        const mainWindow = this.electronService.getMainWindow();
+    async getAppScreenshot(mainWindow: any): Promise<any> {
         if (!mainWindow) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('No main window');
-            return;
+            return { status: 500, error: 'No main window' }
         }
 
         try {
-            const image = await mainWindow.webContents.capturePage();
-            const jpeg = image.toJPEG(80);
-            res.set('Content-Type', 'image/jpeg');
-            res.send(jpeg);
-        } catch (err) {
-            console.debug(`截图失败:${err}`);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(`截图失败:${err}`);
+            const image = await mainWindow.webContents.capturePage()
+            const jpeg = image.toJPEG(80)
+            return {
+                status: 200,
+                contentType: 'image/jpeg',
+                data: jpeg
+            }
+        } catch (err: any) {
+            console.debug(`截图失败:${err}`)
+            return { status: 500, error: `截图失败:${err}` }
         }
     }
 
-    @Get('desktop')
-    async getDesktopScreenshot(@Res() res: express.Response) {
-        const mainWindow = this.electronService.getMainWindow();
+    async getDesktopScreenshot(
+        mainWindow: any,
+        desktopCapturer: any,
+        screen: any,
+        systemPreferences: any
+    ): Promise<any> {
         if (!mainWindow) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('No main window');
-            return;
+            return { status: 500, error: 'No main window' }
         }
 
-        const accessStatus = systemPreferences.getMediaAccessStatus("screen");
+        const accessStatus = systemPreferences.getMediaAccessStatus("screen")
         if (accessStatus === "denied") {
-            console.debug("Screen access denied");
-            res.status(HttpStatus.FORBIDDEN).send("Screen access denied");
-            return;
+            console.debug("Screen access denied")
+            return { status: 403, error: "Screen access denied" }
         }
 
         try {
-            const displays = screen.getAllDisplays();
-            const screenshots = [];
+            const displays = screen.getAllDisplays()
+            const screenshots = []
             for (const display of displays) {
                 const sources = await desktopCapturer.getSources({
                     types: ['screen'],
@@ -51,30 +44,30 @@ export class ScreenshotController {
                         width: display.size.width,
                         height: display.size.height
                     }
-                }).catch(err => {
-                    console.debug(`截图失败:${err}`);
-                });
+                }).catch((err: any) => {
+                    console.debug(`截图失败:${err}`)
+                })
 
                 const displaySource = sources?.find(
-                    s => s.display_id === display.id.toString()
-                ) ?? null;
+                    (s: any) => s.display_id === display.id.toString()
+                ) ?? null
 
                 if (displaySource) {
                     screenshots.push({
                         display: display,
-                        image: displaySource.thumbnail.toJPEG(80).toString('base64'), // Convert to base64 for JSON response
-                    });
+                        image: displaySource.thumbnail.toJPEG(80).toString('base64'),
+                    })
                 }
             }
 
             if (screenshots.length > 0) {
-                res.json(screenshots);
+                return { status: 200, data: screenshots }
             } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(`截图失败`);
+                return { status: 500, error: `截图失败` }
             }
-        } catch (err) {
-            console.error('Desktop screenshot error:', err);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(`截图失败`);
+        } catch (err: any) {
+            console.error('Desktop screenshot error:', err)
+            return { status: 500, error: `截图失败` }
         }
     }
 }

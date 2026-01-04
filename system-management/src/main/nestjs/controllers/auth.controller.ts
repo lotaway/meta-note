@@ -1,26 +1,24 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { setSessionToken } from '../../desktop-chatgpt';
-import { setDeepSeekSessionToken } from '../../desktop-deepseek';
-
-@Controller('v1/auth/token')
 export class AuthController {
-    @Post()
-    handleToken(@Body() payload: { token: string; model?: string }) {
-        const { token, model = 'chatgpt' } = payload;
+    async handleToken(
+        payload: { token: string; model?: string },
+        setSessionToken: (token: string) => void,
+        setDeepSeekSessionToken: (token: string) => void
+    ): Promise<any> {
+        const { token, model = 'chatgpt' } = payload
 
         if (!token) {
-            throw new HttpException({ error: 'Missing token' }, HttpStatus.BAD_REQUEST);
+            return { status: 400, error: 'Missing token' }
         }
 
         if (model === 'chatgpt') {
-            setSessionToken(token);
+            setSessionToken(token)
         } else if (model === 'deepseek') {
-            setDeepSeekSessionToken(token);
+            setDeepSeekSessionToken(token)
         } else {
-            throw new HttpException({ error: 'Unsupported model' }, HttpStatus.BAD_REQUEST);
+            return { status: 400, error: 'Unsupported model' }
         }
 
-        console.log(`[API] Received session token for ${model} from external source`);
-        return { status: 'success', model };
+        console.log(`[API] Received session token for ${model} from external source`)
+        return { status: 'success', model }
     }
 }
