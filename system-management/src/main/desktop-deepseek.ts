@@ -92,5 +92,6 @@ export default {
   getDeepSeekConversationCache,
   setDeepSeekSessionToken,
   openDeepSeekExternalLogin,
-  getDeepSeekEventBus
+  getDeepSeekEventBus,
+  getDeepSeekMonitor
 }

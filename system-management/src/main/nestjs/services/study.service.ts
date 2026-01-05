@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/commo
 import { Kafka, Consumer, Producer } from 'kafkajs'
 import Redis from 'ioredis'
 import { STUDY_CONSTANTS } from '../../constants'
-import { llmService } from '../../services/llm'
+import { LLMService } from './llm.service'
 
 @Injectable()
 export class StudyService implements OnModuleInit, OnModuleDestroy {
@@ -13,7 +13,7 @@ export class StudyService implements OnModuleInit, OnModuleDestroy {
     private redis: Redis
     private producerConnected = false;
 
-    constructor() {
+    constructor(private readonly llmService: LLMService) {
         this.kafka = new Kafka({
             clientId: 'meta-note-study-nest',
             brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
@@ -135,7 +135,7 @@ export class StudyService implements OnModuleInit, OnModuleDestroy {
                 const prompt = `Please summarize the content of this Bilibili video: ${target}`
 
                 const startTime = Date.now()
-                const result = await llmService.completion(prompt)
+                const result = await this.llmService.completion(prompt)
                 const durationMs = Date.now() - startTime
                 const durationMin = Math.ceil(durationMs / (1000 * 60))
 

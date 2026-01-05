@@ -1,6 +1,7 @@
 import { ChatgptConversationData } from '../../../types/ChatgptConversationData'
 import { CompletionData } from '../../../types/CompletionData'
 import * as express from 'express'
+import { HttpStatus } from '@nestjs/common'
 
 interface DeepSeekConversationData {
     v?: any
@@ -89,11 +90,18 @@ export const transformDeepSeekToCompletion = (data: DeepSeekConversationData): C
 }
 
 export class LLMController {
-    getShow() {
-        return { ok: true }
+    constructor(
+        private readonly getChatGPTMonitor: () => any,
+        private readonly getChatGPTEventBus: () => any,
+        private readonly getDeepSeekMonitor: () => any,
+        private readonly getDeepSeekEventBus: () => any
+    ) { }
+
+    getShow(req: express.Request, res: express.Response) {
+        res.json({ ok: true })
     }
 
-    getTags() {
+    getTags(req: express.Request, res: express.Response) {
         const models = [
             { ...DEFAULT_MODEL_INFO, name: 'chatgpt' },
             { ...DEFAULT_MODEL_INFO, name: 'deepseek' }
@@ -102,37 +110,36 @@ export class LLMController {
         if (localProvider) {
             models.push({ ...DEFAULT_MODEL_INFO, name: 'local' })
         }
-        return models
+        res.json(models)
     }
 
-    async chatCompletions(
-        payload: any,
-        res: express.Response,
-        getChatGPTMonitor: () => any,
-        getChatGPTEventBus: () => any,
-        getDeepSeekMonitor: () => any,
-        getDeepSeekEventBus: () => any
-    ): Promise<void> {
-        const model = payload.model || 'chatgpt'
-        let prompt = payload.prompt
-        if (!prompt && payload.messages && Array.isArray(payload.messages)) {
-            const lastMsg = payload.messages[payload.messages.length - 1]
-            prompt = lastMsg.content
-        }
+    async chatCompletions(req: express.Request, res: express.Response): Promise<void> {
+        try {
+            const payload = req.body
+            const model = payload.model || 'chatgpt'
+            let prompt = payload.prompt
+            if (!prompt && payload.messages && Array.isArray(payload.messages)) {
+                const lastMsg = payload.messages[payload.messages.length - 1]
+                prompt = lastMsg.content
+            }
 
-        if (!prompt) {
-            res.status(400).json({ error: 'Missing prompt or messages' })
-            return
-        }
+            if (!prompt) {
+                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Missing prompt or messages' })
+                return
+            }
 
-        if (model === 'chatgpt') {
-            await this.handleChatGPT(prompt, payload.stream || false, res, getChatGPTMonitor, getChatGPTEventBus)
-        } else if (model === 'deepseek') {
-            await this.handleDeepSeek(prompt, payload.stream || false, res, getDeepSeekMonitor, getDeepSeekEventBus)
-        } else if (model === 'local') {
-            await this.handleLocal(prompt, payload, res)
-        } else {
-            res.status(400).json({ error: 'Unsupported model' })
+            if (model === 'chatgpt') {
+                await this.handleChatGPT(prompt, payload.stream || false, res, this.getChatGPTMonitor, this.getChatGPTEventBus)
+            } else if (model === 'deepseek') {
+                await this.handleDeepSeek(prompt, payload.stream || false, res, this.getDeepSeekMonitor, this.getDeepSeekEventBus)
+            } else if (model === 'local') {
+                await this.handleLocal(prompt, payload, res)
+            } else {
+                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Unsupported model' })
+            }
+        } catch (error: any) {
+            console.error('Error in chat completions:', error)
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
         }
     }
 
@@ -145,7 +152,7 @@ export class LLMController {
     ): Promise<void> {
         const monitorWindow = getChatGPTMonitor()
         if (!monitorWindow) {
-            res.status(500).json({ error: 'ChatGPT window not initialized' })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'ChatGPT window not initialized' })
             return
         }
 
@@ -262,14 +269,14 @@ export class LLMController {
 
             if (!result.success) {
                 console.error('[ChatGPT API] Automation result:', result.error)
-                res.status(500).json({ error: result.error })
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: result.error })
                 return
             }
 
             res.json({ message: 'ChatGPT completion successful', result })
         } catch (error: any) {
             console.error('[ChatGPT API] Error:', error)
-            res.status(500).json({ error: error.message })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
         }
     }
 
@@ -282,7 +289,7 @@ export class LLMController {
     ): Promise<void> {
         const deepSeekMonitorWindow = getDeepSeekMonitor()
         if (!deepSeekMonitorWindow) {
-            res.status(500).json({ error: 'DeepSeek window not initialized' })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'DeepSeek window not initialized' })
             return
         }
 
@@ -399,21 +406,21 @@ export class LLMController {
 
             if (!result.success) {
                 console.error('[DeepSeek API] Automation result:', result.error)
-                res.status(500).json({ error: result.error })
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: result.error })
                 return
             }
 
             res.json({ message: 'DeepSeek completion successful', result })
         } catch (error: any) {
             console.error('[DeepSeek API] Error:', error)
-            res.status(500).json({ error: error.message })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
         }
     }
 
     private async handleLocal(prompt: string, payload: any, res: express.Response): Promise<void> {
         const localProvider = process.env.LOCAL_LLM_PROVIDER
         if (!localProvider) {
-            res.status(500).json({ error: 'LOCAL_LLM_PROVIDER not configured' })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'LOCAL_LLM_PROVIDER not configured' })
             return
         }
 
@@ -453,7 +460,7 @@ export class LLMController {
             }
         } catch (err: any) {
             console.error('[Local LLM API] Forwarding error:', err)
-            res.status(500).json({ error: 'Failed to forward request to local provider' })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to forward request to local provider' })
         }
     }
 }

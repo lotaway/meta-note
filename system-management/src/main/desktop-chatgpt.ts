@@ -115,5 +115,6 @@ export default {
   getConversationCache,
   setSessionToken,
   openExternalLogin,
-  getChatGPTEventBus
+  getChatGPTEventBus,
+  getChatGPTMonitor
 }

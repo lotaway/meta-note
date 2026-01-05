@@ -1,9 +1,11 @@
+import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import { spawn, ChildProcess } from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import { app } from 'electron'
 
-export class LLMService {
+@Injectable()
+export class LLMService implements OnModuleDestroy {
     private process: ChildProcess | null = null;
     private port: number = 8080;
     private modelPath: string = '';
@@ -19,6 +21,10 @@ export class LLMService {
         }
 
         this.modelPath = path.join(resourcesPath, 'models', 'model.gguf')
+    }
+
+    async onModuleDestroy() {
+        await this.stop()
     }
 
     async start() {
@@ -116,5 +122,3 @@ export class LLMService {
         }
     }
 }
-
-export const llmService = new LLMService()

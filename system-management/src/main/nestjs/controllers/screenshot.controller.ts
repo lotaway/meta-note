@@ -1,44 +1,51 @@
+import * as express from 'express'
+import { HttpStatus } from '@nestjs/common'
+
 export class ScreenshotController {
-    async getAppScreenshot(mainWindow: any): Promise<any> {
+    constructor(
+        private readonly getMainWindow: () => any,
+        private readonly desktopCapturer: any,
+        private readonly screen: any,
+        private readonly systemPreferences: any
+    ) { }
+
+    async getAppScreenshot(req: express.Request, res: express.Response): Promise<void> {
+        const mainWindow = this.getMainWindow()
         if (!mainWindow) {
-            return { status: 500, error: 'No main window' }
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'No main window' })
+            return
         }
 
         try {
             const image = await mainWindow.webContents.capturePage()
             const jpeg = image.toJPEG(80)
-            return {
-                status: 200,
-                contentType: 'image/jpeg',
-                data: jpeg
-            }
+            res.set('Content-Type', 'image/jpeg')
+            res.send(jpeg)
         } catch (err: any) {
             console.debug(`截图失败:${err}`)
-            return { status: 500, error: `截图失败:${err}` }
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败:${err}` })
         }
     }
 
-    async getDesktopScreenshot(
-        mainWindow: any,
-        desktopCapturer: any,
-        screen: any,
-        systemPreferences: any
-    ): Promise<any> {
+    async getDesktopScreenshot(req: express.Request, res: express.Response): Promise<void> {
+        const mainWindow = this.getMainWindow()
         if (!mainWindow) {
-            return { status: 500, error: 'No main window' }
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'No main window' })
+            return
         }
 
-        const accessStatus = systemPreferences.getMediaAccessStatus("screen")
+        const accessStatus = this.systemPreferences.getMediaAccessStatus("screen")
         if (accessStatus === "denied") {
             console.debug("Screen access denied")
-            return { status: 403, error: "Screen access denied" }
+            res.status(HttpStatus.FORBIDDEN).json({ error: "Screen access denied" })
+            return
         }
 
         try {
-            const displays = screen.getAllDisplays()
+            const displays = this.screen.getAllDisplays()
             const screenshots = []
             for (const display of displays) {
-                const sources = await desktopCapturer.getSources({
+                const sources = await this.desktopCapturer.getSources({
                     types: ['screen'],
                     thumbnailSize: {
                         width: display.size.width,
@@ -61,13 +68,13 @@ export class ScreenshotController {
             }
 
             if (screenshots.length > 0) {
-                return { status: 200, data: screenshots }
+                res.json(screenshots)
             } else {
-                return { status: 500, error: `截图失败` }
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败` })
             }
         } catch (err: any) {
             console.error('Desktop screenshot error:', err)
-            return { status: 500, error: `截图失败` }
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败` })
         }
     }
 }
