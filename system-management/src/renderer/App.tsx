@@ -47,7 +47,7 @@ export default function App() {
         <div style={{ marginTop: '20px', marginBottom: '20px' }}>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.requestOpenChatGPTWindow()}
+            onClick={() => window.desktop.requestOpenChatGPTWindow()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#10a37f',
@@ -63,7 +63,7 @@ export default function App() {
           </button>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.requestOpenExternalLogin()}
+            onClick={() => window.desktop.requestOpenExternalLogin()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#4285f4',
@@ -80,7 +80,7 @@ export default function App() {
           </button>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.requestOpenDeepseekWindow()}
+            onClick={() => window.desktop.requestOpenDeepseekWindow()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#10b981',
@@ -97,7 +97,7 @@ export default function App() {
           </button>
           <button
             className="premium-button"
-            onClick={() => (window as any).desktop.requestOpenDeepseekExternalLogin()}
+            onClick={() => window.desktop.requestOpenDeepseekExternalLogin()}
             style={{
               padding: '10px 20px',
               backgroundColor: '#6366f1',
