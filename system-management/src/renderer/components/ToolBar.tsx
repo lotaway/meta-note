@@ -1,4 +1,4 @@
-import { ShapeType } from './types'
+import { ShapeType } from "../../types/Editor";
 
 interface ToolBarProps {
     setDragType: (v: ShapeType) => void

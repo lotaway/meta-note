@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
-import Editor from './Editor'
-import Settings from './Settings'
 import { ShapeType } from '../types/Editor'
+import Settings from './pages/Settings';
+import Editor from './components/Editor';
 
 const ToggleButton = ({ show, onClick }: { show: boolean; onClick: () => void }) => (
   <button

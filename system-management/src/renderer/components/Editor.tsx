@@ -1,6 +1,6 @@
-import ToolBar from './ToolBar'
-import Viewport from './Viewport'
-import { ShapeType } from './types'
+import { ShapeType } from "../../types/Editor"
+import ToolBar from "./ToolBar"
+import Viewport from "./Viewport"
 
 interface EditorProps {
     dragType: ShapeType | null

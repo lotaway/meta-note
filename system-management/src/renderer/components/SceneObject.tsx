@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { TransformControls, Text } from '@react-three/drei'
 import * as THREE from 'three'
-import { ShapeType } from './types'
+import { ShapeType } from '../../types/Editor'
 
 export interface SceneObjectData {
     id: number
