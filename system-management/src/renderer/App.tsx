@@ -1,123 +1,64 @@
-import { useState, useEffect } from 'react'
-import Files2video from './features/Files2video'
-import { useScroll, useMousePosition } from './utils/hooks'
+import { useState } from 'react'
+import Sidebar from './components/Sidebar'
+import Editor from './Editor'
+import Settings from './Settings'
+import { ShapeType } from '../types/Editor'
 
-enum Status {
-  NoInit,
-  Loading,
-  Loaded,
-  End,
-  Error
-}
+const ToggleButton = ({ show, onClick }: { show: boolean; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    style={{
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      zIndex: 2000,
+      padding: '8px 16px',
+      borderRadius: '4px',
+      border: 'none',
+      backgroundColor: show ? '#e74c3c' : '#3498db',
+      color: 'white',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+      boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+    }}
+  >
+    {show ? 'Close Settings' : 'Settings'}
+  </button>
+)
 
-interface States {
-  welcomeTitle: string
-  status: Status
+const SettingsOverlay = ({ show }: { show: boolean }) => {
+  if (!show) return null
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      zIndex: 1050,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'auto'
+    }}>
+      <div style={{ width: '80%', maxWidth: '800px', padding: '20px' }}>
+        <Settings />
+      </div>
+    </div>
+  )
 }
 
 export default function App() {
-  const [name] = useState<string>("Meta Note")
-  const [commonData, setCommonData] = useState<States>({
-    welcomeTitle: `welcome to use Meta Note`,
-    status: Status.NoInit
-  })
-  const scrollInfo = useScroll()
-  const mousePosition = useMousePosition()
-
-  useEffect(() => {
-    setCommonData(prev => ({
-      ...prev,
-      status: Status.Loaded
-    }))
-  }, [])
+  const [dragType, setDragType] = useState<ShapeType | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
-    <div className="container">
-      <h1>{name}</h1>
-      <span className="sec-title">{commonData.welcomeTitle}</span>
-      <div className="content">
-        <div className="scroll-info">
-          <span className="item-info">top: {scrollInfo.top},</span>
-          <span className="item-info">left: {scrollInfo.left}</span>
-        </div>
-        <div className="mouse-position">
-          <span className="item-info">x: {mousePosition.x},</span>
-          <span className="item-info">y: {mousePosition.y}</span>
-        </div>
-        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-          <button
-            className="premium-button"
-            onClick={() => window.desktop.requestOpenChatGPTWindow()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#10a37f',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              boxShadow: '0 2px 10px rgba(16, 163, 127, 0.3)'
-            }}
-          >
-            Open ChatGPT Monitor
-          </button>
-          <button
-            className="premium-button"
-            onClick={() => window.desktop.requestOpenExternalLogin()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#4285f4',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginLeft: '10px',
-              boxShadow: '0 2px 10px rgba(66, 133, 244, 0.3)'
-            }}
-          >
-            Google Login (System Browser)
-          </button>
-          <button
-            className="premium-button"
-            onClick={() => window.desktop.requestOpenDeepseekWindow()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginLeft: '10px',
-              boxShadow: '0 2px 10px rgba(16, 185, 129, 0.3)'
-            }}
-          >
-            Open Deepseek Monitor
-          </button>
-          <button
-            className="premium-button"
-            onClick={() => window.desktop.requestOpenDeepseekExternalLogin()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6366f1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginLeft: '10px',
-              boxShadow: '0 2px 10px rgba(99, 102, 241, 0.3)'
-            }}
-          >
-            Deepseek Login (System Browser)
-          </button>
-        </div>
-        <div style={{ color: '#666', fontSize: '12px', marginBottom: '20px' }}>
-          * If Google login fails in Electron, use the button above to login in your system browser.
-        </div>
-        <Files2video />
-      </div>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', position: 'relative' }}>
+      <ToggleButton show={showSettings} onClick={() => setShowSettings(!showSettings)} />
+      <SettingsOverlay show={showSettings} />
+      <Sidebar />
+      <Editor dragType={dragType} setDragType={setDragType} />
     </div>
   )
 }
