@@ -3,6 +3,9 @@ export const IPC_CHANNELS = {
     OPEN_EXTERNAL_LOGIN: 'open-external-login',
     OPEN_DEEPSEEK_WINDOW: 'open-deepseek-window',
     OPEN_DEEPSEEK_EXTERNAL_LOGIN: 'open-deepseek-external-login',
+    READ_FILE_IN_DIRECTORY: 'readFileInDirectory',
+    MERGE_VIDEO: 'mergeVideo',
+    LLM_COMPLETION: 'llm:completion',
 } as const
 
 export const AI_CHAT_CONSTANTS = {
@@ -19,6 +22,11 @@ export const ROUTE_PATHS = {
     AUTH_TOKEN: '/v1/auth/token',
     CHAT_COMPLETIONS: '/v1/chat/completions',
     STUDY_REQUEST: '/api/study/request',
+    CONFIG: '/api/config',
+    SCREENSHOT_APP: '/screenshot/app',
+    SCREENSHOT_DESKTOP: '/screenshot/desktop',
+    DIRECTORY: '/api/directory',
+    VIDEO_MERGE: '/api/video/merge',
 } as const
 
 export const STUDY_CONSTANTS = {
