@@ -64,11 +64,14 @@ const onInit = async () => {
         app.setAsDefaultProtocolClient(APP_PROTOCOL)
         app.commandLine.appendSwitch('enable-unsafe-webgpu')
         app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU')
+        if (IS_MAC) {
+            app.commandLine.appendSwitch('disable-gpu-vsync')
+        }
 
         await appLifecycle.createWindow()
 
         nestApp = await bootstrapNestJS()
-        ;(global as any).nestApp = nestApp
+            ; (global as any).nestApp = nestApp
 
         nestLLMService = nestApp.get(LLMService)
         const studyService = nestApp.get(StudyService)

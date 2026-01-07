@@ -14,9 +14,19 @@ export class StudyService implements OnModuleInit, OnModuleDestroy {
     private producerConnected = false;
 
     constructor(private readonly llmService: LLMService) {
+        const brokers = (process.env.KAFKA_BROKER || 'localhost:9092')
+            .split(',')
+            .map((b) => b.trim().replace(/^https?:\/\//, ''))
+
+        this.logger.log(`Initializing Kafka with brokers: ${JSON.stringify(brokers)}`)
+
         this.kafka = new Kafka({
             clientId: 'meta-note-study-nest',
-            brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
+            brokers,
+            retry: {
+                initialRetryTime: 100,
+                retries: 3,
+            },
         })
         this.consumer = this.kafka.consumer({ groupId: 'study-group-nest' })
         this.producer = this.kafka.producer()

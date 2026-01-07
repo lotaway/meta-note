@@ -1,6 +1,5 @@
-import { useScroll } from '@react-three/drei'
 import { useState, useEffect } from 'react'
-import { useMousePosition } from '../utils/hooks'
+import { useMousePosition, useScroll } from '../utils/hooks'
 import Files2video from '../features/Files2video'
 
 enum Status {
