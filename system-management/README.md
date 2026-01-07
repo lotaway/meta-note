@@ -7,27 +7,32 @@
 应用使用环境变量进行配置管理。请按照以下步骤配置：
 
 ### 1. 复制环境变量模板
+
 ```bash
 cp .env.example .env
 ```
 
 ### 2. 编辑环境变量
+
 编辑 `.env` 文件配置选项
-```
+
+````
 
 ## 运行应用
 
 ### 开发模式
 ```bash
 yarn dev
-```
+````
 
 ### 构建应用
+
 ```bash
 yarn build
 ```
 
-### 启动Electron应用
+### 启动 Electron 应用
+
 ```bash
 yarn start
 ```
@@ -38,3 +43,4 @@ yarn start
 - React
 - TypeScript
 - Vite
+- Yarn（依赖管理）
