@@ -10,7 +10,7 @@ export class LLMService implements OnModuleDestroy {
     private port: number = 8080;
     private modelPath: string = '';
     private serverPath: string = '';
-    private localProvider: string | undefined;
+    private localProvider: string | undefined
     private isExternalAvailable: boolean = false;
     private checkInterval: NodeJS.Timeout | null = null;
 
@@ -50,6 +50,7 @@ export class LLMService implements OnModuleDestroy {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 2000)
             const response = await fetch(`${this.localProvider}/api/show`, {
+                method: "POST",
                 signal: controller.signal
             }).catch(() => null)
             clearTimeout(timeoutId)
@@ -158,7 +159,7 @@ export class LLMService implements OnModuleDestroy {
                 })
 
                 if (response.ok) {
-                    const data = await response.json() as any;
+                    const data = await response.json() as any
                     return data.choices?.[0]?.message?.content || data
                 }
             } catch (err) {
