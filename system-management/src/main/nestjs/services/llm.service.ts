@@ -1,9 +1,9 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common'
+import { Injectable, OnModuleDestroy, Inject } from '@nestjs/common'
 import { LLMProviderStrategy } from './providers/llm-provider-strategy'
 
 @Injectable()
 export class LLMService implements OnModuleDestroy {
-    constructor(private providerStrategy: LLMProviderStrategy) { }
+    constructor(@Inject(LLMProviderStrategy) private providerStrategy: LLMProviderStrategy) { }
 
     async onModuleDestroy() {
         await this.stop()

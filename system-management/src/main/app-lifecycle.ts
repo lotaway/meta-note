@@ -23,7 +23,7 @@ export class AppLifecycle {
         private config: AppConfig,
         private getNestLLMService: () => LLMService | null,
         private onInit: () => Promise<void>
-    ) {}
+    ) { }
 
     getMainWindow() {
         return this.mainWindow
@@ -65,11 +65,11 @@ export class AppLifecycle {
         })
 
         app.on("activate", () => {
-             if (BrowserWindow.getAllWindows().length > 0 && this.mainWindow !== null) {
+            if (BrowserWindow.getAllWindows().length > 0 && this.mainWindow !== null) {
                 return
             }
             void this.createWindow().catch(err => {
-                console.error("重新创建窗口失败" + JSON.stringify(err))
+                console.error("重新创建窗口失败", err)
             })
         })
 

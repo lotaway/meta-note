@@ -118,7 +118,7 @@ const onInit = async () => {
         ipcRegistry.register()
 
     } catch (err) {
-        console.error("Initialization failed：" + JSON.stringify(err))
+        console.error("Initialization failed：", err)
     }
 }
 

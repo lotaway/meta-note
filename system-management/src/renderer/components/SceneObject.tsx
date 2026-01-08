@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { TransformControls, Text } from '@react-three/drei'
+import { TransformControls, Text, Billboard } from '@react-three/drei'
 import * as THREE from 'three'
 import { ShapeType } from '../../types/Editor'
 import SceneObjectUI from './SceneObjectUI'
@@ -20,16 +20,18 @@ const Geometry = ({ type }: { type: ShapeType }) => {
 }
 
 const SceneLabel = ({ position, text }: { position: [number, number, number], text: string }) => (
-    <Text position={[position[0], position[1] - 0.9, position[2]]} fontSize={0.2} color="white" anchorX="center" anchorY="middle">
-        {text}
-    </Text>
+    <Billboard position={[position[0], position[1] - 0.9, position[2]]}>
+        <Text fontSize={0.2} color="white" anchorX="center" anchorY="middle">
+            {text}
+        </Text>
+    </Billboard>
 )
 
-const MeshGroup = React.forwardRef<THREE.Mesh, { data: SceneObjectData; onClick: (e: any) => void; onMaterialClick: (e: any) => void }>(
-    ({ data, onClick, onMaterialClick }, ref) => (
+const MeshGroup = React.forwardRef<THREE.Mesh, { data: SceneObjectData; onClick: (e: any) => void }>(
+    ({ data, onClick }, ref) => (
         <mesh ref={ref} position={data.position} onClick={onClick}>
             <Geometry type={data.type} />
-            <meshStandardMaterial color={data.color} onClick={onMaterialClick} />
+            <meshStandardMaterial color={data.color} />
         </mesh>
     )
 )
@@ -44,21 +46,20 @@ export default function SceneObject({ data, onChange, onDelete, editable }: { da
         e.stopPropagation()
         setActive(v => !v)
     }
-    const changeColor = (e: any) => {
-        if (!editable) return
-        e.stopPropagation()
-        onChange({ ...data, color: '#' + Math.random().toString(16).slice(2, 8).padEnd(6, '0') })
-    }
     const handleTextChange = (text: string) => {
         if (!editable) return
         onChange({ ...data, text })
+    }
+    const handleColorChange = (color: string) => {
+        if (!editable) return
+        onChange({ ...data, color })
     }
 
     return (
         <>
             <TransformControls object={active && editable ? meshRef.current : undefined} onMouseUp={handleUpdate}>
                 <group>
-                    <MeshGroup ref={meshRef} data={data} onClick={toggleActive} onMaterialClick={changeColor} />
+                    <MeshGroup ref={meshRef} data={data} onClick={toggleActive} />
                     <SceneLabel position={data.position} text={data.text} />
                 </group>
             </TransformControls>
@@ -67,8 +68,11 @@ export default function SceneObject({ data, onChange, onDelete, editable }: { da
                     active={active}
                     position={data.position}
                     text={data.text}
+                    color={data.color}
                     onTextChange={handleTextChange}
+                    onColorChange={handleColorChange}
                     onDelete={onDelete}
+                    meshRef={meshRef}
                 />
             )}
         </>

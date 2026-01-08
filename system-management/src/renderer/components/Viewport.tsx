@@ -14,7 +14,11 @@ const LightsAndHelpers = () => (
     <>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
-        <gridHelper args={[20, 20, 0x444444, 0x222222]} />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+            <planeGeometry args={[20, 20]} />
+            <meshStandardMaterial color="#2a2a2a" />
+        </mesh>
+        <gridHelper args={[20, 20, 0x2a2a2a, 0x333333]} />
         <OrbitControls makeDefault />
     </>
 )
@@ -35,7 +39,7 @@ export default function Viewport({ dragType, setDragType }: ViewportProps) {
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault()
         if (!dragType || !selectedDirectoryId) return
-        const newObj: SceneObjectData = { id: Date.now(), type: dragType, position: [0, 0, 0], color: '#44aa88', text: 'Text', directoryId: selectedDirectoryId }
+        const newObj: SceneObjectData = { id: Date.now(), type: dragType, position: [0, 0, 0], color: '#ffffff', text: 'Text', directoryId: selectedDirectoryId }
         setObjects(prev => [...prev, newObj])
         setDragType(null)
     }

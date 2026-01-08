@@ -7,6 +7,7 @@ import { WebSocketService } from './services/websocket.service'
 import { LocalLLMProvider } from './services/providers/local-llm-provider'
 import { RemoteLLMProvider } from './services/providers/remote-llm-provider'
 import { LLMProviderStrategy } from './services/providers/llm-provider-strategy'
+import { LLMProvider } from './services/providers/llm-provider.interface'
 
 @Module({
     imports: [ConfigModule.forRoot()],
@@ -18,8 +19,8 @@ import { LLMProviderStrategy } from './services/providers/llm-provider-strategy'
         LocalLLMProvider,
         {
             provide: 'LLM_PROVIDERS',
-            useFactory: (localProvider: LocalLLMProvider) => {
-                const providers = []
+            useFactory: (localProvider: LocalLLMProvider): LLMProvider[] => {
+                const providers: LLMProvider[] = []
                 const providerUrl = process.env.LOCAL_LLM_PROVIDER
                 if (providerUrl) {
                     providers.push(new RemoteLLMProvider(providerUrl))
@@ -31,7 +32,7 @@ import { LLMProviderStrategy } from './services/providers/llm-provider-strategy'
         },
         {
             provide: LLMProviderStrategy,
-            useFactory: (providers: any[]) => {
+            useFactory: (providers: LLMProvider[]) => {
                 return new LLMProviderStrategy(providers)
             },
             inject: ['LLM_PROVIDERS']
