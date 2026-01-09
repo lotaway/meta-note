@@ -31,7 +31,7 @@ export class LLMProviderStrategy implements OnModuleDestroy {
             const isAvailable = await provider.checkConnection()
             if (isAvailable) {
                 const fallbackProvider = this.providers[this.providers.length - 1]
-                if (fallbackProvider.stop) {
+                if (!fallbackProvider.isStop()) {
                     console.log('[LLMProviderStrategy] Stopping fallback provider as primary provider is available')
                     await fallbackProvider.stop()
                 }
@@ -75,7 +75,7 @@ export class LLMProviderStrategy implements OnModuleDestroy {
 
     async stop() {
         for (const provider of this.providers) {
-            if (provider.stop) {
+            if (!provider.isStop()) {
                 await provider.stop()
             }
         }

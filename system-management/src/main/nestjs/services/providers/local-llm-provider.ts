@@ -13,6 +13,9 @@ export class LocalLLMProvider implements LLMProvider {
     private serverPath: string = ''
 
     constructor() {
+    }
+
+    async start(): Promise<void> {
         const resourcesPath = app.isPackaged ? process.resourcesPath : path.join(process.cwd(), 'extraResources')
 
         if (process.platform === 'win32') {
@@ -120,6 +123,10 @@ export class LocalLLMProvider implements LLMProvider {
             console.error('LLM Embedding error:', error)
             throw error
         }
+    }
+
+    isStop(): boolean {
+        return this.process === null
     }
 
     async stop(): Promise<void> {

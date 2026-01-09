@@ -5,7 +5,6 @@ import { AuthController } from "./nestjs/controllers/auth.controller"
 import { StudyController } from "./nestjs/controllers/study.controller"
 import { ScreenshotController } from "./nestjs/controllers/screenshot.controller"
 import { SystemController } from "./nestjs/controllers/system.controller"
-import { ROUTE_PATHS } from "./constants"
 
 export class HttpServer {
     private app: express.Express
@@ -21,21 +20,35 @@ export class HttpServer {
         private port: number
     ) {
         this.app = express()
+        this.setupCors()
         this.app.use(express.json())
         this.setupRoutes()
     }
 
+    private setupCors() {
+        this.app.use((req, res, next) => {
+            res.header('Access-Control-Allow-Origin', '*')
+            res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+            if (req.method === 'OPTIONS') {
+                res.sendStatus(204)
+                return
+            }
+            next()
+        })
+    }
+
     private setupRoutes() {
-        this.app.get(ROUTE_PATHS.CONFIG, this.configController.getConfig.bind(this.configController))
-        this.app.get(ROUTE_PATHS.SHOW, this.llmController.getShow.bind(this.llmController))
-        this.app.get(ROUTE_PATHS.TAGS, this.llmController.getTags.bind(this.llmController))
-        this.app.post(ROUTE_PATHS.CHAT_COMPLETIONS, this.llmController.chatCompletions.bind(this.llmController))
-        this.app.post(ROUTE_PATHS.AUTH_TOKEN, this.authController.handleToken.bind(this.authController))
-        this.app.post(ROUTE_PATHS.STUDY_REQUEST, this.studyController.handleRequest.bind(this.studyController))
-        this.app.get(ROUTE_PATHS.SCREENSHOT_APP, this.screenshotController.getAppScreenshot.bind(this.screenshotController))
-        this.app.get(ROUTE_PATHS.SCREENSHOT_DESKTOP, this.screenshotController.getDesktopScreenshot.bind(this.screenshotController))
-        this.app.get(ROUTE_PATHS.DIRECTORY, this.systemController.readFileInDirectory.bind(this.systemController))
-        this.app.post(ROUTE_PATHS.VIDEO_MERGE, this.systemController.mergeVideo.bind(this.systemController))
+        this.app.get('/api/config', this.configController.getConfig.bind(this.configController))
+        this.app.post('/api/show', this.llmController.getShow.bind(this.llmController))
+        this.app.get('/api/tags', this.llmController.getTags.bind(this.llmController))
+        this.app.post('/v1/chat/completions', this.llmController.chatCompletions.bind(this.llmController))
+        this.app.post('/v1/auth/token', this.authController.handleToken.bind(this.authController))
+        this.app.post('/api/study/request', this.studyController.handleRequest.bind(this.studyController))
+        this.app.get('/screenshot/app', this.screenshotController.getAppScreenshot.bind(this.screenshotController))
+        this.app.get('/screenshot/desktop', this.screenshotController.getDesktopScreenshot.bind(this.screenshotController))
+        this.app.get('/api/directory', this.systemController.readFileInDirectory.bind(this.systemController))
+        this.app.post('/api/video/merge', this.systemController.mergeVideo.bind(this.systemController))
     }
 
     start() {

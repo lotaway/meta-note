@@ -10,6 +10,10 @@ export class RemoteLLMProvider implements LLMProvider {
         this.providerUrl = providerUrl
     }
 
+    async start(): Promise<void> {
+        await this.checkConnection()
+    }
+
     async checkConnection(): Promise<boolean> {
         try {
             const controller = new AbortController()
@@ -78,5 +82,13 @@ export class RemoteLLMProvider implements LLMProvider {
             console.error('Remote provider embedding failed:', err)
             throw err
         }
+    }
+
+    isStop(): boolean {
+        return !this.isAvailable
+    }
+
+    async stop(): Promise<void> {
+        this.isAvailable = false
     }
 }
