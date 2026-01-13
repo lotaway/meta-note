@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react'
-import { TransformControls, Text, Billboard } from '@react-three/drei'
+import React, { useRef } from 'react'
+import { TransformControls, Text, Billboard, Outlines } from '@react-three/drei'
 import * as THREE from 'three'
 import { ShapeType } from '../../types/Editor'
 import SceneObjectUI from './SceneObjectUI'
@@ -27,24 +27,24 @@ const SceneLabel = ({ position, text }: { position: [number, number, number], te
     </Billboard>
 )
 
-const MeshGroup = React.forwardRef<THREE.Mesh, { data: SceneObjectData; onClick: (e: any) => void }>(
-    ({ data, onClick }, ref) => (
+const MeshGroup = React.forwardRef<THREE.Mesh, { data: SceneObjectData; onClick: (e: any) => void; highlighted?: boolean }>(
+    ({ data, onClick, highlighted }, ref) => (
         <mesh ref={ref} position={data.position} onClick={onClick}>
             <Geometry type={data.type} />
             <meshStandardMaterial color={data.color} />
+            {highlighted && <Outlines thickness={5} color="#44aa88" aria-label="highlight-outline" />}
         </mesh>
     )
 )
 
-export default function SceneObject({ data, onChange, onDelete, editable }: { data: SceneObjectData; onChange: (v: SceneObjectData) => void; onDelete: () => void; editable: boolean }) {
+export default function SceneObject({ data, onChange, onDelete, editable, selected, onSelect, onLinkStart, highlighted }: { data: SceneObjectData; onChange: (v: SceneObjectData) => void; onDelete: () => void; editable: boolean, selected: boolean, onSelect: () => void, onLinkStart: () => void, highlighted?: boolean }) {
     const meshRef = useRef<THREE.Mesh>(null!)
-    const [active, setActive] = useState(false)
 
     const handleUpdate = () => meshRef.current && onChange({ ...data, position: meshRef.current.position.toArray() as [number, number, number] })
-    const toggleActive = (e: any) => {
+    const handleSelect = (e: any) => {
         if (!editable) return
         e.stopPropagation()
-        setActive(v => !v)
+        onSelect()
     }
     const handleTextChange = (text: string) => {
         if (!editable) return
@@ -57,21 +57,23 @@ export default function SceneObject({ data, onChange, onDelete, editable }: { da
 
     return (
         <>
-            <TransformControls object={active && editable ? meshRef.current : undefined} onMouseUp={handleUpdate}>
-                <group>
-                    <MeshGroup ref={meshRef} data={data} onClick={toggleActive} />
-                    <SceneLabel position={data.position} text={data.text} />
-                </group>
-            </TransformControls>
+            {selected && editable && meshRef.current && (
+                <TransformControls object={meshRef.current} onMouseUp={handleUpdate} />
+            )}
+            <group>
+                <MeshGroup ref={meshRef} data={data} onClick={handleSelect} highlighted={highlighted} />
+                <SceneLabel position={data.position} text={data.text} />
+            </group>
             {editable && (
                 <SceneObjectUI
-                    active={active}
+                    active={selected}
                     position={data.position}
                     text={data.text}
                     color={data.color}
                     onTextChange={handleTextChange}
                     onColorChange={handleColorChange}
                     onDelete={onDelete}
+                    onLinkStart={onLinkStart}
                     meshRef={meshRef}
                 />
             )}

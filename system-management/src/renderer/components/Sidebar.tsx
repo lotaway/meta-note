@@ -1,5 +1,83 @@
 import React, { useState } from 'react'
 import { useDirectory } from '../contexts/DirectoryContext'
+import styled from 'styled-components'
+
+const SidebarContainer = styled.div`
+  width: 200px;
+  border-right: 1px solid #333;
+  padding: 12px;
+  background-color: #1e1e1e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+`
+
+const SidebarTitle = styled.div`
+  font-weight: bold;
+  margin-bottom: 8px;
+`
+
+const DirectoryList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+`
+
+const DirectoryItem = styled.div<{ $selected: boolean }>`
+  padding-left: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-right: 8px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  background-color: ${props => props.$selected ? '#333' : 'transparent'};
+  border-radius: 4px;
+  &:hover {
+    background-color: ${props => props.$selected ? '#333' : '#2a2a2a'};
+  }
+`
+
+const InputContainer = styled.div`
+  margin-top: 8px;
+`
+
+const DirectoryInput = styled.input`
+  width: 100%;
+  padding: 4px 8px;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  &:focus {
+    border-color: #44aa88;
+    outline: none;
+  }
+`
+
+const ControlsRow = styled.div`
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+`
+
+const SidebarButton = styled.button<{ $variant?: 'primary' | 'secondary' | 'neutral' }>`
+  flex: 1;
+  padding: ${props => props.$variant === 'neutral' ? '6px 8px' : '4px 8px'};
+  background-color: ${props => {
+        if (props.$variant === 'primary') return '#44aa88'
+        if (props.$variant === 'secondary') return '#666'
+        return '#2a2a2a'
+    }};
+  border: ${props => props.$variant === 'neutral' ? '1px solid #444' : 'none'};
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: ${props => props.$variant === 'neutral' ? '0.85em' : '0.85em'};
+  &:hover {
+    opacity: 0.9;
+  }
+`
 
 export default function Sidebar() {
     const { directories, selectedDirectoryId, createDirectory, selectDirectory } = useDirectory()
@@ -15,29 +93,22 @@ export default function Sidebar() {
     }
 
     return (
-        <div style={{ width: 200, borderRight: '1px solid #333', padding: 12, backgroundColor: '#1e1e1e', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>Scene</div>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
+        <SidebarContainer>
+            <SidebarTitle>Scene</SidebarTitle>
+            <DirectoryList>
                 {directories.map(dir => (
-                    <div
+                    <DirectoryItem
                         key={dir.id}
                         onClick={() => selectDirectory(dir.id)}
-                        style={{
-                            paddingLeft: 8,
-                            padding: '4px 8px',
-                            marginBottom: 2,
-                            cursor: 'pointer',
-                            backgroundColor: selectedDirectoryId === dir.id ? '#333' : 'transparent',
-                            borderRadius: 4
-                        }}
+                        $selected={selectedDirectoryId === dir.id}
                     >
                         └─ {dir.name}
-                    </div>
+                    </DirectoryItem>
                 ))}
-            </div>
+            </DirectoryList>
             {isCreating ? (
-                <div style={{ marginTop: 8 }}>
-                    <input
+                <InputContainer>
+                    <DirectoryInput
                         type="text"
                         value={newDirName}
                         onChange={e => setNewDirName(e.target.value)}
@@ -46,68 +117,22 @@ export default function Sidebar() {
                             if (e.key === 'Escape') { setIsCreating(false); setNewDirName('') }
                         }}
                         autoFocus
-                        style={{
-                            width: '100%',
-                            padding: '4px 8px',
-                            backgroundColor: '#2a2a2a',
-                            border: '1px solid #444',
-                            color: '#fff',
-                            borderRadius: 4,
-                            fontSize: '0.9em'
-                        }}
                         placeholder="Directory name"
                     />
-                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                        <button
-                            onClick={handleCreate}
-                            style={{
-                                flex: 1,
-                                padding: '4px 8px',
-                                backgroundColor: '#44aa88',
-                                border: 'none',
-                                color: '#fff',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                fontSize: '0.85em'
-                            }}
-                        >
+                    <ControlsRow>
+                        <SidebarButton $variant="primary" onClick={handleCreate}>
                             Create
-                        </button>
-                        <button
-                            onClick={() => { setIsCreating(false); setNewDirName('') }}
-                            style={{
-                                flex: 1,
-                                padding: '4px 8px',
-                                backgroundColor: '#666',
-                                border: 'none',
-                                color: '#fff',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                fontSize: '0.85em'
-                            }}
-                        >
+                        </SidebarButton>
+                        <SidebarButton $variant="secondary" onClick={() => { setIsCreating(false); setNewDirName('') }}>
                             Cancel
-                        </button>
-                    </div>
-                </div>
+                        </SidebarButton>
+                    </ControlsRow>
+                </InputContainer>
             ) : (
-                <button
-                    onClick={() => setIsCreating(true)}
-                    style={{
-                        marginTop: 8,
-                        width: '100%',
-                        padding: '6px 8px',
-                        backgroundColor: '#2a2a2a',
-                        border: '1px solid #444',
-                        color: '#fff',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        fontSize: '0.85em'
-                    }}
-                >
+                <SidebarButton $variant="neutral" style={{ marginTop: 8 }} onClick={() => setIsCreating(true)}>
                     + New Directory
-                </button>
+                </SidebarButton>
             )}
-        </div>
+        </SidebarContainer>
     )
 }

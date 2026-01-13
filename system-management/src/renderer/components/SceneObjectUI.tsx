@@ -2,6 +2,123 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { SketchPicker, ColorResult } from 'react-color'
+import styled from 'styled-components'
+
+const UIContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+`
+
+const LabelBox = styled.div`
+  padding: 2px 6px;
+  background-color: rgba(42, 42, 42, 0.8);
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  min-width: 100px;
+  text-align: center;
+  pointer-events: auto;
+  &:hover {
+    border-color: #666;
+  }
+`
+
+const ActionRow = styled.div`
+  display: flex;
+  gap: 4px;
+  align-items: center;
+`
+
+const IconButton = styled.button<{ $bgColor?: string; $borderColor?: string; $round?: boolean }>`
+  width: 24px;
+  height: 24px;
+  border-radius: ${props => props.$round ? '50%' : '4px'};
+  border: 1px solid ${props => props.$borderColor || '#666'};
+  background-color: ${props => props.$bgColor || '#2a2a2a'};
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  alignItems: center;
+  justifyContent: center;
+  position: relative;
+  color: #fff;
+  transition: transform 0.1s;
+  &:hover {
+    transform: scale(1.1);
+  }
+`
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
+
+const ModalContent = styled.div`
+  background-color: #2a2a2a;
+  border: 2px solid #44aa88;
+  border-radius: 8px;
+  padding: 16px;
+  z-index: 10000;
+  pointer-events: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  min-width: 300px;
+`
+
+const ModalTitle = styled.div`
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+`
+
+const TextInput = styled.input`
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  border: 1px solid #555;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  &:focus {
+    border-color: #44aa88;
+    outline: none;
+  }
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+`
+
+const TextButton = styled.button<{ $primary?: boolean }>`
+  padding: 6px 12px;
+  background-color: ${props => props.$primary ? '#44aa88' : '#666'};
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  &:hover {
+    opacity: 0.9;
+  }
+`
 
 interface SceneObjectUIProps {
     active: boolean
@@ -11,10 +128,11 @@ interface SceneObjectUIProps {
     onTextChange: (text: string) => void
     onColorChange: (color: string) => void
     onDelete: () => void
+    onLinkStart: () => void
     meshRef: React.RefObject<THREE.Mesh>
 }
 
-export default function SceneObjectUI({ active, position, text, color, onTextChange, onColorChange, onDelete, meshRef }: SceneObjectUIProps) {
+export default function SceneObjectUI({ active, position, text, color, onTextChange, onColorChange, onDelete, onLinkStart, meshRef }: SceneObjectUIProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
     const [editText, setEditText] = useState(text)
@@ -55,135 +173,57 @@ export default function SceneObjectUI({ active, position, text, color, onTextCha
     return (
         <>
             <Html position={[position[0], position[1] - 0.9, position[2]]} center>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <div
-                        onDoubleClick={handleTextDoubleClick}
-                        style={{
-                            padding: '2px 6px',
-                            backgroundColor: 'rgba(42, 42, 42, 0.8)',
-                            border: '1px solid #444',
-                            color: '#fff',
-                            borderRadius: 4,
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            minWidth: 100,
-                            textAlign: 'center',
-                            pointerEvents: 'auto'
-                        }}
-                    >
+                <UIContainer>
+                    <LabelBox onDoubleClick={handleTextDoubleClick}>
                         {text || 'Double click to edit'}
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <button
+                    </LabelBox>
+                    <ActionRow>
+                        <IconButton
+                            onClick={e => { e.stopPropagation(); onLinkStart() }}
+                            $borderColor="#44aa88"
+                            title="Link to other object"
+                        >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#44aa88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                        </IconButton>
+                        <IconButton
                             onClick={e => { e.stopPropagation(); setIsColorPickerOpen(!isColorPickerOpen) }}
-                            style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: 4,
-                                border: '1px solid #666',
-                                backgroundColor: color,
-                                cursor: 'pointer',
-                                padding: 0,
-                                margin: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                position: 'relative'
-                            }}
+                            $bgColor={color}
                             title="Change Color"
                         >
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute' }}>
                                 <path d="M7 1L9 5H13L10 8L12 12L7 9L2 12L4 8L1 5H5L7 1Z" fill="white" opacity="0.8" />
                             </svg>
-                        </button>
-                        <button
+                        </IconButton>
+                        <IconButton
                             onClick={e => { e.stopPropagation(); onDelete() }}
-                            style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: '50%',
-                                border: '1px solid #ff4444',
-                                backgroundColor: '#ff4444',
-                                color: '#fff',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '16px',
-                                lineHeight: 1,
-                                padding: 0,
-                                margin: 0
-                            }}
+                            $bgColor="#ff4444"
+                            $borderColor="#ff4444"
+                            $round
                             title="Delete"
                         >
-                            ×
-                        </button>
-                    </div>
-                </div>
+                            <span style={{ fontSize: '16px', lineHeight: 1 }}>×</span>
+                        </IconButton>
+                    </ActionRow>
+                </UIContainer>
             </Html>
             {isColorPickerOpen && (
                 <Html position={[position[0], position[1], position[2]]} center>
-                    <div
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            zIndex: 9999,
-                            pointerEvents: 'auto',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onClick={e => { e.stopPropagation(); setIsColorPickerOpen(false) }}
-                    >
-                        <div
-                            style={{
-                                pointerEvents: 'auto',
-                                zIndex: 10000
-                            }}
-                            onClick={e => e.stopPropagation()}
-                        >
+                    <Overlay onClick={e => { e.stopPropagation(); setIsColorPickerOpen(false) }}>
+                        <div onClick={e => e.stopPropagation()} style={{ pointerEvents: 'auto' }}>
                             <SketchPicker color={color} onChange={handleColorChange} />
                         </div>
-                    </div>
+                    </Overlay>
                 </Html>
             )}
             {isEditing && (
                 <Html position={[position[0], position[1], position[2]]} center>
-                    <div
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            zIndex: 9999,
-                            pointerEvents: 'auto',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        onClick={handleTextCancel}
-                    >
-                        <div
-                            style={{
-                                backgroundColor: '#2a2a2a',
-                                border: '2px solid #44aa88',
-                                borderRadius: 8,
-                                padding: '16px',
-                                zIndex: 10000,
-                                pointerEvents: 'auto',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-                                minWidth: 300
-                            }}
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div style={{ marginBottom: '12px', color: '#fff', fontSize: '14px', fontWeight: 'bold' }}>Edit Text</div>
-                            <input
+                    <Overlay onClick={handleTextCancel}>
+                        <ModalContent onClick={e => e.stopPropagation()}>
+                            <ModalTitle>Edit Text</ModalTitle>
+                            <TextInput
                                 ref={inputRef}
                                 type="text"
                                 value={editText}
@@ -193,50 +233,13 @@ export default function SceneObjectUI({ active, position, text, color, onTextCha
                                     if (e.key === 'Escape') handleTextCancel()
                                 }}
                                 onClick={e => e.stopPropagation()}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px 12px',
-                                    backgroundColor: '#1a1a1a',
-                                    border: '1px solid #555',
-                                    color: '#fff',
-                                    borderRadius: 4,
-                                    fontSize: '14px',
-                                    marginBottom: '12px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                <button
-                                    onClick={handleTextCancel}
-                                    style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: '#666',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: 4,
-                                        cursor: 'pointer',
-                                        fontSize: '12px'
-                                    }}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleTextSubmit}
-                                    style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: '#44aa88',
-                                        border: 'none',
-                                        color: '#fff',
-                                        borderRadius: 4,
-                                        cursor: 'pointer',
-                                        fontSize: '12px'
-                                    }}
-                                >
-                                    OK
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                            <ButtonGroup>
+                                <TextButton onClick={handleTextCancel}>Cancel</TextButton>
+                                <TextButton $primary onClick={handleTextSubmit}>OK</TextButton>
+                            </ButtonGroup>
+                        </ModalContent>
+                    </Overlay>
                 </Html>
             )}
         </>
