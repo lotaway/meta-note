@@ -57,66 +57,68 @@ let httpServerInstance: HttpServer | null = null
 const getNestApp = () => nestApp
 const getNestLLMService = () => nestLLMService
 
+const setupAppEnvironment = () => {
+    app.setAsDefaultProtocolClient(APP_PROTOCOL)
+    app.commandLine.appendSwitch('enable-unsafe-webgpu')
+    app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU')
+    if (IS_MAC) {
+        app.commandLine.appendSwitch('disable-gpu-vsync')
+    }
+}
+
+const initializeHttpServer = (nestApp: INestApplicationContext) => {
+    const studyService = nestApp.get(StudyService)
+    const mediaService = nestApp.get(MediaService)
+    const webSocketService = nestApp.get(WebSocketService)
+
+    const llmController = new LLMController(
+        chatGPTMonitor.getChatGPTMonitor,
+        chatGPTMonitor.getChatGPTEventBus,
+        deepSeekMonitor.getDeepSeekMonitor,
+        deepSeekMonitor.getDeepSeekEventBus
+    )
+    const authController = new AuthController(
+        chatGPTMonitor.setSessionToken,
+        deepSeekMonitor.setDeepSeekSessionToken
+    )
+    const screenshotController = new ScreenshotController(
+        () => appLifecycle.getMainWindow(),
+        desktopCapturer,
+        screen,
+        systemPreferences
+    )
+
+    webSocketService.setup(WEBSOCKET_PORT, APP_PROTOCOL)
+
+    httpServerInstance = new HttpServer(
+        new ConfigController(),
+        llmController,
+        authController,
+        new StudyController(studyService),
+        screenshotController,
+        new SystemController(mediaService),
+        WEB_SERVER_PORT
+    )
+    httpServerInstance.start()
+}
+
 const onInit = async () => {
     try {
-        app.setAsDefaultProtocolClient(APP_PROTOCOL)
-        app.commandLine.appendSwitch('enable-unsafe-webgpu')
-        app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU')
-        if (IS_MAC) {
-            app.commandLine.appendSwitch('disable-gpu-vsync')
-        }
-
+        setupAppEnvironment()
         await appLifecycle.createWindow()
 
         nestApp = await bootstrapNestJS()
-            ; (global as any).nestApp = nestApp
-
         nestLLMService = nestApp.get(LLMService)
-        const studyService = nestApp.get(StudyService)
-        const mediaService = nestApp.get(MediaService)
-        const webSocketService = nestApp.get(WebSocketService)
 
         if (nestLLMService) {
             await nestLLMService.start()
         }
 
-        const llmController = new LLMController(
-            chatGPTMonitor.getChatGPTMonitor,
-            chatGPTMonitor.getChatGPTEventBus,
-            deepSeekMonitor.getDeepSeekMonitor,
-            deepSeekMonitor.getDeepSeekEventBus
-        )
-        const configController = new ConfigController()
-        const authController = new AuthController(
-            chatGPTMonitor.setSessionToken,
-            deepSeekMonitor.setDeepSeekSessionToken
-        )
-        const studyController = new StudyController(studyService)
-        const screenshotController = new ScreenshotController(
-            () => appLifecycle.getMainWindow(),
-            desktopCapturer,
-            screen,
-            systemPreferences
-        )
-        const systemController = new SystemController(mediaService)
-
-        webSocketService.setup(WEBSOCKET_PORT, APP_PROTOCOL)
-
-        httpServerInstance = new HttpServer(
-            configController,
-            llmController,
-            authController,
-            studyController,
-            screenshotController,
-            systemController,
-            WEB_SERVER_PORT
-        )
-        httpServerInstance.start()
-
+        initializeHttpServer(nestApp)
         ipcRegistry.register()
-
     } catch (err) {
-        console.error("Initialization failed：", err)
+        // Only essential error logging
+        console.error("Core initialization failed", err)
     }
 }
 

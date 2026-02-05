@@ -1,30 +1,19 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
 import { ipcRenderer } from 'electron'
+import { IPC_CHANNELS } from '../../main/constants'
+import { AudioSourceType, AUDIO_CONFIG, AudioRecordingError } from '../types/Audio'
 
 const VOICE_API_URL = import.meta.env.VITE_VOICE_API_URL || 'http://localhost:8000'
-const CHUNK_DURATION_MS = 2000
-const DEFAULT_MIME_TYPE = 'audio/webm;codecs=opus'
-const FALLBACK_MIME_TYPE = 'audio/ogg;codecs=opus'
-
-enum AudioSourceType {
-    Mic = 'mic',
-    System = 'system'
-}
 
 interface AudioContextType {
     isStreaming: boolean
     startRecording: (sourceId: string, sourceType: AudioSourceType) => Promise<void>
     stopRecording: () => void
-    transcribeFile: (file: File) => Promise<string | null>
+    requestTranscription: (file: File) => Promise<string>
     availableSources: Electron.DesktopCapturerSource[]
     reloadSources: () => Promise<void>
     latestTranscript: string
-}
-
-class AudioRecordingError extends Error {
-    constructor(message: string, public code: string) {
-        super(message)
-    }
+    updateTranscript: (text: string) => void
 }
 
 const AudioContext = createContext<AudioContextType | null>(null)
@@ -40,43 +29,49 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const responseRef = useRef<Response | null>(null)
 
     const reloadSources = useCallback(async () => {
-        const sources = await ipcRenderer.invoke('audio:get-sources')
+        const sources = await ipcRenderer.invoke(IPC_CHANNELS.GET_AUDIO_SOURCES)
         setAvailableSources(sources)
     }, [])
 
-    const sendSubtitle = (text: string) => {
-        ipcRenderer.send('subtitles:text', text)
-    }
+    const updateTranscript = useCallback((text: string) => {
+        setLatestTranscript(text)
+        ipcRenderer.send(IPC_CHANNELS.SUBTITLES_TEXT, text)
+    }, [])
+
+    const handleSSELine = useCallback((line: string) => {
+        if (!line.startsWith(AUDIO_CONFIG.SSE_DATA_PREFIX)) return
+        
+        const data = line.slice(AUDIO_CONFIG.SSE_DATA_PREFIX.length)
+        if (data === AUDIO_CONFIG.SSE_DONE_MARKER) return
+
+        try {
+            const parsed = JSON.parse(data)
+            if (parsed.text) {
+                updateTranscript(parsed.text)
+            }
+        } catch {
+            // Ignore parse errors for malformed chunks
+        }
+    }, [updateTranscript])
 
     const parseStream = async (stream: ReadableStream) => {
         const reader = stream.getReader()
         const decoder = new TextDecoder()
         let buffer = ''
 
-        while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
+        try {
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
 
-            buffer += decoder.decode(value, { stream: true })
-            const lines = buffer.split('\n')
-            buffer = lines.pop() || ''
+                buffer += decoder.decode(value, { stream: true })
+                const lines = buffer.split('\n')
+                buffer = lines.pop() || ''
 
-            for (const line of lines) {
-                if (!line.startsWith('data: ')) continue
-                
-                const data = line.slice(6)
-                if (data === '[DONE]') continue
-
-                try {
-                    const parsed = JSON.parse(data)
-                    if (parsed.text) {
-                        setLatestTranscript(parsed.text)
-                        sendSubtitle(parsed.text)
-                    }
-                } catch {
-                    console.error('SSE parse error')
-                }
+                lines.forEach(handleSSELine)
             }
+        } finally {
+            reader.releaseLock()
         }
     }
 
@@ -101,9 +96,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const createRecorder = (stream: MediaStream) => {
-        const mimeType = MediaRecorder.isTypeSupported(DEFAULT_MIME_TYPE) 
-            ? DEFAULT_MIME_TYPE 
-            : FALLBACK_MIME_TYPE
+        const mimeType = MediaRecorder.isTypeSupported(AUDIO_CONFIG.DEFAULT_MIME_TYPE) 
+            ? AUDIO_CONFIG.DEFAULT_MIME_TYPE 
+            : AUDIO_CONFIG.FALLBACK_MIME_TYPE
             
         return new MediaRecorder(stream, { mimeType })
     }
@@ -114,9 +109,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         try {
-            // @ts-ignore
-            return navigator.mediaDevices.getUserMedia({
+            return await navigator.mediaDevices.getUserMedia({
                 audio: {
+                    // @ts-ignore
                     mandatory: {
                         chromeMediaSource: 'desktop',
                         chromeMediaSourceId: sourceId
@@ -124,7 +119,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 }
             })
         } catch {
-            throw new AudioRecordingError('System audio unavailable, falling back to mic', 'SYSTEM_AUDIO_FAILED')
+            throw new AudioRecordingError('System audio unavailable', 'SYSTEM_AUDIO_FAILED')
         }
     }
 
@@ -145,7 +140,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         const recorder = createRecorder(stream)
         recorderRef.current = recorder
-        recorder.start(CHUNK_DURATION_MS)
+        recorder.start(AUDIO_CONFIG.CHUNK_DURATION_MS)
 
         recorder.ondataavailable = async (e) => {
             if (e.data.size > 0 && sessionIdRef.current) {
@@ -173,7 +168,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsStreaming(false)
     }
 
-    const transcribeFile = async (file: File) => {
+    const requestTranscription = async (file: File): Promise<string> => {
         const formData = new FormData()
         formData.append('audio', file)
 
@@ -185,10 +180,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!response.ok) throw new AudioRecordingError('Transcription failed', 'TRANSCRIBE_FAILED')
         
         const data = await response.json()
-        const text = data.text || ''
-        setLatestTranscript(text)
-        sendSubtitle(text)
-        return text
+        return data.text || ''
     }
 
     return (
@@ -196,10 +188,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             isStreaming, 
             startRecording, 
             stopRecording, 
-            transcribeFile, 
+            requestTranscription, 
             availableSources, 
             reloadSources, 
-            latestTranscript 
+            latestTranscript,
+            updateTranscript
         }}>
             {children}
         </AudioContext.Provider>

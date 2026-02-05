@@ -1,25 +1,39 @@
 import { BrowserWindow, screen } from 'electron'
 import path from 'node:path'
+import { IPC_CHANNELS, SUBTITLES_WINDOW_CONSTANTS } from '../constants'
+
+export interface SubtitleStyle {
+    color?: string
+    strokeColor?: string
+    fontSize?: number
+    strokeWidth?: number
+}
 
 export class SubtitlesWindow {
     private window: BrowserWindow | null = null
 
-    constructor(private isDev: boolean, private preloadPath: string, private distPath: string) {}
+    constructor(
+        private isDev: boolean,
+        private preloadPath: string,
+        private distPath: string
+    ) { }
 
     public open() {
-        if (this.window && !this.window.isDestroyed()) {
-            this.window.show()
-            this.window.focus()
+        if (this.exists()) {
+            this.window?.show()
+            this.window?.focus()
             return
         }
 
         const { width } = screen.getPrimaryDisplay().workAreaSize
+        const windowWidth = SUBTITLES_WINDOW_CONSTANTS.DEFAULT_WIDTH
+        const windowHeight = SUBTITLES_WINDOW_CONSTANTS.DEFAULT_HEIGHT
 
         this.window = new BrowserWindow({
-            width: 800,
-            height: 150,
-            x: Math.floor((width - 800) / 2),
-            y: 20, // 屏幕顶部
+            width: windowWidth,
+            height: windowHeight,
+            x: Math.floor((width - windowWidth) / 2),
+            y: SUBTITLES_WINDOW_CONSTANTS.DEFAULT_TOP_OFFSET,
             frame: false,
             transparent: true,
             alwaysOnTop: true,
@@ -33,18 +47,14 @@ export class SubtitlesWindow {
             }
         })
 
-        // 在 macOS 上允许在全屏应用上方显示
         this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
         this.window.setAlwaysOnTop(true, 'screen-saver')
 
-        // 使用 hash 路由区分字幕窗口
-        const baseUrl = this.isDev 
-            ? `http://localhost:5173` 
+        const baseUrl = this.isDev
+            ? `http://localhost:5173`
             : `file://${path.join(process.resourcesPath, 'app', this.distPath)}`
-        
-        const url = `${baseUrl}#subtitles`
-        
-        console.log('[SubtitlesWindow] Loading URL:', url)
+
+        const url = `${baseUrl}#${SUBTITLES_WINDOW_CONSTANTS.ROUTE_HASH}`
         this.window.loadURL(url)
 
         this.window.on('closed', () => {
@@ -54,13 +64,13 @@ export class SubtitlesWindow {
 
     public updateText(text: string) {
         if (this.exists()) {
-            this.window?.webContents.send('subtitles:text', text)
+            this.window?.webContents.send(IPC_CHANNELS.SUBTITLES_TEXT, text)
         }
     }
 
-    public updateStyle(style: any) {
+    public updateStyle(style: SubtitleStyle) {
         if (this.exists()) {
-            this.window?.webContents.send('subtitles:style', style)
+            this.window?.webContents.send(IPC_CHANNELS.SUBTITLES_STYLE, style)
         }
     }
 

@@ -2,89 +2,60 @@
 
 这是一个基于 Electron + React + TypeScript + Vite 构建的桌面应用。
 
-## 环境配置
+## Environment Configuration
 
-应用使用环境变量进行配置管理。请按照以下步骤配置：
+The application uses environment variables for configuration.
 
-### 1. 复制环境变量模板
+### 1. Setup Environment File
 
 ```bash
 cp .env.example .env
 ```
 
-### 2. 编辑环境变量
+### 2. Configure Voice API
 
-编辑 `.env` 文件配置选项
+Edit `.env` and set the voice service endpoint:
 
-````
+```bash
+VITE_VOICE_API_URL=http://localhost:8000
+```
 
-## 运行应用
+## Running the Application
 
-### 开发模式
+### Development mode
 ```bash
 yarn dev
-````
+```
 
-### 构建应用
-
+### Build application
 ```bash
 yarn build
 ```
 
-### 启动 Electron 应用
+## Features
 
-```bash
-yarn start
-```
+### Voice Transcription & Subtitles
 
-## 技术栈
+Real-time transcription of microphone or system audio with a customizable overlay.
 
-- Electron
-- React
-- TypeScript
-- Vite
-- Yarn（依赖管理）
+1. **Select Source**
+   - **Microphone**: Direct environment recording.
+   - **System Audio**: Select a specific window or tab from the list.
 
-## 语音转录功能
+2. **Start Transcription**
+   - Click **"Start Recording"** in the control panel.
+   - Data is streamed to the backend for processing.
 
-### 简介
-支持实时将麦克风或系统音频（程序/浏览器标签页）转换为文字，并悬浮显示在屏幕顶部。
+3. **Floating Subtitles**
+   - Click **"Open Subtitles"** to show the overlay.
+   - Click ⚙️ on the overlay to customize:
+     - Font size and color
+     - Text outline color and width
 
-### 环境配置
+4. **File Transcription**
+   - Upload local audio/video files (MP3/MP4) for offline transcription.
 
-编辑 `.env` 文件配置语音服务地址：
+### Backend Requirements
 
-```bash
-# 语音服务 API 地址
-VITE_VOICE_API_URL=http://localhost:8000
-```
-
-### 使用方法
-
-1. **启动应用**
-   ```bash
-   yarn dev
-   ```
-
-2. **选择音频来源**
-   - 🎤 **麦克风**：直接录制当前环境声音
-   - 🔊 **系统音频**：从下拉菜单选择正在播放音频的窗口或标签页
-
-3. **开始转录**
-   - 点击 **"开始转录"** 按钮
-   - 音频数据将实时传输到后端处理
-
-4. **悬浮字幕**
-   - 点击 **"打开字幕"** 在屏幕顶部显示悬浮窗口
-   - 点击字幕窗口右上角 ⚙️ 可调节：
-     - 字体大小
-     - 字体颜色
-     - 描边颜色与宽度
-
-5. **本地文件转录**
-   - 支持上传 MP3/MP4 文件进行转录
-
-### 后端接口要求
-
-需配合支持以下接口的 Python 后端使用：
-- `POST /voice/to/text` (支持流式 SSE 与分块上传)
+Requires a compatible backend service:
+- `POST /voice/to/text` (Supports SSE stream and chunked uploads)

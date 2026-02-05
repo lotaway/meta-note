@@ -10,7 +10,7 @@ export class IpcRegistry {
     constructor(
         private getNestApp: () => INestApplicationContext | null,
         private getAppLifecycle: () => any
-    ) {}
+    ) { }
 
     register() {
         ipcMain.handle(IPC_CHANNELS.READ_FILE_IN_DIRECTORY, (event, filePath) => {

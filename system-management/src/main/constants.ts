@@ -9,7 +9,16 @@ export const IPC_CHANNELS = {
     SUBTITLES_OPEN: 'subtitles:open',
     SUBTITLES_CLOSE: 'subtitles:close',
     SUBTITLES_UPDATE: 'subtitles:update',
+    SUBTITLES_TEXT: 'subtitles:text',
+    SUBTITLES_STYLE: 'subtitles:style',
     GET_AUDIO_SOURCES: 'audio:get-sources',
+} as const
+
+export const SUBTITLES_WINDOW_CONSTANTS = {
+    DEFAULT_WIDTH: 800,
+    DEFAULT_HEIGHT: 150,
+    DEFAULT_TOP_OFFSET: 20,
+    ROUTE_HASH: 'subtitles'
 } as const
 
 export const AI_CHAT_CONSTANTS = {
