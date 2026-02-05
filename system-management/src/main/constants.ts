@@ -6,6 +6,10 @@ export const IPC_CHANNELS = {
     READ_FILE_IN_DIRECTORY: 'readFileInDirectory',
     MERGE_VIDEO: 'mergeVideo',
     LLM_COMPLETION: 'llm:completion',
+    SUBTITLES_OPEN: 'subtitles:open',
+    SUBTITLES_CLOSE: 'subtitles:close',
+    SUBTITLES_UPDATE: 'subtitles:update',
+    GET_AUDIO_SOURCES: 'audio:get-sources',
 } as const
 
 export const AI_CHAT_CONSTANTS = {

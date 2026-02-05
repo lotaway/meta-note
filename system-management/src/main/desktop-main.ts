@@ -57,8 +57,6 @@ let httpServerInstance: HttpServer | null = null
 const getNestApp = () => nestApp
 const getNestLLMService = () => nestLLMService
 
-const ipcRegistry = new IpcRegistry(getNestApp)
-
 const onInit = async () => {
     try {
         app.setAsDefaultProtocolClient(APP_PROTOCOL)
@@ -123,6 +121,7 @@ const onInit = async () => {
 }
 
 const appLifecycle = new AppLifecycle(appConfig, getNestLLMService, onInit)
+const ipcRegistry = new IpcRegistry(getNestApp, () => appLifecycle)
 
 appLifecycle.setupEventListeners()
 

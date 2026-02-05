@@ -3,6 +3,7 @@ import * as remote from "@electron/remote/main"
 import chatGPTMonitor from "./desktop-chatgpt"
 import deepSeekMonitor from "./desktop-deepseek"
 import { LLMService } from "./nestjs/services/llm.service"
+import { SubtitlesWindow } from "./browser/subtitles-window"
 
 export interface AppConfig {
     isDev: boolean
@@ -18,15 +19,26 @@ export interface AppConfig {
 
 export class AppLifecycle {
     private mainWindow: BrowserWindow | null = null
+    private subtitlesWindow: SubtitlesWindow | null = null
 
     constructor(
         private config: AppConfig,
         private getNestLLMService: () => LLMService | null,
         private onInit: () => Promise<void>
-    ) { }
+    ) {
+        this.subtitlesWindow = new SubtitlesWindow(
+            this.config.isDev, 
+            this.config.preloadPath, 
+            this.config.distPath
+        )
+    }
 
     getMainWindow() {
         return this.mainWindow
+    }
+
+    getSubtitlesWindow() {
+        return this.subtitlesWindow
     }
 
     async createWindow() {
