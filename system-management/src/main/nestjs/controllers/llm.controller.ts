@@ -361,14 +361,14 @@ export class LLMController {
             const result = await monitorWindow.webContents.executeJavaScript(`
                 (async () => {
                     let retries = 2;
-                    while (retries > 0 && typeof window.automateDeepSeek !== 'function') {
+                    while (retries > 0 && typeof window.automateChat !== 'function') {
                         await new Promise(r => setTimeout(r, 500));
                         retries--;
                     }
-                    if (typeof window.automateDeepSeek !== 'function') {
-                        return { success: false, error: 'window.automateDeepSeek is not defined after waiting' };
+                    if (typeof window.automateChat !== 'function') {
+                        return { success: false, error: 'window.automateChat is not defined after waiting' };
                     }
-                    return await window.automateDeepSeek(${JSON.stringify(prompt)});
+                    return await window.automateChat(${JSON.stringify(prompt)});
                 })()
             `)
 
@@ -393,14 +393,14 @@ export class LLMController {
             const result = await monitorWindow.webContents.executeJavaScript(`
                 (async () => {
                     let retries = 2;
-                    while (retries > 0 && typeof window.automateDeepSeek !== 'function') {
+                    while (retries > 0 && typeof window.automateChat !== 'function') {
                         await new Promise(r => setTimeout(r, 500));
                         retries--;
                     }
-                    if (typeof window.automateDeepSeek !== 'function') {
-                        return { success: false, error: 'window.automateDeepSeek is not defined after waiting' };
+                    if (typeof window.automateChat !== 'function') {
+                        return { success: false, error: 'window.automateChat is not defined after waiting' };
                     }
-                    return await window.automateDeepSeek(${JSON.stringify(prompt)});
+                    return await window.automateChat(${JSON.stringify(prompt)});
                 })()
             `)
 

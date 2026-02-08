@@ -1,4 +1,5 @@
 import * as CONSTANTS from "../constants"
+import { htmlElementFocus } from "./utils"
 
 (function (): void {
   if (!window.location.hostname.endsWith("chatgpt.com")) {
@@ -59,9 +60,7 @@ import * as CONSTANTS from "../constants"
       if (!textarea) {
         return { success: false, error: 'Input area not found' }
       }
-
-      textarea.focus()
-
+      htmlElementFocus(textarea, window)
       if (textarea.tagName === 'TEXTAREA') {
         (textarea as HTMLTextAreaElement).value = ''
       } else {

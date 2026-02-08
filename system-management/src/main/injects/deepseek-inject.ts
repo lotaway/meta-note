@@ -1,4 +1,5 @@
 import * as CONSTANTS from "../constants"
+import { htmlElementFocus } from "./utils"
 
 (function (): void {
   if (!window.location.hostname.includes("deepseek.com")) {
@@ -50,8 +51,8 @@ import * as CONSTANTS from "../constants"
     return response
   }
 
-  (window as any).automateDeepSeek = async (prompt: string): Promise<{ success: boolean; error?: string }> => {
-    console.log('[DeepSeek Monitor] automateDeepSeek called with prompt length:', prompt.length)
+  (window as any).automateChat = async (prompt: string): Promise<{ success: boolean; error?: string }> => {
+    console.log('[DeepSeek Monitor] automateChat called with prompt length:', prompt.length)
     try {
       const textarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="消息"]') ||
         document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]')
@@ -59,9 +60,7 @@ import * as CONSTANTS from "../constants"
       if (!textarea) {
         return { success: false, error: 'Input area not found' }
       }
-
-      textarea.focus()
-
+      htmlElementFocus(textarea, window)
       if (textarea.tagName === 'TEXTAREA') {
         (textarea as HTMLTextAreaElement).value = ''
       }
