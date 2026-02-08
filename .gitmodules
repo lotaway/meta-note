@@ -4,3 +4,6 @@
 [submodule "bili-plus"]
 	path = bili-plus
 	url = https://github.com/lotaway/bili-plus.git
+[submodule "browser-extension"]
+	path = browser-extension
+	url = https://github.com/lotaway/bili-plus.git
