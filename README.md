@@ -13,4 +13,4 @@
 
 * system-management 桌面端管理（笔记、通讯、学习、自动化任务）
 * system-support 系统支持（提供客户端和服务端支持），主要用于为软件提供ONNX或者Node API支持
-* browser-extension(git submodule) 浏览器插件（操作、助手、自动化控制）
+* browser-extension(git submodule) 浏览器插件（AI助手客户端、登录态利用、桌面端便捷操作入口、桌面端反向操作浏览器）
