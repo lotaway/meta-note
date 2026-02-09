@@ -1,6 +1,6 @@
 # BiliNote 实现原理分析
 
-> 基于项目源码分析，补充 README.md 未详细说明的技术细节
+> 基于项目源码分析，补充 [README.md](./BiliNote/README.md) 未详细说明的技术细节
 
 ## 1. 核心设计：传给 LLM 的是什么？
 
