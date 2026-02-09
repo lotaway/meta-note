@@ -55,7 +55,7 @@ Response:
 Implementation:
 
 1. Add dependencies
-   npm install yt-dlp fluent-ffmpeg
+   yarn add yt-dlp fluent-ffmpeg
    # System: FFmpeg required
 
 2. Create note service
