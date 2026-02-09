@@ -66,7 +66,8 @@ export default function App() {
             <VideoNoteOverlay show={showVideoNote} />
             <Sidebar />
             <Editor dragType={dragType} setDragType={setDragType} />
-            <AudioControlPanel />
+            {/* AudioControlPanel is now integrated into VideoNote */}
+            {/* <AudioControlPanel /> */}
         </AppContainer>
     )
 }

@@ -5,7 +5,9 @@ import { LLMService } from './services/llm.service'
 import { MediaService } from './services/media.service'
 import { WebSocketService } from './services/websocket.service'
 import { NoteService } from './services/note.service'
+import { TTSService } from './services/tts.service'
 import { NoteController } from './controllers/note.controller'
+import { TTSController } from './controllers/tts.controller'
 import { BilibiliDownloader } from './services/providers/bilibili.downloader'
 import { YoutubeDownloader } from './services/providers/youtube.downloader'
 import { DouyinDownloader } from './services/providers/douyin.downloader'
@@ -20,12 +22,13 @@ import { LLMProvider } from './services/providers/llm-provider.interface'
 
 @Module({
     imports: [ConfigModule.forRoot()],
-    controllers: [NoteController],
+    controllers: [NoteController, TTSController],
     providers: [
         StudyService,
         MediaService,
         WebSocketService,
         NoteService,
+        TTSService,
         BilibiliDownloader,
         YoutubeDownloader,
         DouyinDownloader,

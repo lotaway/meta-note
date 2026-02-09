@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAudio } from '../contexts/AudioContext';
+import { AudioSourceType } from '../types/Audio';
+import { ipcRenderer } from 'electron';
+import { IPC_CHANNELS } from '../../main/constants';
 
 const NoteContainer = styled.div`
   display: flex;
@@ -20,9 +24,20 @@ const FormSection = styled.div`
   border-radius: 8px;
 `;
 
+const TranscriptionSection = styled.div`
+  margin-bottom: 20px;
+  background-color: #2a2a2a;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #444;
+`;
+
 const Title = styled.h2`
   margin-top: 0;
   color: #44aa88;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const InputGroup = styled.div`
@@ -54,14 +69,22 @@ const Select = styled.select`
   border-radius: 4px;
 `;
 
-const Button = styled.button`
-  background-color: #44aa88;
+const Button = styled.button<{ $variant?: 'primary' | 'danger' | 'success' | 'secondary' }>`
+  background-color: ${props => {
+    switch (props.$variant) {
+      case 'danger': return '#e74c3c';
+      case 'success': return '#2ecc71';
+      case 'secondary': return '#34495e';
+      default: return '#44aa88';
+    }
+  }};
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  margin-right: 10px;
   &:disabled {
     background-color: #666;
     cursor: not-allowed;
@@ -75,6 +98,7 @@ const ResultSection = styled.div`
   border-radius: 8px;
   overflow-y: auto;
   line-height: 1.6;
+  position: relative;
 
   pre {
     background: #1e1e1e;
@@ -84,7 +108,44 @@ const ResultSection = styled.div`
   }
 `;
 
+const TTSButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(68, 170, 136, 0.2);
+  border: 1px solid #44aa88;
+  color: #44aa88;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  &:hover {
+    background: rgba(68, 170, 136, 0.4);
+  }
+`;
+
+const TranscriptDisplay = styled.div`
+  margin-top: 10px;
+  padding: 10px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  min-height: 50px;
+  max-height: 150px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.9em;
+`;
+
 export default function VideoNote() {
+    const { 
+        isStreaming, 
+        startRecording, 
+        stopRecording, 
+        availableSources, 
+        reloadSources,
+        latestTranscript
+    } = useAudio();
+
     const [videoUrl, setVideoUrl] = useState('');
     const [style, setStyle] = useState('detailed');
     const [useScreenshot, setUseScreenshot] = useState(false);
@@ -93,6 +154,38 @@ export default function VideoNote() {
     const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
     const [markdown, setMarkdown] = useState('');
     const [error, setError] = useState<string | null>(null);
+    
+    // Transcription States
+    const [sourceType, setSourceType] = useState<AudioSourceType>(AudioSourceType.Mic);
+    const [selectedSourceId, setSelectedSourceId] = useState<string>('');
+    const [isTranscribingVisible, setIsTranscribingVisible] = useState(false);
+    const [modelStatus, setModelStatus] = useState<{ready: boolean, version: string} | null>(null);
+
+    const checkModelStatus = useCallback(async () => {
+        try {
+            const response = await fetch('http://localhost:5051/api/tts/status');
+            const result = await response.json();
+            if (result.code === 200) {
+                setModelStatus(result.data);
+            }
+        } catch (err) {
+            console.error('Check model status failed', err);
+        }
+    }, []);
+
+    const downloadModel = async () => {
+        try {
+            setStatus('processing');
+            const response = await fetch('http://localhost:5051/api/tts/download', { method: 'POST' });
+            if (response.ok) {
+                await checkModelStatus();
+                setStatus('idle');
+            }
+        } catch (err) {
+            console.error('Download model failed', err);
+            setStatus('failed');
+        }
+    };
 
     const generateNote = async () => {
         if (!videoUrl) return;
@@ -125,8 +218,50 @@ export default function VideoNote() {
         }
     };
 
+    const handleStartRecording = async () => {
+        await startRecording(selectedSourceId, sourceType);
+    };
+
+    const handleOpenSubtitles = () => {
+        ipcRenderer.send(IPC_CHANNELS.SUBTITLES_OPEN);
+    };
+
+    const playTTS = async (text: string) => {
+        if (!modelStatus?.ready) {
+            alert('Please download the TTS model first.');
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:5051/api/tts/synthesize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text, 
+                    voice_profile_id: 'default'
+                })
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play();
+            } else {
+                const err = await response.json();
+                alert(`TTS Error: ${err.message}`);
+            }
+        } catch (err) {
+            console.error('TTS Playback failed', err);
+        }
+    };
+
+    useEffect(() => {
+        checkModelStatus();
+    }, [checkModelStatus]);
+
     useEffect(() => {
         let interval: NodeJS.Timeout;
+// ... (rest of the file remains similar)
         if (taskId && status === 'processing') {
             interval = setInterval(async () => {
                 try {
@@ -153,61 +288,125 @@ export default function VideoNote() {
 
     return (
         <NoteContainer>
-            <Title>Video Note Generator</Title>
+            <Title>
+                Video Note Generator
+                <Button $variant="secondary" style={{ padding: '5px 10px', fontSize: '0.6em' }} onClick={() => setIsTranscribingVisible(!isTranscribingVisible)}>
+                    {isTranscribingVisible ? 'Hide Voice Tools' : 'Show Voice Tools'}
+                </Button>
+            </Title>
+            
+            {isTranscribingVisible && (
+                <TranscriptionSection>
+                    <Title style={{ fontSize: '1.2em', color: '#007aff' }}>
+                        Voice Transcription
+                        <span style={{ fontSize: '0.6em', color: modelStatus?.ready ? '#2ecc71' : '#e74c3c' }}>
+                            TTS Model: {modelStatus?.ready ? `Ready (${modelStatus.version})` : 'Missing'}
+                        </span>
+                    </Title>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                        {!modelStatus?.ready && (
+                            <Button $variant="primary" onClick={downloadModel} disabled={status === 'processing'}>
+                                Download TTS Model
+                            </Button>
+                        )}
+                        <div style={{ flex: 1 }}>
+                            <Label>Source Type:</Label>
+                            <Select 
+                                value={sourceType} 
+                                onChange={e => {
+                                    const type = e.target.value as AudioSourceType;
+                                    setSourceType(type);
+                                    if (type === AudioSourceType.System) reloadSources();
+                                }}
+                            >
+                                <option value={AudioSourceType.Mic}>Microphone</option>
+                                <option value={AudioSourceType.System}>System Audio</option>
+                            </Select>
+                        </div>
+                        {sourceType === AudioSourceType.System && (
+                            <div style={{ flex: 2 }}>
+                                <Label>Source:</Label>
+                                <Select 
+                                    value={selectedSourceId} 
+                                    onChange={e => setSelectedSourceId(e.target.value)}
+                                >
+                                    <option value="">Select Screen/Window</option>
+                                    {availableSources.map(source => (
+                                        <option key={source.id} value={source.id}>{source.name}</option>
+                                    ))}
+                                </Select>
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {!isStreaming ? (
+                            <Button $variant="primary" onClick={handleStartRecording}>Start Recording</Button>
+                        ) : (
+                            <Button $variant="danger" onClick={stopRecording}>Stop Recording</Button>
+                        )}
+                        <Button $variant="success" onClick={handleOpenSubtitles}>Open Subtitles Overlay</Button>
+                        <Button $variant="secondary" onClick={() => playTTS(latestTranscript)} disabled={!latestTranscript}>Read Last Text</Button>
+                    </div>
+                    {latestTranscript && (
+                        <TranscriptDisplay>
+                            <strong>Subtitles Content:</strong><br/>
+                            {latestTranscript}
+                        </TranscriptDisplay>
+                    )}
+                </TranscriptionSection>
+            )}
+
             <FormSection>
                 <InputGroup>
-                    <Label>Video URL (Bilibili, YouTube, etc.)</Label>
+                    <Label>Video URL</Label>
                     <Input 
                         placeholder="https://www.bilibili.com/video/..." 
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
                     />
                 </InputGroup>
-                <InputGroup>
-                    <Label>Note Style</Label>
-                    <Select value={style} onChange={(e) => setStyle(e.target.value)}>
-                        <option value="minimal">Minimal</option>
-                        <option value="detailed">Detailed</option>
-                        <option value="academic">Academic</option>
-                        <option value="xiaohongshu">Xiaohongshu</option>
-                        <option value="tutorial">Tutorial</option>
-                    </Select>
-                </InputGroup>
-                <InputGroup style={{ display: 'flex', gap: '20px' }}>
-                    <Label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input 
-                            type="checkbox" 
-                            checked={useScreenshot} 
-                            onChange={(e) => setUseScreenshot(e.target.checked)} 
-                        />
-                        Screenshots
-                    </Label>
-                    <Label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
-                        <input 
-                            type="checkbox" 
-                            checked={useVideoUnderstanding} 
-                            onChange={(e) => setUseVideoUnderstanding(e.target.checked)} 
-                        />
-                        Video Understanding
-                    </Label>
-                </InputGroup>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                    <div style={{ flex: 1 }}>
+                        <Label>Style</Label>
+                        <Select value={style} onChange={(e) => setStyle(e.target.value)}>
+                            <option value="minimal">Minimal</option>
+                            <option value="detailed">Detailed</option>
+                            <option value="academic">Academic</option>
+                        </Select>
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '15px', paddingBottom: '8px' }}>
+                        <Label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', marginBottom: 0 }}>
+                            <input type="checkbox" checked={useScreenshot} onChange={(e) => setUseScreenshot(e.target.checked)} />
+                            Screenshot
+                        </Label>
+                        <Label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', marginBottom: 0 }}>
+                            <input type="checkbox" checked={useVideoUnderstanding} onChange={(e) => setUseVideoUnderstanding(e.target.checked)} />
+                            Images
+                        </Label>
+                    </div>
+                </div>
                 <Button 
                     onClick={generateNote} 
                     disabled={status === 'processing' || !videoUrl}
+                    style={{ marginTop: '15px' }}
                 >
-                    {status === 'processing' ? 'Generating...' : 'Generate Note'}
+                    {status === 'processing' ? 'Generating...' : 'Generate Video Note'}
                 </Button>
             </FormSection>
 
             <ResultSection>
                 {status === 'failed' && <p style={{ color: '#e74c3c' }}>Error: {error}</p>}
-                {status === 'processing' && <p>Processing video. This may take a few minutes...</p>}
-                {markdown ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {markdown}
-                    </ReactMarkdown>
-                ) : (
-                    status === 'idle' && <p style={{ color: '#666' }}>Your generated note will appear here.</p>
+                {status === 'processing' && <p>Processing... Please wait.</p>}
+                {markdown && (
+                    <>
+                        <TTSButton onClick={() => playTTS(markdown)}>🔊 Read Summary</TTSButton>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {markdown}
+                        </ReactMarkdown>
+                    </>
+                )}
+                {!markdown && status === 'idle' && (
+                    <p style={{ color: '#666' }}>Generated content will appear here.</p>
                 )}
             </ResultSection>
         </NoteContainer>

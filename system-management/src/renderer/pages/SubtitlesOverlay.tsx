@@ -79,6 +79,24 @@ export default function SubtitlesOverlay() {
         }
     }, [])
 
+    const playTTS = async () => {
+        if (!text) return;
+        try {
+            const response = await fetch('http://localhost:5051/api/tts/synthesize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, voice_profile_id: 'default' })
+            });
+            if (response.ok) {
+                const blob = await response.blob();
+                const audio = new Audio(URL.createObjectURL(blob));
+                audio.play();
+            }
+        } catch (err) {
+            console.error('Overlay TTS failed', err);
+        }
+    }
+
     const updateStyle = (newStyle: Partial<SubtitleStyle>) => {
         setStyle(prev => ({ ...prev, ...newStyle }))
     }
@@ -87,6 +105,21 @@ export default function SubtitlesOverlay() {
         <OverlayContainer>
             <SubtitleText $style={style}>
                 {text}
+                {text && (
+                    <button 
+                        onClick={playTTS}
+                        style={{ 
+                            marginLeft: '10px', 
+                            background: 'none', 
+                            border: 'none', 
+                            cursor: 'pointer', 
+                            fontSize: '0.8em',
+                            pointerEvents: 'auto'
+                        }}
+                    >
+                        🔊
+                    </button>
+                )}
             </SubtitleText>
             
             <SettingsButton onClick={() => setIsSettingsVisible(!isSettingsVisible)}>
