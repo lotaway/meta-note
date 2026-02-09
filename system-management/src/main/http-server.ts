@@ -1,6 +1,7 @@
 import express from 'express'
 import { ConfigController } from "./nestjs/controllers/config.controller"
 import { LLMController } from "./nestjs/controllers/llm.controller"
+import { NoteController } from "./nestjs/controllers/note.controller"
 import { AuthController } from "./nestjs/controllers/auth.controller"
 import { StudyController } from "./nestjs/controllers/study.controller"
 import { ScreenshotController } from "./nestjs/controllers/screenshot.controller"
@@ -17,6 +18,7 @@ export class HttpServer {
         private studyController: StudyController,
         private screenshotController: ScreenshotController,
         private systemController: SystemController,
+        private noteController: NoteController,
         private port: number
     ) {
         this.app = express()
@@ -49,6 +51,10 @@ export class HttpServer {
         this.app.get('/screenshot/desktop', this.screenshotController.getDesktopScreenshot.bind(this.screenshotController))
         this.app.get('/api/directory', this.systemController.readFileInDirectory.bind(this.systemController))
         this.app.post('/api/video/merge', this.systemController.mergeVideo.bind(this.systemController))
+        this.app.post('/api/note/generate', this.noteController.generate.bind(this.noteController))
+        this.app.get('/api/note/status/:id', this.noteController.getStatus.bind(this.noteController))
+        this.app.get('/api/note/:id', this.noteController.getResult.bind(this.noteController))
+        this.app.delete('/api/note/:id', this.noteController.deleteTask.bind(this.noteController))
     }
 
     start() {

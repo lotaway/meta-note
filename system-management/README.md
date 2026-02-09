@@ -22,6 +22,8 @@ VITE_VOICE_API_URL=http://localhost:8000
 
 ## Running the Application
 
+使用yarn而不是npm可以避免很多间接依赖版本冲突问题。
+
 ### Development mode
 ```bash
 yarn dev

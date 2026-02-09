@@ -9,12 +9,17 @@ export class NoteController {
     constructor(private readonly noteService: NoteService) { }
 
     @Post('generate')
-    async generate(@Body() body: { video_url: string; style?: string; formats?: string[] }) {
+    async generate(@Body() body: {
+        video_url: string;
+        style?: string;
+        formats?: string[];
+        options?: { screenshot?: boolean, videoUnderstanding?: boolean }
+    }) {
         const taskId = uuidv4();
         this.tasks.set(taskId, { status: 'PROCESSING' });
 
         // Run in background
-        this.noteService.generateNote(body.video_url, body.style, body.formats)
+        this.noteService.generateNote(body.video_url, body.style, body.formats, body.options)
             .then(markdown => {
                 this.tasks.set(taskId, { status: 'SUCCESS', markdown });
             })
