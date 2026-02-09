@@ -4,6 +4,10 @@ import { StudyService } from './services/study.service'
 import { LLMService } from './services/llm.service'
 import { MediaService } from './services/media.service'
 import { WebSocketService } from './services/websocket.service'
+import { NoteService } from './services/note.service'
+import { NoteController } from './controllers/note.controller'
+import { YtDlpDownloader } from './services/providers/yt-dlp.downloader'
+import { Transcriber } from './services/providers/transcriber'
 import { LocalLLMProvider } from './services/providers/local-llm-provider'
 import { RemoteLLMProvider } from './services/providers/remote-llm-provider'
 import { LLMProviderStrategy } from './services/providers/llm-provider-strategy'
@@ -11,11 +15,14 @@ import { LLMProvider } from './services/providers/llm-provider.interface'
 
 @Module({
     imports: [ConfigModule.forRoot()],
-    controllers: [],
+    controllers: [NoteController],
     providers: [
         StudyService,
         MediaService,
         WebSocketService,
+        NoteService,
+        YtDlpDownloader,
+        Transcriber,
         LocalLLMProvider,
         {
             provide: 'LLM_PROVIDERS',
