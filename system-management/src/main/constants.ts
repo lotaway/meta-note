@@ -12,7 +12,6 @@ export const IPC_CHANNELS = {
     SUBTITLES_TEXT: 'subtitles:text',
     SUBTITLES_STYLE: 'subtitles:style',
     GET_AUDIO_SOURCES: 'audio:get-sources',
-    TTS_DOWNLOAD_PROGRESS: 'tts:download-progress',
 } as const
 
 export const SUBTITLES_WINDOW_CONSTANTS = {
@@ -41,6 +40,10 @@ export const ROUTE_PATHS = {
     SCREENSHOT_DESKTOP: '/screenshot/desktop',
     DIRECTORY: '/api/directory',
     VIDEO_MERGE: '/api/video/merge',
+    TTS_STATUS: '/api/tts/status',
+    TTS_SYNTHESIZE: '/api/tts/synthesize',
+    TTS_DOWNLOAD: '/api/tts/download',
+    TTS_DELETE: '/api/tts/delete',
 } as const
 
 export const STUDY_CONSTANTS = {
@@ -62,3 +65,18 @@ export const SERVER_URLS = {
     DEV_SERVER_URL: `http://localhost:${SERVER_PORTS.DEV_SERVER_PORT}`,
     WEB_SERVER_URL: `http://localhost:${SERVER_PORTS.WEB_SERVER_PORT}`,
 } as const
+
+export const TTS_CONSTANTS = {
+    MODEL_VERSION: 'v2.0',
+    MODEL_BASE_URL: 'https://huggingface.co/coqui/XTTS-v2/resolve/main',
+} as const
+
+export const TTS_MODEL_FILES = [
+    { name: 'model.pth', required: true },
+    { name: 'config.json', required: true },
+    { name: 'vocab.json', required: true },
+    { name: 'speakers_xtts.pth', required: true },
+    { name: 'mel_stats.pth', required: true },
+    { name: 'dvae.pth', required: true },
+    { name: 'hash.md5', required: false }
+] as const

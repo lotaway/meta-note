@@ -51,8 +51,17 @@ export class IpcRegistry {
             this.getAppLifecycle().getSubtitlesWindow()?.updateText(text)
         })
 
+        // Also handle SUBTITLES_TEXT as it's used by AudioContext
+        ipcMain.on(IPC_CHANNELS.SUBTITLES_TEXT, (event, text) => {
+            this.getAppLifecycle().getSubtitlesWindow()?.updateText(text)
+        })
+
         ipcMain.handle(IPC_CHANNELS.GET_AUDIO_SOURCES, async () => {
-            return await desktopCapturer.getSources({ types: ['window', 'screen'] })
+            const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] })
+            return sources.map(source => ({
+                id: source.id,
+                name: source.name
+            }))
         })
     }
 }

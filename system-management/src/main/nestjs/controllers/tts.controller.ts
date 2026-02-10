@@ -44,6 +44,7 @@ export class TTSController {
                 res.end();
             },
             complete: () => {
+                res.write(`data: ${JSON.stringify({ status: 'success', progress: 100 })}\n\n`);
                 res.end();
             }
         });

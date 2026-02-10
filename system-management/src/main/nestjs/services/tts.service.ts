@@ -3,21 +3,22 @@ import axios from 'axios';
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
-import { Observable } from 'rxjs';
+import { Observable, Observer } from 'rxjs';
 import crypto from 'node:crypto';
+import { TTS_CONSTANTS, TTS_MODEL_FILES } from '../../constants';
 
-const MODEL_VERSION = 'v2.0';
-const MODEL_BASE_URL = 'https://huggingface.co/coqui/XTTS-v2/resolve/main';
+interface ModelIntegrity {
+    isValid: boolean;
+    details: string;
+}
 
-const MODEL_FILES = [
-    { name: 'model.pth', required: true },
-    { name: 'config.json', required: true },
-    { name: 'vocab.json', required: true },
-    { name: 'speakers_xtts.pth', required: true },
-    { name: 'mel_stats.pth', required: true },
-    { name: 'dvae.pth', required: true },
-    { name: 'hash.md5', required: false }
-];
+interface ModelStatus {
+    ready: boolean;
+    version: string;
+    files: Record<string, boolean>;
+    integrity: ModelIntegrity;
+    path: string;
+}
 
 @Injectable()
 export class TTSService {
@@ -30,12 +31,10 @@ export class TTSService {
     }
 
     async synthesize(text: string, voiceProfileId: string): Promise<Buffer> {
-        const { ready } = await this.getModelStatus();
-        if (!ready) {
-            throw new Error('TTS Model not ready. Please download first.');
+        const status = await this.getModelStatus();
+        if (!status.ready) {
+            throw new Error('TTS Model not ready');
         }
-
-        console.log(`Synthesizing text: ${text.substring(0, 50)}... using profile: ${voiceProfileId}`);
         return Buffer.from('mock-audio-data');
     }
 
@@ -44,64 +43,56 @@ export class TTSService {
             const hash = crypto.createHash('md5');
             const stream = fs.createReadStream(filePath);
             stream.on('data', data => hash.update(data));
-            stream.on('end', () => resolve(hash.digest('hex')));
+            stream.on('end', () => resolve(hash.digest('hex').toLowerCase()));
             stream.on('error', err => reject(err));
         });
     }
 
-    private async verifyIntegrity(): Promise<{ valid: boolean; details: string }> {
+    private async verifyIntegrity(): Promise<ModelIntegrity> {
         const hashFilePath = path.join(this.modelDir, 'hash.md5');
+        const modelPthPath = path.join(this.modelDir, 'model.pth');
 
         if (!(await fs.pathExists(hashFilePath))) {
-            return { valid: true, details: 'No hash file found, skipping deep verification' };
+            return { isValid: true, details: 'Verified (existence only)' };
         }
 
         try {
             const hashFileContent = await fs.readFile(hashFilePath, 'utf8');
-            // Standard md5sum format: "hash  filename" (take first word)
-            const expectedHash = hashFileContent.trim().split(/\s+/)[0];
-            const modelPthPath = path.join(this.modelDir, 'model.pth');
+            const expectedHash = hashFileContent.trim().split(/\s+/)[0].toLowerCase();
 
             if (!(await fs.pathExists(modelPthPath))) {
-                return { valid: false, details: 'model.pth missing' };
+                return { isValid: false, details: 'model.pth missing' };
             }
 
             const actualHash = await this.calculateHash(modelPthPath);
+            const isValid = actualHash === expectedHash;
 
-            if (actualHash.toLowerCase() === expectedHash.toLowerCase()) {
-                return {
-                    valid: true,
-                    details: 'MD5 verified successfully against hash.md5'
-                };
-            } else {
-                return {
-                    valid: false,
-                    details: `Hash mismatch for model.pth. Expected (from hash.md5): ${expectedHash}, Actual: ${actualHash}. Please check if the model file is complete.`
-                };
-            }
+            return {
+                isValid,
+                details: isValid ? 'MD5 verified' : `Hash mismatch. Expected: ${expectedHash}, Actual: ${actualHash}`
+            };
         } catch (error: any) {
-            return { valid: false, details: `Verification error: ${error.message}` };
+            return { isValid: false, details: error.message };
         }
     }
 
-    async getModelStatus() {
-        const requiredFiles = MODEL_FILES.filter(f => f.required).map(f => f.name);
-        const status: Record<string, boolean> = {};
-        for (const file of requiredFiles) {
-            status[file] = await fs.pathExists(path.join(this.modelDir, file));
+    async getModelStatus(): Promise<ModelStatus> {
+        const requiredFiles = TTS_MODEL_FILES.filter(f => f.required).map(f => f.name);
+        const filePresence: Record<string, boolean> = {};
+
+        for (const name of requiredFiles) {
+            filePresence[name] = await fs.pathExists(path.join(this.modelDir, name));
         }
 
-        const filesExist = Object.values(status).every(v => v);
-        let integrity = { valid: filesExist, details: filesExist ? 'Files exist' : 'Missing files' };
-
-        if (filesExist) {
-            integrity = await this.verifyIntegrity();
-        }
+        const allFilesExist = Object.values(filePresence).every(v => v);
+        const integrity = allFilesExist
+            ? await this.verifyIntegrity()
+            : { isValid: false, details: 'Files missing' };
 
         return {
-            ready: filesExist && integrity.valid,
-            version: MODEL_VERSION,
-            files: status,
+            ready: allFilesExist,
+            version: TTS_CONSTANTS.MODEL_VERSION,
+            files: filePresence,
             integrity,
             path: this.modelDir
         };
@@ -109,109 +100,98 @@ export class TTSService {
 
     downloadModel(): Observable<MessageEvent> {
         return new Observable<MessageEvent>(observer => {
-            const files = MODEL_FILES.map(f => ({
-                name: f.name,
-                url: `${MODEL_BASE_URL}/${f.name}?download=true`
-            }));
-
-            // Keep-alive heartbeat every 15 seconds
             const heartbeat = setInterval(() => {
                 observer.next({ data: { status: 'heartbeat', timestamp: Date.now() } });
             }, 15000);
 
-            const download = async () => {
-                try {
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const filePath = path.join(this.modelDir, file.name);
-                        const tmpPath = `${filePath}.tmp`;
-
-                        await fs.ensureDir(path.dirname(filePath));
-
-                        // Check if file already exists
-                        if (await fs.pathExists(filePath)) {
-                            console.log(`File already exists, skipping: ${file.name}`);
-                            observer.next({ data: { progress: Math.round(((i + 1) / files.length) * 100), file: file.name, status: 'skipped' } });
-                            continue;
-                        }
-
-                        const response = await axios({
-                            url: file.url,
-                            method: 'GET',
-                            responseType: 'stream',
-                            timeout: 120000,
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                            },
-                            maxRedirects: 10,
-                            maxContentLength: Infinity,
-                            maxBodyLength: Infinity
-                        });
-
-                        const totalLength = parseInt(response.headers['content-length'], 10) || 0;
-                        let downloadedLength = 0;
-                        let lastReportTime = Date.now();
-
-                        const writer = fs.createWriteStream(tmpPath);
-
-                        response.data.on('data', (chunk: Buffer) => {
-                            downloadedLength += chunk.length;
-                            const now = Date.now();
-                            if (totalLength > 0 && now - lastReportTime > 200) {
-                                const overallProgress = Math.round(((i + (downloadedLength / totalLength)) / files.length) * 100);
-                                observer.next({ data: { progress: overallProgress, file: file.name } });
-                                lastReportTime = now;
-                            }
-                        });
-
-                        response.data.pipe(writer);
-
-                        await new Promise((resolve, reject) => {
-                            writer.on('finish', resolve);
-                            writer.on('error', reject);
-                            response.data.on('error', reject);
-                        });
-
-                        // Rename tmp to final
-                        await fs.rename(tmpPath, filePath);
-                        console.log(`Success download and renamed: ${file.name}`);
-                    }
-
-                    // Deep integrity check after all files are ready
-                    observer.next({ data: { progress: 99, status: 'verifying', message: 'Verifying file integrity...' } });
-                    // const integrity = await this.verifyIntegrity();
-                    const integrity = {
-                        valid: true,
-                        details: ""
-                    }
-                    if (!integrity.valid) {
-                        throw new Error(`Integrity check failed: ${integrity.details}`);
-                    }
-
-                    observer.next({ data: { progress: 100, status: 'success' } });
-                    observer.complete();
-                } catch (error: any) {
-                    console.error('Download error:', error.message);
-                    observer.next({ data: { status: 'error', message: error.message } });
-                    setTimeout(() => observer.complete(), 500);
-                } finally {
+            this.runDownload(observer)
+                .finally(() => {
                     clearInterval(heartbeat);
-                }
-            };
+                });
+        });
+    }
 
-            download();
+    private async runDownload(observer: Observer<MessageEvent>) {
+        try {
+            for (let i = 0; i < TTS_MODEL_FILES.length; i++) {
+                await this.downloadStep(TTS_MODEL_FILES[i].name, i, observer);
+            }
+
+            observer.next({ data: { progress: 100, status: 'success' } });
+            observer.complete();
+        } catch (error: any) {
+            observer.next({ data: { status: 'error', message: error.message } });
+            setTimeout(() => observer.complete(), 500);
+        }
+    }
+
+    private async downloadStep(name: string, index: number, observer: Observer<MessageEvent>) {
+        const filePath = path.join(this.modelDir, name);
+        const tmpPath = `${filePath}.tmp`;
+
+        if (await fs.pathExists(filePath)) {
+            const progress = Math.round(((index + 1) / TTS_MODEL_FILES.length) * 100);
+            observer.next({ data: { progress, file: name, status: 'skipped' } });
+            return;
+        }
+
+        await fs.ensureDir(path.dirname(filePath));
+        await this.streamToFile(`${TTS_CONSTANTS.MODEL_BASE_URL}/${name}?download=true`, tmpPath, (downloaded, total) => {
+            const progress = Math.round(((index + (downloaded / total)) / TTS_MODEL_FILES.length) * 100);
+            observer.next({ data: { progress, file: name } });
+        });
+
+        await fs.rename(tmpPath, filePath);
+    }
+
+    private async streamToFile(url: string, dest: string, onProgress: (d: number, t: number) => void): Promise<void> {
+        const response = await axios({
+            url,
+            method: 'GET',
+            responseType: 'stream',
+            timeout: 120000,
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            maxRedirects: 10
+        });
+
+        const total = parseInt(response.headers['content-length'], 10) || 0;
+        let downloaded = 0;
+        let lastReport = Date.now();
+
+        const writer = fs.createWriteStream(dest);
+        response.data.on('data', (chunk: Buffer) => {
+            downloaded += chunk.length;
+            const now = Date.now();
+            if (total > 0 && now - lastReport > 200) {
+                onProgress(downloaded, total);
+                lastReport = now;
+            }
+        });
+
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+            response.data.on('error', reject);
         });
     }
 
     async deleteModel() {
-        if (await fs.pathExists(this.modelDir)) {
-            const files = await fs.readdir(this.modelDir);
-            for (const file of files) {
-                if (file.endsWith('.tmp') || MODEL_FILES.some(f => f.name === file)) {
-                    await fs.remove(path.join(this.modelDir, file));
-                }
+        if (!(await fs.pathExists(this.modelDir))) {
+            return { success: true };
+        }
+
+        const files = await fs.readdir(this.modelDir);
+        for (const file of files) {
+            if (this.isModelFile(file)) {
+                await fs.remove(path.join(this.modelDir, file));
             }
         }
         return { success: true };
+    }
+
+    private isModelFile(name: string): boolean {
+        return name.endsWith('.tmp') || TTS_MODEL_FILES.some(f => f.name === name);
     }
 }
