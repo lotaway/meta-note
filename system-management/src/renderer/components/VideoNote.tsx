@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useAudio } from '../contexts/AudioContext';
-import { IPC_CHANNELS } from '../../main/constants';
 import VoiceTools from './VoiceTools';
 
 const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`;
@@ -152,6 +150,7 @@ export default function VideoNote() {
         }
     };
 
+    // Keep handlePlayTTS here for playing the generated summary
     const handlePlayTTS = async (text: string) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
@@ -208,7 +207,7 @@ export default function VideoNote() {
                 </Button>
             </Title>
             
-            {isVoiceToolsVisible && <VoiceTools />}
+            {isVoiceToolsVisible && <VoiceTools mode="compact" />}
 
             <FormSection>
                 <InputGroup>

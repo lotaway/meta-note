@@ -16,36 +16,46 @@ const PanelContainer = styled.div`
     border: 1px solid rgba(255,255,255,0.1);
 `
 
-const Title = styled.h3`
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 16px;
+const CompactButton = styled.button`
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background: #007aff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 1000;
+    font-size: 24px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-`
-
-const FileInput = styled.input`
-    margin-top: 10px;
-    width: 100%;
+    justify-content: center;
+    
+    &:hover {
+        background: #0062cc;
+    }
 `
 
 export default function AudioControlPanel() {
     const [isExpanded, setIsExpanded] = useState(true)
 
+    if (!isExpanded) {
+        return (
+            <CompactButton onClick={() => setIsExpanded(true)} title="Open Voice Control">
+                🎤
+            </CompactButton>
+        )
+    }
+
     return (
         <PanelContainer>
-            <Title>
-                Voice Control
-                <button 
-                    onClick={() => setIsExpanded(!isExpanded)} 
-                    style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
-                >
-                    {isExpanded ? '▼' : '▲'}
-                </button>
-            </Title>
-            
-            {isExpanded && <VoiceTools />}
+            <VoiceTools 
+                mode="full" 
+                onClose={() => setIsExpanded(false)} 
+            />
         </PanelContainer>
     )
 }
