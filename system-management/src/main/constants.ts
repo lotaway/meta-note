@@ -12,6 +12,7 @@ export const IPC_CHANNELS = {
     SUBTITLES_TEXT: 'subtitles:text',
     SUBTITLES_STYLE: 'subtitles:style',
     GET_AUDIO_SOURCES: 'audio:get-sources',
+    TTS_DOWNLOAD_PROGRESS: 'tts:download-progress',
 } as const
 
 export const SUBTITLES_WINDOW_CONSTANTS = {
@@ -48,4 +49,16 @@ export const STUDY_CONSTANTS = {
     STUDY_SUCCESS_COUNT_KEY: 'study_success_count',
     STUDY_TIME_KEY: 'study_total_time',
     STUDY_LIST_ERROR_KEY: 'study_list_error',
+} as const
+
+export const SERVER_PORTS = {
+    WEBSOCKET_PORT: parseInt(process.env.WEBSOCKET_PORT || "5050", 10),
+    WEB_SERVER_PORT: parseInt(process.env.WEB_SERVER_PORT || "5051", 10),
+    DEV_SERVER_PORT: parseInt(process.env.DEV_SERVER_PORT || "5173", 10),
+} as const
+
+export const SERVER_URLS = {
+    WEBSOCKET_URL: `ws://localhost:${SERVER_PORTS.WEBSOCKET_PORT}`,
+    DEV_SERVER_URL: `http://localhost:${SERVER_PORTS.DEV_SERVER_PORT}`,
+    WEB_SERVER_URL: `http://localhost:${SERVER_PORTS.WEB_SERVER_PORT}`,
 } as const

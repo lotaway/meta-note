@@ -51,7 +51,7 @@ export class SubtitlesWindow {
         this.window.setAlwaysOnTop(true, 'screen-saver')
 
         const baseUrl = this.isDev
-            ? `http://localhost:5173`
+            ? `http://localhost:${import.meta.env.VITE_DEV_SERVER_PORT || '5173'}`
             : `file://${path.join(process.resourcesPath, 'app', this.distPath)}`
 
         const url = `${baseUrl}#${SUBTITLES_WINDOW_CONSTANTS.ROUTE_HASH}`

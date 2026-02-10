@@ -6,6 +6,7 @@ import { AuthController } from "./nestjs/controllers/auth.controller"
 import { StudyController } from "./nestjs/controllers/study.controller"
 import { ScreenshotController } from "./nestjs/controllers/screenshot.controller"
 import { SystemController } from "./nestjs/controllers/system.controller"
+import { TTSController } from "./nestjs/controllers/tts.controller"
 
 export class HttpServer {
     private app: express.Express
@@ -19,6 +20,7 @@ export class HttpServer {
         private screenshotController: ScreenshotController,
         private systemController: SystemController,
         private noteController: NoteController,
+        private ttsController: TTSController,
         private port: number
     ) {
         this.app = express()
@@ -55,6 +57,12 @@ export class HttpServer {
         this.app.get('/api/note/status/:id', this.noteController.getStatus.bind(this.noteController))
         this.app.get('/api/note/:id', this.noteController.getResult.bind(this.noteController))
         this.app.delete('/api/note/:id', this.noteController.deleteTask.bind(this.noteController))
+
+        // TTS Routes
+        this.app.get('/api/tts/status', this.ttsController.getStatus.bind(this.ttsController))
+        this.app.post('/api/tts/synthesize', this.ttsController.synthesize.bind(this.ttsController))
+        this.app.get('/api/tts/download', this.ttsController.download.bind(this.ttsController))
+        this.app.post('/api/tts/delete', this.ttsController.delete.bind(this.ttsController))
     }
 
     start() {

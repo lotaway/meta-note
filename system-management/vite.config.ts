@@ -31,6 +31,11 @@ export default defineConfig({
       {
         entry: 'src/main/desktop-main.ts',
         vite: {
+          define: {
+            'process.env.WEBSOCKET_PORT': JSON.stringify(process.env.WEBSOCKET_PORT || '5050'),
+            'process.env.WEB_SERVER_PORT': JSON.stringify(process.env.WEB_SERVER_PORT || '5051'),
+            'process.env.DEV_SERVER_PORT': JSON.stringify(process.env.DEV_SERVER_PORT || '5173'),
+          },
           build: {
             outDir: 'dist-electron/main',
             minify: false,

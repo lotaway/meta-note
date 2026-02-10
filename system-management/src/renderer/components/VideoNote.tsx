@@ -7,6 +7,8 @@ import { AudioSourceType } from '../types/Audio';
 import { ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '../../main/constants';
 
+const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`
+
 const NoteContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -160,10 +162,11 @@ export default function VideoNote() {
     const [selectedSourceId, setSelectedSourceId] = useState<string>('');
     const [isTranscribingVisible, setIsTranscribingVisible] = useState(false);
     const [modelStatus, setModelStatus] = useState<{ready: boolean, version: string} | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState<number>(0);
 
     const checkModelStatus = useCallback(async () => {
         try {
-            const response = await fetch('http://localhost:5051/api/tts/status');
+            const response = await fetch(`${API_BASE_URL}/api/tts/status`);
             const result = await response.json();
             if (result.code === 200) {
                 setModelStatus(result.data);
@@ -176,13 +179,58 @@ export default function VideoNote() {
     const downloadModel = async () => {
         try {
             setStatus('processing');
-            const response = await fetch('http://localhost:5051/api/tts/download', { method: 'POST' });
+            setDownloadProgress(0);
+            
+            const eventSource = new EventSource(`${API_BASE_URL}/api/tts/download`);
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.progress !== undefined) {
+                        setDownloadProgress(data.progress);
+                    }
+                    if (data.status === 'success') {
+                        eventSource.close();
+                        checkModelStatus();
+                        setStatus('idle');
+                        setDownloadProgress(100);
+                    }
+                    if (data.status === 'error') {
+                        eventSource.close();
+                        console.error('Download error:', data.message);
+                        setStatus('failed');
+                        setError(data.message);
+                    }
+                } catch (e) {
+                    console.error('Failed to parse download event', e);
+                }
+            };
+            
+            eventSource.onerror = (err) => {
+                console.error('SSE Error:', err);
+                eventSource.close();
+                setStatus('failed');
+                setError('Connection to download stream lost');
+            };
+
+        } catch (err) {
+            console.error('Download model failed', err);
+            setStatus('failed');
+            setDownloadProgress(0);
+        }
+    };
+
+    const deleteModel = async () => {
+        if (!confirm('Are you sure you want to delete the TTS model?')) return;
+        try {
+            setStatus('processing');
+            const response = await fetch(`${API_BASE_URL}/api/tts/delete`, { method: 'POST' });
             if (response.ok) {
                 await checkModelStatus();
                 setStatus('idle');
             }
         } catch (err) {
-            console.error('Download model failed', err);
+            console.error('Delete model failed', err);
             setStatus('failed');
         }
     };
@@ -194,7 +242,7 @@ export default function VideoNote() {
         setMarkdown('');
 
         try {
-            const response = await fetch('http://localhost:5051/api/note/generate', {
+            const response = await fetch(`${API_BASE_URL}/api/note/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -232,7 +280,7 @@ export default function VideoNote() {
             return;
         }
         try {
-            const response = await fetch('http://localhost:5051/api/tts/synthesize', {
+            const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -265,7 +313,7 @@ export default function VideoNote() {
         if (taskId && status === 'processing') {
             interval = setInterval(async () => {
                 try {
-                    const response = await fetch(`http://localhost:5051/api/note/status/${taskId}`);
+                    const response = await fetch(`${API_BASE_URL}/api/note/status/${taskId}`);
                     const result = await response.json();
                     if (result.code === 200) {
                         if (result.data.status === 'SUCCESS') {
@@ -304,10 +352,21 @@ export default function VideoNote() {
                         </span>
                     </Title>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                        {!modelStatus?.ready && (
-                            <Button $variant="primary" onClick={downloadModel} disabled={status === 'processing'}>
-                                Download TTS Model
+                        {modelStatus?.ready ? (
+                            <Button $variant="danger" onClick={deleteModel} disabled={status === 'processing'}>
+                                Delete TTS Model
                             </Button>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                <Button $variant="primary" onClick={downloadModel} disabled={status === 'processing'}>
+                                    {status === 'processing' ? `Downloading ${downloadProgress}%` : 'Download TTS Model'}
+                                </Button>
+                                {status === 'processing' && (
+                                    <div style={{ width: '100%', height: '4px', background: '#444', borderRadius: '2px', overflow: 'hidden' }}>
+                                        <div style={{ width: `${downloadProgress}%`, height: '100%', background: '#44aa88', transition: 'width 0.3s' }} />
+                                    </div>
+                                )}
+                            </div>
                         )}
                         <div style={{ flex: 1 }}>
                             <Label>Source Type:</Label>

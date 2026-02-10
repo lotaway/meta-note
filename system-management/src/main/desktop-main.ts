@@ -13,12 +13,14 @@ import { StudyController } from "./nestjs/controllers/study.controller"
 import { ScreenshotController } from "./nestjs/controllers/screenshot.controller"
 import { SystemController } from "./nestjs/controllers/system.controller"
 import { NoteController } from "./nestjs/controllers/note.controller"
+import { TTSController } from "./nestjs/controllers/tts.controller"
 
 import { StudyService } from "./nestjs/services/study.service"
 import { LLMService } from "./nestjs/services/llm.service"
 import { MediaService } from "./nestjs/services/media.service"
 import { WebSocketService } from "./nestjs/services/websocket.service"
 import { NoteService } from "./nestjs/services/note.service"
+import { TTSService } from "./nestjs/services/tts.service"
 
 import chatGPTMonitor from "./desktop-chatgpt"
 import deepSeekMonitor from "./desktop-deepseek"
@@ -73,6 +75,7 @@ const initializeHttpServer = (nestApp: INestApplicationContext) => {
     const mediaService = nestApp.get(MediaService)
     const webSocketService = nestApp.get(WebSocketService)
     const noteService = nestApp.get(NoteService)
+    const ttsService = nestApp.get(TTSService)
 
     const llmController = new LLMController(
         chatGPTMonitor.getChatGPTMonitor,
@@ -101,6 +104,7 @@ const initializeHttpServer = (nestApp: INestApplicationContext) => {
         screenshotController,
         new SystemController(mediaService),
         new NoteController(noteService),
+        new TTSController(ttsService),
         WEB_SERVER_PORT
     )
     httpServerInstance.start()

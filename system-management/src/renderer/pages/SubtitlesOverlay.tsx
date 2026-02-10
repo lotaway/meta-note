@@ -5,6 +5,8 @@ import { IPC_CHANNELS } from '../../main/constants'
 import { SubtitleStyle, DEFAULT_SUBTITLE_STYLE } from '../types/Subtitle'
 import SubtitleSettingsPanel from '../components/SubtitleSettingsPanel'
 
+const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`
+
 const OverlayContainer = styled.div`
     position: fixed;
     top: 0;
@@ -82,7 +84,7 @@ export default function SubtitlesOverlay() {
     const playTTS = async () => {
         if (!text) return;
         try {
-            const response = await fetch('http://localhost:5051/api/tts/synthesize', {
+            const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice_profile_id: 'default' })

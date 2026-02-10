@@ -115,9 +115,10 @@ import { htmlElementFocus } from "./utils"
   }
 
   function tryWebSocketFallback(): void {
-    console.log('[Monitor] Attempting WebSocket connection to localhost:5050')
+    const wsPort = import.meta.env.VITE_WEBSOCKET_PORT || '5050'
+    console.log(`[Monitor] Attempting WebSocket connection to localhost:${wsPort}`)
     try {
-      const ws = new WebSocket('ws://localhost:5050')
+      const ws = new WebSocket(`ws://localhost:${wsPort}`)
 
       ws.onopen = () => {
         console.log('[Monitor] WebSocket connected, sending login request')
