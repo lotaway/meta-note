@@ -65,10 +65,14 @@ const setupAppEnvironment = () => {
     app.setAsDefaultProtocolClient(APP_PROTOCOL)
     app.commandLine.appendSwitch('enable-unsafe-webgpu')
     app.commandLine.appendSwitch('enable-features', 'Vulkan,WebGPU')
+    app.commandLine.appendSwitch('disable-features', 'Autofill')
     if (IS_MAC) {
         app.commandLine.appendSwitch('disable-gpu-vsync')
     }
 }
+
+// Ensure command line switches are applied early
+setupAppEnvironment()
 
 const initializeHttpServer = (nestApp: INestApplicationContext) => {
     const studyService = nestApp.get(StudyService)
@@ -112,7 +116,6 @@ const initializeHttpServer = (nestApp: INestApplicationContext) => {
 
 const onInit = async () => {
     try {
-        setupAppEnvironment()
         await appLifecycle.createWindow()
 
         nestApp = await bootstrapNestJS()

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useAudio } from '../contexts/AudioContext';
 import { AudioSourceType } from '../types/Audio';
@@ -93,6 +93,68 @@ const IconButton = styled.button`
     }
 `
 
+const VisualizerCanvas = styled.canvas`
+    width: 100%;
+    height: 60px;
+    background: #000;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
+`
+
+const AudioVisualizer = ({ analyser }: { analyser: AnalyserNode }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+
+    useEffect(() => {
+        const canvas = canvasRef.current
+        if (!canvas || !analyser) return
+        
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        // Set internal resolution matches CSS size for sharpness
+        canvas.width = canvas.offsetWidth
+        canvas.height = canvas.offsetHeight
+
+        const bufferLength = analyser.frequencyBinCount
+        const dataArray = new Uint8Array(bufferLength)
+        
+        let animationId: number
+
+        const draw = () => {
+            animationId = requestAnimationFrame(draw)
+            analyser.getByteFrequencyData(dataArray)
+            
+            ctx.fillStyle = '#1a1a1a'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            
+            const barWidth = (canvas.width / bufferLength) * 2.5
+            let barHeight
+            let x = 0
+            
+            for(let i = 0; i < bufferLength; i++) {
+                barHeight = (dataArray[i] / 255) * canvas.height
+                
+                // Gradient color
+                const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
+                gradient.addColorStop(0, '#44aa88')
+                gradient.addColorStop(1, '#66ccaa')
+                ctx.fillStyle = gradient
+                
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight)
+                
+                x += barWidth + 1
+            }
+        }
+        
+        draw()
+        
+        return () => cancelAnimationFrame(animationId)
+    }, [analyser])
+
+    return <VisualizerCanvas ref={canvasRef} />
+}
+
 interface VoiceToolsProps {
     mode: 'full' | 'compact';
     onClose?: () => void;
@@ -107,7 +169,8 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
         reloadSources,
         latestTranscript,
         requestTranscription,
-        updateTranscript
+        updateTranscript,
+        analyser
     } = useAudio();
 
     const [activeAudioSourceType, setActiveAudioSourceType] = useState<AudioSourceType>(AudioSourceType.Mic);
@@ -287,6 +350,8 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
             {renderModelStatus()}
             {renderSourceSelection()}
 
+            {(isStreaming && analyser) && <AudioVisualizer analyser={analyser} />}
+
             <div style={{ display: 'flex', flexDirection: mode === 'full' ? 'column' : 'row', gap: '10px' }}>
                 {!isStreaming ? (
                     <Button 
@@ -301,8 +366,16 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
                     <Button 
                         $variant="danger" 
                         onClick={stopRecording}
-                        style={{ width: mode === 'full' ? '100%' : 'auto' }}
+                        style={{ width: mode === 'full' ? '100%' : 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                     >
+                         <span style={{ 
+                            display: 'inline-block', 
+                            width: '10px', 
+                            height: '10px', 
+                            background: 'white', 
+                            borderRadius: '50%',
+                            animation: 'pulse 1s infinite'
+                        }} />
                         Stop Recording
                     </Button>
                 )}

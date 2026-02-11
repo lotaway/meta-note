@@ -14,6 +14,7 @@ interface AudioContextType {
     reloadSources: () => Promise<void>
     latestTranscript: string
     updateTranscript: (text: string) => void
+    analyser: AnalyserNode | null
 }
 
 const AudioContext = createContext<AudioContextType | null>(null)
@@ -23,6 +24,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [availableSources, setAvailableSources] = useState<Electron.DesktopCapturerSource[]>([])
     const [latestTranscript, setLatestTranscript] = useState('')
     
+    // Web Audio API state
+    const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
+    const audioContextRef = useRef<globalThis.AudioContext | null>(null)
+
     const recorderRef = useRef<MediaRecorder | null>(null)
     const abortControllerRef = useRef<AbortController | null>(null)
     const sessionIdRef = useRef<string | null>(null)
@@ -109,50 +114,76 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         try {
-            let stream: MediaStream;
+            // const stream = await navigator.mediaDevices.getUserMedia({
+            //         audio: {
+            //             // @ts-ignore
+            //             mandatory: {
+            //                 chromeMediaSource: 'desktop',
+            //                 chromeMediaSourceId: sourceId
+            //             }
+            //         },
+            //         video: {
+            //             // @ts-ignore
+            //             mandatory: {
+            //                 chromeMediaSource: 'desktop',
+            //                 chromeMediaSourceId: sourceId
+            //             }
+            //         }
+            //     })
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true
+            })
             
-            // Check for macOS platform (Electron's process.platform or navigator.platform fallback)
-            // Note: In Electron renderer with nodeIntegration, process is available.
-            const isMac = window.process?.platform === 'darwin' || navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-
-            if (isMac) {
-                // macOS + New Electron: Use getDisplayMedia
-                // @ts-ignore
-                stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: true,
-                    audio: true
-                })
-            } else {
-                // Windows/Linux/Old Electron: Use getUserMedia with constraints
-                stream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        // @ts-ignore
-                        mandatory: {
-                            chromeMediaSource: 'desktop',
-                            chromeMediaSourceId: sourceId
-                        }
-                    },
-                    video: {
-                        // @ts-ignore
-                        mandatory: {
-                            chromeMediaSource: 'desktop',
-                            chromeMediaSourceId: sourceId
-                        }
-                    }
-                })
-            }
-            
-            // We only need audio, so stop video tracks to save resources
             stream.getVideoTracks().forEach(track => track.stop())
             return stream
-        } catch (err) {
-            console.error('getAudioStream error:', err)
+        } catch (err: any) {
+            console.warn('getDisplayMedia failed, trying fallback:', err)
+            
+            // Fallback for older Electron/Environments where getDisplayMedia might be restricted
+            if (err.name === 'NotSupportedError' || err.message?.includes('Not supported')) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            // @ts-ignore
+                            mandatory: {
+                                chromeMediaSource: 'desktop',
+                                chromeMediaSourceId: sourceId
+                            }
+                        },
+                        video: {
+                            // @ts-ignore
+                            mandatory: {
+                                chromeMediaSource: 'desktop',
+                                chromeMediaSourceId: sourceId
+                            }
+                        }
+                    })
+                    stream.getVideoTracks().forEach(track => track.stop())
+                    return stream
+                } catch (fallbackErr) {
+                    console.error('Fallback getUserMedia failed:', fallbackErr)
+                    throw new AudioRecordingError('System audio unavailable (Fallback failed)', 'SYSTEM_AUDIO_FAILED')
+                }
+            }
+            
             throw new AudioRecordingError('System audio unavailable', 'SYSTEM_AUDIO_FAILED')
         }
     }
 
     const startRecording = async (sourceId: string, sourceType: AudioSourceType) => {
         const stream = await getAudioStream(sourceType, sourceId)
+        
+        // Setup Web Audio API for visualization
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+        const source = audioCtx.createMediaStreamSource(stream)
+        const analyserNode = audioCtx.createAnalyser()
+        analyserNode.fftSize = 2048
+        source.connect(analyserNode)
+        
+        audioContextRef.current = audioCtx
+        setAnalyser(analyserNode)
+
         const sessionId = crypto.randomUUID()
         
         sessionIdRef.current = sessionId
@@ -178,6 +209,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         recorder.onstop = () => {
             stream.getTracks().forEach(track => track.stop())
+            source.disconnect()
+            analyserNode.disconnect()
+            audioCtx.close()
+            setAnalyser(null)
         }
     }
 
@@ -194,6 +229,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         responseRef.current = null
         sessionIdRef.current = null
         setIsStreaming(false)
+        audioContextRef.current?.close()
+        setAnalyser(null)
     }
 
     const requestTranscription = async (file: File): Promise<string> => {
@@ -220,7 +257,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             availableSources, 
             reloadSources, 
             latestTranscript,
-            updateTranscript
+            updateTranscript,
+            analyser
         }}>
             {children}
         </AudioContext.Provider>
