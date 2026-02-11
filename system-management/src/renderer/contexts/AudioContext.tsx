@@ -109,16 +109,44 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         try {
-            return await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    // @ts-ignore
-                    mandatory: {
-                        chromeMediaSource: 'desktop',
-                        chromeMediaSourceId: sourceId
+            let stream: MediaStream;
+            
+            // Check for macOS platform (Electron's process.platform or navigator.platform fallback)
+            // Note: In Electron renderer with nodeIntegration, process is available.
+            const isMac = window.process?.platform === 'darwin' || navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+
+            if (isMac) {
+                // macOS + New Electron: Use getDisplayMedia
+                // @ts-ignore
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true
+                })
+            } else {
+                // Windows/Linux/Old Electron: Use getUserMedia with constraints
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        // @ts-ignore
+                        mandatory: {
+                            chromeMediaSource: 'desktop',
+                            chromeMediaSourceId: sourceId
+                        }
+                    },
+                    video: {
+                        // @ts-ignore
+                        mandatory: {
+                            chromeMediaSource: 'desktop',
+                            chromeMediaSourceId: sourceId
+                        }
                     }
-                }
-            })
-        } catch {
+                })
+            }
+            
+            // We only need audio, so stop video tracks to save resources
+            stream.getVideoTracks().forEach(track => track.stop())
+            return stream
+        } catch (err) {
+            console.error('getAudioStream error:', err)
             throw new AudioRecordingError('System audio unavailable', 'SYSTEM_AUDIO_FAILED')
         }
     }

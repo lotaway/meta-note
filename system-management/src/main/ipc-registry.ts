@@ -57,7 +57,10 @@ export class IpcRegistry {
         })
 
         ipcMain.handle(IPC_CHANNELS.GET_AUDIO_SOURCES, async () => {
-            const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] })
+            const sources = await desktopCapturer.getSources({
+                types: ['window', 'screen'],
+                thumbnailSize: { width: 0, height: 0 }
+            })
             return sources.map(source => ({
                 id: source.id,
                 name: source.name

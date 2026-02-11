@@ -25,11 +25,13 @@ export class SubtitlesWindow {
             return
         }
 
+        console.log('SubtitlesWindow initializing on platform:', process.platform)
+
         const { width } = screen.getPrimaryDisplay().workAreaSize
         const windowWidth = SUBTITLES_WINDOW_CONSTANTS.DEFAULT_WIDTH
         const windowHeight = SUBTITLES_WINDOW_CONSTANTS.DEFAULT_HEIGHT
 
-        this.window = new BrowserWindow({
+        const options: Electron.BrowserWindowConstructorOptions = {
             width: windowWidth,
             height: windowHeight,
             x: Math.floor((width - windowWidth) / 2),
@@ -39,13 +41,18 @@ export class SubtitlesWindow {
             alwaysOnTop: true,
             resizable: true,
             hasShadow: false,
-            skipTaskbar: true,
             webPreferences: {
                 nodeIntegration: true,
                 contextIsolation: false,
                 preload: this.preloadPath
             }
-        })
+        }
+
+        if (process.platform !== 'darwin') {
+            options.skipTaskbar = true
+        }
+
+        this.window = new BrowserWindow(options)
 
         this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
         this.window.setAlwaysOnTop(true, 'screen-saver')
