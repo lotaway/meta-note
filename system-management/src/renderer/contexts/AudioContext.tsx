@@ -114,22 +114,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         try {
-            // const stream = await navigator.mediaDevices.getUserMedia({
-            //         audio: {
-            //             // @ts-ignore
-            //             mandatory: {
-            //                 chromeMediaSource: 'desktop',
-            //                 chromeMediaSourceId: sourceId
-            //             }
-            //         },
-            //         video: {
-            //             // @ts-ignore
-            //             mandatory: {
-            //                 chromeMediaSource: 'desktop',
-            //                 chromeMediaSourceId: sourceId
-            //             }
-            //         }
-            //     })
             const stream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
                 audio: true
