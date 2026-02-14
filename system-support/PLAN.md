@@ -269,3 +269,144 @@ Electron 模块：
 * 监控推流
 * 低延迟传输
 * 可扩展服务端处理
+
+# Electron调用Rust-NAPI的方式
+
+一、推荐结构
+root/
+  ├── electron-app/
+  │     ├── package.json
+  │     └── ...
+  └── rust-native/
+        ├── Cargo.toml
+        └── src/lib.rs
+
+
+Rust 目录里：
+
+不需要 package.json
+
+不需要 node_modules
+
+不需要 npm
+
+只需要：
+
+Cargo.toml
+
+二、在 Electron 里安装 CLI
+
+进入 electron 目录：
+
+npm install -D @napi-rs/cli
+
+三、从 Electron 目录编译 Rust
+
+可以这样：
+
+npx napi build ../rust-native --release
+
+
+或者在 package.json 里：
+
+"scripts": {
+  "build:native": "napi build ../rust-native --release"
+}
+
+
+默认情况下：
+
+它会进入那个目录
+
+调用 cargo build
+
+在 Rust 目录生成 .node
+
+四、如何把生成文件放到 Electron 目录？
+
+可以用 --output-dir
+
+例如：
+
+napi build ../rust-native --release --output-dir ./native
+
+
+这样生成：
+
+electron-app/native/index.js
+electron-app/native/xxx.node
+
+
+然后在 Electron 里：
+
+const native = require('./native')
+
+五、Rust 目录需要满足什么？
+
+只需要：
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = "2"
+napi-derive = "2"
+
+
+就够了。
+
+六、重要说明
+
+你说的：
+
+避免在 rust 目录里初始化和安装 npm
+
+是完全正确的工程思路。
+
+Rust 目录应该是：
+
+纯 Rust
+
+可独立 cargo build
+
+不依赖 Node
+
+npm 只在 Electron 侧。
+
+七、完整推荐脚本
+
+在 electron/package.json：
+
+{
+  "scripts": {
+    "build:native": "napi build ../rust-native --release --output-dir ./native"
+  }
+}
+
+
+然后：
+
+npm run build:native
+
+八、打包时
+
+确保 electron-builder：
+
+asarUnpack: ["native/*.node"]
+
+
+否则运行时会加载失败。
+
+九、总结
+
+是的，可以：
+
+CLI 只安装在 Electron
+
+Rust 目录保持纯 cargo
+
+从 Electron 目录调用 napi build ../rust_dir
+
+指定输出到 Electron 目录
+
+这是比较干净、专业的结构。
