@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Electron + Rust",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/../system-management/node_modules/.bin/electron",
+            "args": [
+                "${workspaceFolder}/../system-management"
+            ],
+            "cwd": "${workspaceFolder}/../system-management",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
+        }
+    ]
+}

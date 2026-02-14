@@ -7,6 +7,6 @@ bin
 # IDEs and editors
 .idea
 .vs
-.vscode
+.vscode/settings.json
 
 logs/
