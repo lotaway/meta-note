@@ -28,6 +28,7 @@ import deepSeekMonitor from "./desktop-deepseek"
 import { AppLifecycle, AppConfig } from "./app-lifecycle"
 import { HttpServer } from "./http-server"
 import { IpcRegistry } from "./ipc-registry"
+import { initializeSupport } from "./rust-bridge"
 
 dotenv.config()
 ffmpeg.setFfmpegPath(__dirname)
@@ -126,6 +127,10 @@ const onInit = async () => {
         }
 
         initializeHttpServer(nestApp)
+
+        // Initialize Rust native support
+        initializeSupport()
+
         ipcRegistry.register()
     } catch (err) {
         // Only essential error logging

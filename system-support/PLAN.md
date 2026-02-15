@@ -274,10 +274,10 @@ Electron 模块：
 
 一、推荐结构
 root/
-  ├── electron-app/
+  ├── system-management/
   │     ├── package.json
   │     └── ...
-  └── rust-native/
+  └── system-support/
         ├── Cargo.toml
         └── src/lib.rs
 
@@ -288,7 +288,7 @@ Rust 目录里：
 
 不需要 node_modules
 
-不需要 npm
+不需要 yarn
 
 只需要：
 
@@ -298,19 +298,19 @@ Cargo.toml
 
 进入 electron 目录：
 
-npm install -D @napi-rs/cli
+yarn add -D @napi-rs/cli
 
 三、从 Electron 目录编译 Rust
 
 可以这样：
 
-npx napi build ../rust-native --release
+npx napi build ../system-support --release
 
 
 或者在 package.json 里：
 
 "scripts": {
-  "build:native": "napi build ../rust-native --release"
+  "build:native": "napi build ../system-support --release"
 }
 
 
@@ -328,13 +328,13 @@ npx napi build ../rust-native --release
 
 例如：
 
-napi build ../rust-native --release --output-dir ./native
+napi build ../system-support --release --output-dir ./native
 
 
 这样生成：
 
-electron-app/native/index.js
-electron-app/native/xxx.node
+system-management/native/index.js
+system-management/native/xxx.node
 
 
 然后在 Electron 里：
@@ -359,7 +359,7 @@ napi-derive = "2"
 
 你说的：
 
-避免在 rust 目录里初始化和安装 npm
+避免在 rust 目录里初始化和安装 yarn
 
 是完全正确的工程思路。
 
@@ -371,7 +371,7 @@ Rust 目录应该是：
 
 不依赖 Node
 
-npm 只在 Electron 侧。
+yarn 只在 Electron 侧。
 
 七、完整推荐脚本
 
@@ -379,14 +379,14 @@ npm 只在 Electron 侧。
 
 {
   "scripts": {
-    "build:native": "napi build ../rust-native --release --output-dir ./native"
+    "build:native": "napi build ../system-support --release --output-dir ./native"
   }
 }
 
 
 然后：
 
-npm run build:native
+yarn build:native
 
 八、打包时
 

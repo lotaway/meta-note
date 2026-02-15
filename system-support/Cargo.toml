@@ -4,11 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
+name = "index"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "2.12", features = ["async"] }
-napi-derive = "2.12"
+napi = { version = "3", features = ["async", "napi4"] }
+napi-derive = "3"
 tokio = { version = "1", features = ["full"] }
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
