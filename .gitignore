@@ -10,7 +10,6 @@ bin
 .vscode/settings.json
 
 logs/
-!.dockerignore
 
 # generated artefacts (root-level guard; sub-projects keep their own rules)
 node_modules/

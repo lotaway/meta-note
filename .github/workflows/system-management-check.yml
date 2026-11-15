@@ -1,0 +1,60 @@
+name: System Management Check
+
+on:
+  push:
+    branches: [master, main, develop, 'feature/**', 'fix/**']
+    paths:
+      - 'system-management/**'
+      - 'system-support/**'
+      - '.github/workflows/system-management-check.yml'
+  pull_request:
+    branches: [master, main, develop]
+    paths:
+      - 'system-management/**'
+      - 'system-support/**'
+      - '.github/workflows/system-management-check.yml'
+
+# Runner image is pinned deliberately: ubuntu-latest migrates to Ubuntu 26
+# and would otherwise change the preinstalled toolchain silently.
+jobs:
+  native-build-and-test:
+    name: Native build, typecheck and unit tests
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        working-directory: system-management
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          # This app does not ship a lockfile, so automatic dependency caching is disabled.
+          package-manager-cache: false
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libasound2-dev libv4l-dev libudev-dev
+
+      - name: Install dependencies
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        run: npm install --legacy-peer-deps
+
+      - name: Build native module
+        run: npm run build:native
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:run

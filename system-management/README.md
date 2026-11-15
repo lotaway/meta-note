@@ -50,13 +50,15 @@ At runtime `src/main/gateway-token.ts` owns the JWT: it logs in on first use, ca
 
 The internal token is HMAC-based, has a 5-second validity and is regenerated per request, so a caller that bypasses the gateway cannot forge a REST call or a WS handshake. `factory-service` enables the REST-side check with `internal-token.enabled=true`; `INTERNAL_TOKEN_SECRET` must match between the gateway and factory-service.
 
-Start the server side with the root compose (it includes gateway + zookeeper) plus the digital-twin overlay:
+The server side lives in the separate `meta-web-three` repository. From that repository's root, start gateway + zookeeper plus the digital-twin overlay:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.digital-twin.yml up -d factory-service
 ```
 
 `docker-compose.digital-twin.yml` publishes **no** host port for factory-service; only `10081` is exposed.
+
+This repository has no Web deployment: the only delivery form is the Electron desktop app. There is no nginx / static-hosting build, no frontend container image and no k8s manifest; the renderer relies on `window.desktop` local capabilities and cannot run as a standalone browser page.
 
 ## Local HTTP API authentication (Electron-internal)
 

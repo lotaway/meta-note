@@ -16,7 +16,7 @@ meta-note (本仓库)  ── 纯本地工厂的 Electron 桌面端
 客户端只能通过 gateway:10081/factory-service/** 访问后端，禁止直连 factory-service。
 ```
 
-> 本仓库已从 monorepo 独立出来，只包含桌面客户端与原生模块。`server/`（gateway / factory-service）、`apps/backstage-admin` 以及根 compose / k8s 编排仍留在原 `meta-web-three` 仓库，需另行启动；所有跨服务通讯一律经 gateway 校验 JWT。
+> 本仓库已从 monorepo 独立出来，只包含桌面客户端与原生模块。`server/`（gateway / factory-service）、`apps/backstage-admin` 以及根 compose / k8s 编排仍留在原 `meta-web-three` 仓库，需另行启动；所有跨服务通讯一律经 gateway 校验 JWT。唯一的交付形态是 Electron 桌面端：仓库内不含 Web 版静态托管、nginx 镜像、第二套 compose 或 k8s 前端部署资产，也不在 `meta-web-three` 里提交本仓库内容。
 
 ## 目录说明
 
@@ -74,6 +74,10 @@ cd server
 mvn clean package -pl factory-domain/factory-service -am -DskipTests
 java -jar factory-domain/factory-service/target/factory-service-1.0.0.jar --spring.profiles.active=dev
 ```
+
+## CI
+
+`.github/workflows/system-management-check.yml` 在 push / PR 且改动涉及 `system-management/`、`system-support/` 或 workflow 自身时运行：安装原生构建依赖 → `npm install --legacy-peer-deps` → `npm run build:native`（生成 `native/index.d.ts`）→ `npm run typecheck` → `npm run test:run`。runner 固定为 `ubuntu-24.04`，使用 Node 20 与 stable Rust；仓库不入库 lockfile，因此关闭依赖缓存。后端服务不在本仓库，CI 不启动 gateway / factory-service，也不执行需要图形环境与可用后端的 Playwright e2e。
 
 ## 技术栈
 
