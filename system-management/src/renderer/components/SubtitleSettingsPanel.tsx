@@ -39,41 +39,41 @@ const SubtitleSettingsPanel: React.FC<SubtitleSettingsPanelProps> = ({ style, on
         <PanelContainer onClick={(e) => e.stopPropagation()}>
             <FormGroup>
                 <Label>
-                    Color: 
-                    <input 
-                        type="color" 
-                        value={style.color} 
-                        onChange={e => onStyleChange({ color: e.target.value })} 
+                    Color:
+                    <input
+                        type="color"
+                        value={style.color}
+                        onChange={e => onStyleChange({ color: e.target.value })}
                     />
                 </Label>
             </FormGroup>
             <FormGroup>
                 <Label>
-                    Size: 
-                    <input 
-                        type="number" 
-                        value={style.fontSize} 
-                        onChange={e => onStyleChange({ fontSize: Number(e.target.value) })} 
+                    Size:
+                    <input
+                        type="number"
+                        value={style.fontSize}
+                        onChange={e => onStyleChange({ fontSize: Number(e.target.value) })}
                     />
                 </Label>
             </FormGroup>
             <FormGroup>
                 <Label>
-                    Outline Color: 
-                    <input 
-                        type="color" 
-                        value={style.strokeColor} 
-                        onChange={e => onStyleChange({ strokeColor: e.target.value })} 
+                    Outline Color:
+                    <input
+                        type="color"
+                        value={style.strokeColor}
+                        onChange={e => onStyleChange({ strokeColor: e.target.value })}
                     />
                 </Label>
             </FormGroup>
             <FormGroup>
                 <Label>
-                    Outline Width: 
-                    <input 
-                        type="number" 
-                        value={style.strokeWidth} 
-                        onChange={e => onStyleChange({ strokeWidth: Number(e.target.value) })} 
+                    Outline Width:
+                    <input
+                        type="number"
+                        value={style.strokeWidth}
+                        onChange={e => onStyleChange({ strokeWidth: Number(e.target.value) })}
                     />
                 </Label>
             </FormGroup>

@@ -57,7 +57,7 @@ const Tab = styled.button<{ $active: boolean }>`
   cursor: pointer;
   font-weight: ${({ $active }) => $active ? 'bold' : 'normal'};
   border-bottom: 2px solid ${({ $active }) => $active ? '#3b82f6' : 'transparent'};
-  
+
   &:hover {
     background: #1e293b;
   }
@@ -77,7 +77,7 @@ const SettingsButton = styled.button<{ $active: boolean }>`
   color: #fff;
   font-size: 12px;
   cursor: pointer;
-  
+
   &:hover {
     background: ${({ $active }) => $active ? '#2563eb' : '#475569'};
   }
@@ -135,7 +135,7 @@ const CloseButton = styled.button`
   border-radius: 4px;
   color: white;
   cursor: pointer;
-  
+
   &:hover {
     background: #dc2626;
   }

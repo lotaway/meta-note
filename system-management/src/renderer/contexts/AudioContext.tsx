@@ -22,7 +22,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [isStreaming, setIsStreaming] = useState(false)
     const [availableSources, setAvailableSources] = useState<AudioSourceInfo[]>([])
     const [latestTranscript, setLatestTranscript] = useState('')
-    
+
     // Web Audio API state
     const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
     const audioContextRef = useRef<globalThis.AudioContext | null>(null)
@@ -44,7 +44,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const handleSSELine = useCallback((line: string) => {
         if (!line.startsWith(AUDIO_CONFIG.SSE_DATA_PREFIX)) return
-        
+
         const data = line.slice(AUDIO_CONFIG.SSE_DATA_PREFIX.length)
         if (data === AUDIO_CONFIG.SSE_DONE_MARKER) return
 
@@ -100,10 +100,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const createRecorder = (stream: MediaStream) => {
-        const mimeType = MediaRecorder.isTypeSupported(AUDIO_CONFIG.DEFAULT_MIME_TYPE) 
-            ? AUDIO_CONFIG.DEFAULT_MIME_TYPE 
+        const mimeType = MediaRecorder.isTypeSupported(AUDIO_CONFIG.DEFAULT_MIME_TYPE)
+            ? AUDIO_CONFIG.DEFAULT_MIME_TYPE
             : AUDIO_CONFIG.FALLBACK_MIME_TYPE
-            
+
         return new MediaRecorder(stream, { mimeType })
     }
 
@@ -117,12 +117,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 video: true,
                 audio: true
             })
-            
+
             stream.getVideoTracks().forEach(track => track.stop())
             return stream
         } catch (err: any) {
             console.warn('getDisplayMedia failed, trying fallback:', err)
-            
+
             // Fallback for older Electron/Environments where getDisplayMedia might be restricted
             if (err.name === 'NotSupportedError' || err.message?.includes('Not supported')) {
                 try {
@@ -149,26 +149,26 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     throw new AudioRecordingError('System audio unavailable (Fallback failed)', 'SYSTEM_AUDIO_FAILED')
                 }
             }
-            
+
             throw new AudioRecordingError('System audio unavailable', 'SYSTEM_AUDIO_FAILED')
         }
     }
 
     const startRecording = async (sourceId: string, sourceType: AudioSourceType) => {
         const stream = await getAudioStream(sourceType, sourceId)
-        
+
         // Setup Web Audio API for visualization
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
         const source = audioCtx.createMediaStreamSource(stream)
         const analyserNode = audioCtx.createAnalyser()
         analyserNode.fftSize = 2048
         source.connect(analyserNode)
-        
+
         audioContextRef.current = audioCtx
         setAnalyser(analyserNode)
 
         const sessionId = crypto.randomUUID()
-        
+
         sessionIdRef.current = sessionId
         abortControllerRef.current = new AbortController()
 
@@ -202,7 +202,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const stopRecording = () => {
         recorderRef.current?.stop()
         abortControllerRef.current?.abort()
-        
+
         if (responseRef.current?.body) {
             responseRef.current.body.getReader().cancel()
         }
@@ -224,21 +224,21 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             method: 'POST',
             body: formData
         })
-        
+
         if (!response.ok) throw new AudioRecordingError('Transcription failed', 'TRANSCRIBE_FAILED')
-        
+
         const data = await response.json()
         return data.text || ''
     }
 
     return (
-        <AudioContext.Provider value={{ 
-            isStreaming, 
-            startRecording, 
-            stopRecording, 
-            requestTranscription, 
-            availableSources, 
-            reloadSources, 
+        <AudioContext.Provider value={{
+            isStreaming,
+            startRecording,
+            stopRecording,
+            requestTranscription,
+            availableSources,
+            reloadSources,
             latestTranscript,
             updateTranscript,
             analyser

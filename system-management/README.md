@@ -60,7 +60,7 @@ docker compose -f docker-compose.yml -f docker-compose.digital-twin.yml up -d fa
 
 ## Local HTTP API authentication (Electron-internal)
 
-The Electron main process exposes a loopback-only HTTP API on `127.0.0.1:${WEB_SERVER_PORT}` (default `5051`). This is an internal API: its only consumer is this application's own renderer, and there is no other caller in this monorepo. It does not involve `server/` and does not use the gateway JWT.
+The Electron main process exposes a loopback-only HTTP API on `127.0.0.1:${WEB_SERVER_PORT}` (default `5051`). This is an internal API: its only consumer is this application's own renderer, and there is no other caller in this repository. It does not involve `server/` and does not use the gateway JWT.
 
 - The renderer obtains its own session token through the `getLocalApiToken` preload method and sends `Authorization: Bearer <token>`.
 - SSE endpoints that cannot set headers (`/api/tts/download`) accept `?token=<token>`.

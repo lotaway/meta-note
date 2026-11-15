@@ -27,8 +27,8 @@ const statusLabels: Record<string, string> = {
 export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
   const [filter, setFilter] = useState<string>('all')
 
-  const filteredDevices = filter === 'all' 
-    ? devices 
+  const filteredDevices = filter === 'all'
+    ? devices
     : devices.filter(d => d.status === filter)
 
   const stats = {
@@ -41,9 +41,9 @@ export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
   }
 
   return (
-    <div style={{ 
-      background: '#1e293b', 
-      borderRadius: '8px', 
+    <div style={{
+      background: '#1e293b',
+      borderRadius: '8px',
       padding: '16px',
       color: '#e2e8f0'
     }}>
@@ -110,11 +110,11 @@ export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div style={{ 
-      background: '#334155', 
-      borderRadius: '6px', 
-      padding: '12px', 
-      textAlign: 'center' 
+    <div style={{
+      background: '#334155',
+      borderRadius: '6px',
+      padding: '12px',
+      textAlign: 'center'
     }}>
       <div style={{ fontSize: '24px', fontWeight: 'bold', color }}>{value}</div>
       <div style={{ fontSize: '12px', color: '#94a3b8' }}>{label}</div>
@@ -122,10 +122,10 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   )
 }
 
-function FilterButton({ active, onClick, children }: { 
-  active: boolean; 
-  onClick: () => void; 
-  children: React.ReactNode 
+function FilterButton({ active, onClick, children }: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode
 }) {
   return (
     <button

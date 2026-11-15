@@ -6,11 +6,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'sm' | 'md'
 }
 
-export function Button({ 
-  variant = 'secondary', 
+export function Button({
+  variant = 'secondary',
   size = 'sm',
   style,
-  ...props 
+  ...props
 }: ButtonProps) {
   const baseStyle: React.CSSProperties = {
     padding: size === 'sm' ? `${Spacing.sm} ${Spacing.lg}` : `${Spacing.md} ${Spacing.xl}`,
@@ -30,8 +30,8 @@ export function Button({
   }
 
   return (
-    <button 
-      {...props} 
+    <button
+      {...props}
       style={{ ...baseStyle, ...variantStyles[variant] }}
     />
   )

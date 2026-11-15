@@ -108,7 +108,7 @@ const AudioVisualizer = ({ analyser }: { analyser: AnalyserNode }) => {
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas || !analyser) return
-        
+
         const ctx = canvas.getContext('2d')
         if (!ctx) return
 
@@ -118,37 +118,37 @@ const AudioVisualizer = ({ analyser }: { analyser: AnalyserNode }) => {
 
         const bufferLength = analyser.frequencyBinCount
         const dataArray = new Uint8Array(bufferLength)
-        
+
         let animationId: number
 
         const draw = () => {
             animationId = requestAnimationFrame(draw)
             analyser.getByteFrequencyData(dataArray)
-            
+
             ctx.fillStyle = '#1a1a1a'
             ctx.fillRect(0, 0, canvas.width, canvas.height)
-            
+
             const barWidth = (canvas.width / bufferLength) * 2.5
             let barHeight
             let x = 0
-            
+
             for(let i = 0; i < bufferLength; i++) {
                 barHeight = (dataArray[i] / 255) * canvas.height
-                
+
                 // Gradient color
                 const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0)
                 gradient.addColorStop(0, '#44aa88')
                 gradient.addColorStop(1, '#66ccaa')
                 ctx.fillStyle = gradient
-                
+
                 ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight)
-                
+
                 x += barWidth + 1
             }
         }
-        
+
         draw()
-        
+
         return () => cancelAnimationFrame(animationId)
     }, [analyser])
 
@@ -355,8 +355,8 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
 
             <div style={{ display: 'flex', flexDirection: mode === 'full' ? 'column' : 'row', gap: '10px' }}>
                 {!isStreaming ? (
-                    <Button 
-                        $variant="primary" 
+                    <Button
+                        $variant="primary"
                         onClick={() => startRecording(selectedAudioSourceId, activeAudioSourceType)}
                         style={{ width: mode === 'full' ? '100%' : 'auto' }}
                         disabled={activeAudioSourceType === AudioSourceType.System && !selectedAudioSourceId}
@@ -364,25 +364,25 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
                         Start Recording
                     </Button>
                 ) : (
-                    <Button 
-                        $variant="danger" 
+                    <Button
+                        $variant="danger"
                         onClick={stopRecording}
                         style={{ width: mode === 'full' ? '100%' : 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
                     >
-                         <span style={{ 
-                            display: 'inline-block', 
-                            width: '10px', 
-                            height: '10px', 
-                            background: 'white', 
+                         <span style={{
+                            display: 'inline-block',
+                            width: '10px',
+                            height: '10px',
+                            background: 'white',
                             borderRadius: '50%',
                             animation: 'pulse 1s infinite'
                         }} />
                         Stop Recording
                     </Button>
                 )}
-                
-                <Button 
-                    $variant="success" 
+
+                <Button
+                    $variant="success"
                     onClick={() => void window.desktop.openSubtitles()}
                     style={{ width: mode === 'full' ? '100%' : 'auto' }}
                 >
@@ -390,9 +390,9 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
                 </Button>
 
                 {mode === 'compact' && (
-                    <Button 
-                        $variant="secondary" 
-                        onClick={() => handlePlayTTS(latestTranscript)} 
+                    <Button
+                        $variant="secondary"
+                        onClick={() => handlePlayTTS(latestTranscript)}
                         disabled={!latestTranscript || !ttsModelStatus?.ready}
                     >
                         Read Last Text
@@ -406,7 +406,7 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
                     <FileInput type="file" accept="audio/*,video/*" onChange={handleFileChange} />
                 </div>
             )}
-            
+
             {(latestTranscript && mode === 'compact') && (
                  <TranscriptDisplay>
                     <strong>Subtitles Content:</strong><br/>

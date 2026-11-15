@@ -19,7 +19,7 @@ interface FactorySceneProps {
   selectedDeviceId?: string
 }
 
-function AnimatedDeviceModel({ device, isSelected, onClick }: { 
+function AnimatedDeviceModel({ device, isSelected, onClick }: {
   device: Device
   isSelected: boolean
   onClick: () => void
@@ -27,7 +27,7 @@ function AnimatedDeviceModel({ device, isSelected, onClick }: {
   const meshRef = useRef<THREE.Mesh>(null)
   const targetPosition = useRef(new THREE.Vector3(...device.position))
   const currentPosition = useRef(new THREE.Vector3(...device.position))
-  
+
   const getColor = () => {
     switch (device.status) {
       case 'running': return '#4ade80'
@@ -70,15 +70,15 @@ function AnimatedDeviceModel({ device, isSelected, onClick }: {
   })
 
   return (
-    <group 
-      position={device.position} 
+    <group
+      position={device.position}
       rotation={[0, device.rotation, 0]}
       onClick={(e) => { e.stopPropagation(); onClick() }}
     >
       <mesh ref={meshRef}>
         {getGeometry()}
-        <meshStandardMaterial 
-          color={getColor()} 
+        <meshStandardMaterial
+          color={getColor()}
           emissive={isSelected ? '#ffffff' : getColor()}
           emissiveIntensity={isSelected ? 0.3 : 0.1}
         />
@@ -86,8 +86,8 @@ function AnimatedDeviceModel({ device, isSelected, onClick }: {
       {/* Status indicator light */}
       <mesh position={[0, 0.8, 0]}>
         <sphereGeometry args={[0.1, 16, 16]} />
-        <meshStandardMaterial 
-          color={getColor()} 
+        <meshStandardMaterial
+          color={getColor()}
           emissive={getColor()}
           emissiveIntensity={device.status === 'running' ? 1 : 0.3}
         />
@@ -97,7 +97,7 @@ function AnimatedDeviceModel({ device, isSelected, onClick }: {
 }
 
 // Keep the original DeviceModel for backward compatibility
-function DeviceModel({ device, isSelected, onClick }: { 
+function DeviceModel({ device, isSelected, onClick }: {
   device: Device
   isSelected: boolean
   onClick: () => void
@@ -145,40 +145,40 @@ export function FactoryScene({ devices, onDeviceClick, selectedDeviceId }: Facto
       style={{ background: '#0f172a' }}
     >
       <OrbitControls makeDefault maxPolarAngle={Math.PI / 2.1} />
-      
+
       {/* Lighting */}
       <ambientLight intensity={0.4} />
-      <directionalLight 
-        position={[10, 20, 10]} 
-        intensity={1} 
-        castShadow 
+      <directionalLight
+        position={[10, 20, 10]}
+        intensity={1}
+        castShadow
         shadow-mapSize={[2048, 2048]}
       />
       <pointLight position={[-10, 10, -10]} intensity={0.5} />
-      
+
       {/* Environment */}
       <Environment preset="city" />
-      <Grid 
-        args={[50, 50]} 
-        cellSize={1} 
-        cellThickness={0.5} 
-        cellColor="#334155" 
+      <Grid
+        args={[50, 50]}
+        cellSize={1}
+        cellThickness={0.5}
+        cellColor="#334155"
         sectionSize={5}
         sectionThickness={1}
         sectionColor="#475569"
         fadeDistance={30}
         infiniteGrid
       />
-      
+
       {/* Floor */}
       <Floor />
-      
+
       {/* Workshop areas */}
       <Workshop position={[-8, 0, -8]} size={[10, 4, 10]} />
       <Workshop position={[8, 0, -8]} size={[10, 4, 10]} />
       <Workshop position={[-8, 0, 8]} size={[10, 4, 10]} />
       <Workshop position={[8, 0, 8]} size={[10, 4, 10]} />
-      
+
       {/* Devices with animation */}
       {devices.map((device) => (
         <AnimatedDeviceModel

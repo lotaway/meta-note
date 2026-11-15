@@ -26,9 +26,9 @@ export interface InventoryTableProps {
   pageSize?: number
 }
 
-export function InventoryTable({ 
-  items, 
-  onRowClick, 
+export function InventoryTable({
+  items,
+  onRowClick,
   selectedId,
   searchable = true,
   pageSize = 10
@@ -40,17 +40,17 @@ export function InventoryTable({
 
   const filteredItems = useMemo(() => {
     let result = [...items]
-    
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
-      result = result.filter(item => 
+      result = result.filter(item =>
         item.sku.toLowerCase().includes(term) ||
         item.name.toLowerCase().includes(term) ||
         item.category.toLowerCase().includes(term) ||
         item.location.toLowerCase().includes(term)
       )
     }
-    
+
     result.sort((a, b) => {
       const aVal = String(a[sortField] ?? '')
       const bVal = String(b[sortField] ?? '')
@@ -58,7 +58,7 @@ export function InventoryTable({
       if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1
       return 0
     })
-    
+
     return result
   }, [items, searchTerm, sortField, sortOrder])
 
@@ -115,8 +115,8 @@ export function InventoryTable({
       overflow: 'hidden'
     }}>
       {searchable && (
-        <div style={{ 
-          padding: '12px 16px', 
+        <div style={{
+          padding: '12px 16px',
           borderBottom: '1px solid #334155',
           display: 'flex',
           alignItems: 'center',
@@ -145,8 +145,8 @@ export function InventoryTable({
       )}
 
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ 
-          width: '100%', 
+        <table style={{
+          width: '100%',
           borderCollapse: 'collapse',
           fontSize: '13px'
         }}>
@@ -189,7 +189,7 @@ export function InventoryTable({
                   onClick={() => onRowClick?.(item)}
                   style={{
                     cursor: 'pointer',
-                    background: selectedId === item.id ? 'rgba(56, 189, 248, 0.1)' : 
+                    background: selectedId === item.id ? 'rgba(56, 189, 248, 0.1)' :
                                'transparent',
                     borderBottom: '1px solid #1e293b',
                     transition: 'background 0.2s'
@@ -201,8 +201,8 @@ export function InventoryTable({
                   <td style={{ padding: '10px 8px' }}>{item.name}</td>
                   <td style={{ padding: '10px 8px', color: '#94a3b8' }}>{item.category}</td>
                   <td style={{ padding: '10px 8px' }}>
-                    <span style={{ 
-                      color: item.quantity <= item.minStock ? '#ef4444' : 
+                    <span style={{
+                      color: item.quantity <= item.minStock ? '#ef4444' :
                              item.quantity >= item.maxStock ? '#3b82f6' : '#f1f5f9',
                       fontWeight: 500
                     }}>
@@ -233,8 +233,8 @@ export function InventoryTable({
       </div>
 
       {totalPages > 1 && (
-        <div style={{ 
-          padding: '12px 16px', 
+        <div style={{
+          padding: '12px 16px',
           borderTop: '1px solid #334155',
           display: 'flex',
           justifyContent: 'space-between',

@@ -1,34 +1,34 @@
 // Warehouse 3D Components
-export { 
-  Warehouse3DView, 
+export {
+  Warehouse3DView,
   type Warehouse3DViewProps,
-  type Shelf, 
-  type Warehouse, 
-  type WarehouseHeatmapData 
+  type Shelf,
+  type Warehouse,
+  type WarehouseHeatmapData
 } from './Warehouse3DView'
 
 // Warehouse Status Panel
-export { 
-  WarehouseStatus, 
-  type WarehouseStatusProps 
+export {
+  WarehouseStatus,
+  type WarehouseStatusProps
 } from './WarehouseStatus'
 
 // Shelf Heatmap
-export { 
-  ShelfHeatmap, 
-  type ShelfHeatmapProps 
+export {
+  ShelfHeatmap,
+  type ShelfHeatmapProps
 } from './ShelfHeatmap'
 
 // Inventory Table
-export { 
-  InventoryTable, 
+export {
+  InventoryTable,
   type InventoryTableProps,
-  type InventoryItem 
+  type InventoryItem
 } from './InventoryTable'
 
 // Inventory Alert Panel
-export { 
-  InventoryAlertPanel, 
+export {
+  InventoryAlertPanel,
   type InventoryAlertPanelProps
 } from './InventoryAlertPanel'
 
@@ -36,8 +36,8 @@ export {
 export { type InventoryAlert } from './alert'
 
 // Demand Forecast Chart
-export { 
-  DemandChart, 
+export {
+  DemandChart,
   type DemandChartProps
 } from './DemandChart'
 
@@ -45,8 +45,8 @@ export {
 export { type DemandForecastPoint } from './chart'
 
 // Restock Suggestions
-export { 
-  RestockSuggestions, 
+export {
+  RestockSuggestions,
   type RestockSuggestionsProps,
-  type RestockSuggestion 
+  type RestockSuggestion
 } from './RestockSuggestions'

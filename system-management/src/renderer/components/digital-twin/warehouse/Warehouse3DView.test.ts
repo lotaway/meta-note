@@ -4,7 +4,7 @@ import React from 'react'
 
 // Mock Three.js and react-three-fiber
 vi.mock('@react-three/fiber', () => ({
-  Canvas: ({ children }: { children: React.ReactNode }) => 
+  Canvas: ({ children }: { children: React.ReactNode }) =>
     React.createElement('div', { 'data-testid': 'mock-canvas' }, children),
 }))
 

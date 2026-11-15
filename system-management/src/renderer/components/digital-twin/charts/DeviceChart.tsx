@@ -50,12 +50,12 @@ interface DeviceChartProps {
   height?: number
 }
 
-export function DeviceChart({ 
-  title, 
-  data, 
-  unit = '', 
+export function DeviceChart({
+  title,
+  data,
+  unit = '',
   color = '#3b82f6',
-  height = 200 
+  height = 200
 }: DeviceChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -148,20 +148,20 @@ export function DeviceChart({
   }, [data, color, height, unit])
 
   return (
-    <div style={{ 
-      background: '#1e293b', 
-      borderRadius: '8px', 
+    <div style={{
+      background: '#1e293b',
+      borderRadius: '8px',
       padding: '16px',
       color: '#e2e8f0'
     }}>
       <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>{title}</div>
-      <canvas 
-        ref={canvasRef} 
-        style={{ 
-          width: '100%', 
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: '100%',
           height: `${height}px`,
           borderRadius: '4px'
-        }} 
+        }}
       />
     </div>
   )
@@ -177,9 +177,9 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, unit = '', change, color = '#3b82f6' }: StatsCardProps) {
   return (
-    <div style={{ 
-      background: '#1e293b', 
-      borderRadius: '8px', 
+    <div style={{
+      background: '#1e293b',
+      borderRadius: '8px',
       padding: '16px',
       color: '#e2e8f0'
     }}>
@@ -188,8 +188,8 @@ export function StatsCard({ title, value, unit = '', change, color = '#3b82f6' }
         {value}<span style={{ fontSize: '14px', marginLeft: '4px' }}>{unit}</span>
       </div>
       {change !== undefined && (
-        <div style={{ 
-          fontSize: '12px', 
+        <div style={{
+          fontSize: '12px',
           color: change >= 0 ? '#10b981' : '#ef4444',
           marginTop: '4px'
         }}>

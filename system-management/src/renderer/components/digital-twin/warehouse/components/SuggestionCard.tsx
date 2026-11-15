@@ -40,7 +40,7 @@ export function SuggestionCard({
   onOrder,
   onDetailsClick
 }: SuggestionCardProps) {
-  const confidenceColor = suggestion.confidence >= 80 ? Colors.success : 
+  const confidenceColor = suggestion.confidence >= 80 ? Colors.success :
                           suggestion.confidence >= 60 ? Colors.warning : Colors.danger
 
   return (

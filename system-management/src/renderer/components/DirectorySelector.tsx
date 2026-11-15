@@ -21,7 +21,7 @@ export default function DirectorySelector({
 }: DirectorySelectorProps) {
   const [directory, setDirectory] = useState(value)
 
-  const inputTip = useMemo(() => 
+  const inputTip = useMemo(() =>
     directory ? `You're selected ${directory}` : `Please select a directory for ${title}`,
     [directory, title]
   )

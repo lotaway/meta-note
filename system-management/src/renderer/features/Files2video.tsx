@@ -32,7 +32,7 @@ export default function Files2video({ buttonTitle = "Select" }: Files2videoProps
   ])
   const [videoPaths, setVideoPaths] = useState<string[]>([])
 
-  const hasSelected = useMemo(() => 
+  const hasSelected = useMemo(() =>
     selectors.filter(selector => selector.directoryPath).length === selectors.length,
     [selectors]
   )
@@ -41,7 +41,7 @@ export default function Files2video({ buttonTitle = "Select" }: Files2videoProps
     const newSelectors = [...selectors]
     newSelectors[index].directoryPath = directoryPath
     setSelectors(newSelectors)
-    
+
     const result = await window.desktop.readFileInDirectory(directoryPath)
     setVideoPaths(result.paths.filter(path => path.match(/.(mp4|flv)$/) !== null))
   }
@@ -68,7 +68,7 @@ export default function Files2video({ buttonTitle = "Select" }: Files2videoProps
       <ul className="list list-select">
         {selectors.map((s, sIndex) => (
           <li key={s.title} className="item item-select">
-            <DirectorySelector 
+            <DirectorySelector
               title={s.title}
               buttonTitle={buttonTitle}
               placeholder={s.placeholder}
@@ -77,7 +77,7 @@ export default function Files2video({ buttonTitle = "Select" }: Files2videoProps
           </li>
         ))}
       </ul>
-      <button 
+      <button
         className={`btn btn-generate ${hasSelected ? 'active' : 'no-active'}`}
         onClick={generateVideo}
       >

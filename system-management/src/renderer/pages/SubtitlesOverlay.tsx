@@ -29,8 +29,8 @@ const SubtitleText = styled.div<{ $style: SubtitleStyle }>`
     text-align: center;
     pointer-events: auto;
     -webkit-text-stroke: ${props => props.$style.strokeWidth}px ${props => props.$style.strokeColor};
-    text-shadow: 
-        -1px -1px 0 ${props => props.$style.strokeColor},  
+    text-shadow:
+        -1px -1px 0 ${props => props.$style.strokeColor},
          1px -1px 0 ${props => props.$style.strokeColor},
         -1px  1px 0 ${props => props.$style.strokeColor},
          1px  1px 0 ${props => props.$style.strokeColor};
@@ -108,13 +108,13 @@ export default function SubtitlesOverlay() {
             <SubtitleText $style={style}>
                 {text}
                 {text && (
-                    <button 
+                    <button
                         onClick={playTTS}
-                        style={{ 
-                            marginLeft: '10px', 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: 'pointer', 
+                        style={{
+                            marginLeft: '10px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
                             fontSize: '0.8em',
                             pointerEvents: 'auto'
                         }}
@@ -123,15 +123,15 @@ export default function SubtitlesOverlay() {
                     </button>
                 )}
             </SubtitleText>
-            
+
             <SettingsButton onClick={() => setIsSettingsVisible(!isSettingsVisible)}>
                 ⚙️
             </SettingsButton>
 
             {isSettingsVisible && (
-                <SubtitleSettingsPanel 
-                    style={style} 
-                    onStyleChange={updateStyle} 
+                <SubtitleSettingsPanel
+                    style={style}
+                    onStyleChange={updateStyle}
                 />
             )}
         </OverlayContainer>

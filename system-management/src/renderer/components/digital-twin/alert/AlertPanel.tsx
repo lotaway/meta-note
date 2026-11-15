@@ -55,9 +55,9 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
   const criticalCount = alerts.filter(a => a.level === 'critical' && a.status === 'triggered').length
 
   return (
-    <div style={{ 
-      background: '#1e293b', 
-      borderRadius: '8px', 
+    <div style={{
+      background: '#1e293b',
+      borderRadius: '8px',
       padding: '16px',
       color: '#e2e8f0'
     }}>
@@ -66,10 +66,10 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
         <h3 style={{ margin: 0, fontSize: '18px' }}>告警中心</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           {unreadCount > 0 && (
-            <span style={{ 
-              background: '#ef4444', 
-              color: 'white', 
-              padding: '2px 8px', 
+            <span style={{
+              background: '#ef4444',
+              color: 'white',
+              padding: '2px 8px',
               borderRadius: '10px',
               fontSize: '12px'
             }}>
@@ -77,10 +77,10 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
             </span>
           )}
           {criticalCount > 0 && (
-            <span style={{ 
-              background: '#dc2626', 
-              color: 'white', 
-              padding: '2px 8px', 
+            <span style={{
+              background: '#dc2626',
+              color: 'white',
+              padding: '2px 8px',
               borderRadius: '10px',
               fontSize: '12px',
               animation: 'pulse 2s infinite'
@@ -125,10 +125,10 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ 
-                    background: levelColors[alert.level], 
-                    color: 'white', 
-                    padding: '2px 6px', 
+                  <span style={{
+                    background: levelColors[alert.level],
+                    color: 'white',
+                    padding: '2px 6px',
                     borderRadius: '3px',
                     fontSize: '10px'
                   }}>
@@ -190,9 +190,9 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
   )
 }
 
-function FilterChip({ active, onClick, children, color }: { 
-  active: boolean; 
-  onClick: () => void; 
+function FilterChip({ active, onClick, children, color }: {
+  active: boolean;
+  onClick: () => void;
   children: React.ReactNode;
   color?: string;
 }) {

@@ -25,8 +25,8 @@ export class AppLifecycle {
         private onInit: () => Promise<void>
     ) {
         this.subtitlesWindow = new SubtitlesWindow(
-            this.config.isDev, 
-            this.config.preloadPath, 
+            this.config.isDev,
+            this.config.preloadPath,
             this.config.distPath
         )
     }

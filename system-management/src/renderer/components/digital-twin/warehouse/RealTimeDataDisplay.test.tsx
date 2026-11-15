@@ -337,7 +337,7 @@ describe('Real-time Data Display Tests', () => {
   describe('Data Refresh Simulation', () => {
     it('should handle periodic data updates', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      
+
       let updateCount = 0
       const mockData = [
         { date: '2024-01-01', demand: 100, forecast: 110 },
@@ -456,7 +456,7 @@ describe('Real-time Data Display Tests', () => {
           ...d,
           demand: Math.floor(Math.random() * 1000),
         }))
-        
+
         rerender(
           <DemandChart
             data={newData}

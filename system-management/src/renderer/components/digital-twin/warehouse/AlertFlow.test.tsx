@@ -9,7 +9,7 @@ class MockWebSocket {
   static OPEN = 1
   static CLOSING = 2
   static CLOSED = 3
-  
+
   readyState = MockWebSocket.OPEN
   onopen: (() => void) | null = null
   onclose: (() => void) | null = null

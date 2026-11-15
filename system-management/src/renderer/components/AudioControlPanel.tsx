@@ -33,7 +33,7 @@ const CompactButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
         background: #0062cc;
     }
@@ -52,9 +52,9 @@ export default function AudioControlPanel() {
 
     return (
         <PanelContainer>
-            <VoiceTools 
-                mode="full" 
-                onClose={() => setIsExpanded(false)} 
+            <VoiceTools
+                mode="full"
+                onClose={() => setIsExpanded(false)}
             />
         </PanelContainer>
     )

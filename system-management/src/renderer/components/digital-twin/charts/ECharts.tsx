@@ -265,7 +265,7 @@ export function BarChart({ title, data, color = '#3b82f6', height = 200 }: BarCh
           name: title,
           type: 'bar',
           barWidth: '60%',
-          itemStyle: { 
+          itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: color },
               { offset: 1, color: color + '60' }

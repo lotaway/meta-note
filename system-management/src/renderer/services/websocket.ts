@@ -37,7 +37,7 @@ class DigitalTwinWebSocket {
   connect() {
     try {
       this.ws = new WebSocket(this.url)
-      
+
       this.ws.onopen = () => {
         console.log('[WebSocket] Connected')
         this.reconnectAttempts = 0
@@ -61,11 +61,11 @@ class DigitalTwinWebSocket {
         try {
           const message = JSON.parse(event.data)
           const { type, data } = message
-          
+
           // Handle subscribed messages
           const handlers = this.handlers.get(type) || []
           handlers.forEach(handler => handler(data))
-          
+
           // Also notify wildcard handlers
           const wildcardHandlers = this.handlers.get('*') || []
           wildcardHandlers.forEach(handler => handler(message))
