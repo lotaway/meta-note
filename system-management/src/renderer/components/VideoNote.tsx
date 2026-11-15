@@ -3,8 +3,7 @@ import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import VoiceTools from './VoiceTools';
-
-const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`;
+import { apiFetch } from '../services/local-api';
 
 const NoteContainer = styled.div`
   display: flex;
@@ -126,11 +125,11 @@ export default function VideoNote() {
         setGeneratedMarkdown('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/api/note/generate`, {
+            const response = await apiFetch('/api/note/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    video_url: videoUrl, 
+                body: JSON.stringify({
+                    video_url: videoUrl,
                     style: noteStyle,
                     options: {
                         screenshot: isScreenshotEnabled,
@@ -153,15 +152,15 @@ export default function VideoNote() {
     // Keep handlePlayTTS here for playing the generated summary
     const handlePlayTTS = async (text: string) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
+            const response = await apiFetch('/api/tts/synthesize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text, 
+                body: JSON.stringify({
+                    text,
                     voice_profile_id: 'default'
                 })
             });
-            
+
             if (response.ok) {
                 const blob = await response.blob();
                 const url = URL.createObjectURL(blob);
@@ -175,10 +174,10 @@ export default function VideoNote() {
 
     useEffect(() => {
         if (!activeTaskId || appWorkerStatus !== 'processing') return;
-        
+
         const interval = setInterval(async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/note/status/${activeTaskId}`);
+                const response = await apiFetch(`/api/note/status/${activeTaskId}`);
                 const result = await response.json();
                 if (result.code === 200) {
                     if (result.data.status === 'SUCCESS') {
@@ -206,14 +205,14 @@ export default function VideoNote() {
                     {isVoiceToolsVisible ? 'Hide Voice Tools' : 'Show Voice Tools'}
                 </Button>
             </Title>
-            
+
             {isVoiceToolsVisible && <VoiceTools mode="compact" />}
 
             <FormSection>
                 <InputGroup>
                     <Label>Video URL</Label>
-                    <Input 
-                        placeholder="https://www.bilibili.com/video/..." 
+                    <Input
+                        placeholder="https://www.bilibili.com/video/..."
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
                     />
@@ -238,8 +237,8 @@ export default function VideoNote() {
                         </Label>
                     </div>
                 </div>
-                <Button 
-                    onClick={handleGenerateNote} 
+                <Button
+                    onClick={handleGenerateNote}
                     disabled={appWorkerStatus === 'processing' || !videoUrl}
                     style={{ marginTop: '15px' }}
                 >

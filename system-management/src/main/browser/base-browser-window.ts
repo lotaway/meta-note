@@ -1,77 +1,13 @@
-import { BrowserWindow, session, BrowserWindowConstructorOptions } from 'electron'
+import { BrowserWindow, session, type BrowserWindowConstructorOptions } from 'electron'
 import path from 'node:path'
+import { APP_DISPLAY_NAME } from '../../brand'
 
 export interface BaseBrowserWindowOptions extends BrowserWindowConstructorOptions {
-  url: string
-  partition?: string
+    url: string
+    partition?: string
 }
 
-export class BaseBrowserWindow extends BrowserWindow {
-  protected readonly defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-  protected url: string
-
-  constructor(options: BaseBrowserWindowOptions) {
-    const {
-      url,
-      width = 1200,
-      height = 900,
-      title = 'Browser Monitor',
-      show = true,
-      autoHideMenuBar = true,
-      partition = 'persist:normal',
-      ...browserWindowOptions
-    } = options
-
-    const isDev = process.env.NODE_ENV === 'development'
-
-    const webPreferences: BrowserWindowConstructorOptions['webPreferences'] = {
-      preload: path.join(__dirname, '../preload/preload.js'),
-      partition,
-      nodeIntegration: false,
-      contextIsolation: false,
-      sandbox: false,
-      devTools: isDev,
-      ...browserWindowOptions.webPreferences
-    }
-
-    super({
-      width,
-      height,
-      title,
-      show,
-      autoHideMenuBar,
-      webPreferences,
-      ...browserWindowOptions
-    })
-
-    this.url = url
-
-    this.webContents.setUserAgent(this.defaultUserAgent)
-
-    this.on('closed', () => {
-    })
-  }
-
-  public load(): void {
-    console.log(`[${this.title}] Loading URL: ${this.url}`)
-
-    try {
-      this.loadURL(this.url)
-      console.log(`[${this.title}] URL load initiated`)
-    } catch (error) {
-      console.error(`[${this.title}] Failed to load URL:`, error)
-
-      setTimeout(() => {
-        console.log(`[${this.title}] Retrying load...`)
-        try {
-          this.loadURL(this.url)
-        } catch (retryError) {
-          console.error(`[${this.title}] Retry failed:`, retryError)
-        }
-      }, 1000)
-    }
-  }
-  public async setSessionCookie(cookie: {
+export interface SessionCookieInput {
     url: string
     name: string
     value: string
@@ -79,48 +15,92 @@ export class BaseBrowserWindow extends BrowserWindow {
     path?: string
     secure?: boolean
     httpOnly?: boolean
-    sameSite?: 'strict' | 'lax' | 'none'
-  }): Promise<void> {
-    const defaultSession = session.defaultSession
-    const cookieOptions = {
-      path: '/',
-      secure: true,
-      httpOnly: true,
-      sameSite: 'lax' as any,
-      ...cookie
+    sameSite?: 'strict' | 'lax' | 'unspecified'
+}
+
+export class BaseBrowserWindow extends BrowserWindow {
+    protected readonly defaultUserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    protected url: string
+    protected readonly partition: string
+
+    constructor(options: BaseBrowserWindowOptions) {
+        const {
+            url,
+            width = 1200,
+            height = 900,
+            title = APP_DISPLAY_NAME,
+            show = true,
+            autoHideMenuBar = true,
+            partition = 'persist:monitor',
+            ...browserWindowOptions
+        } = options
+
+        const isDev = process.env.NODE_ENV === 'development'
+
+        const webPreferences: BrowserWindowConstructorOptions['webPreferences'] = {
+            preload: path.join(__dirname, '../preload/monitor-preload.js'),
+            partition,
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true,
+            devTools: isDev,
+        }
+
+        super({
+            ...browserWindowOptions,
+            width,
+            height,
+            title,
+            show,
+            autoHideMenuBar,
+            webPreferences,
+        })
+
+        this.url = url
+        this.partition = partition
+        this.webContents.setUserAgent(this.defaultUserAgent)
     }
 
-    try {
-      await defaultSession.cookies.set(cookieOptions)
-      console.log(`[${this.title}] Session cookie applied successfully`)
-      this.loadURL(this.url)
-    } catch (err) {
-      console.error(`[${this.title}] Failed to set cookie:`, err)
-      throw err
+    public load(): void {
+        void this.loadURL(this.url).catch(err => {
+            console.error(`[${this.getTitle()}] Failed to load URL:`, err)
+        })
     }
-  }
 
-  public getUrl(): string {
-    return this.url
-  }
-
-  public setUrl(url: string): void {
-    this.url = url
-  }
-
-  public exists(): boolean {
-    return !this.isDestroyed() && this.webContents && !this.webContents.isDestroyed()
-  }
-
-  public focus(): void {
-    if (this.exists()) {
-      super.focus()
+    public async setSessionCookie(cookie: SessionCookieInput): Promise<void> {
+        const targetSession = session.fromPartition(this.partition)
+        const cookieOptions = {
+            path: '/',
+            secure: true,
+            httpOnly: true,
+            sameSite: 'lax' as const,
+            ...cookie,
+        }
+        await targetSession.cookies.set(cookieOptions as Electron.CookiesSetDetails)
+        this.load()
     }
-  }
 
-  public close(): void {
-    if (!this.isDestroyed()) {
-      super.close()
+    public getUrl(): string {
+        return this.url
     }
-  }
+
+    public setUrl(url: string): void {
+        this.url = url
+    }
+
+    public exists(): boolean {
+        return !this.isDestroyed() && !this.webContents.isDestroyed()
+    }
+
+    public focus(): void {
+        if (this.exists()) {
+            super.focus()
+        }
+    }
+
+    public close(): void {
+        if (!this.isDestroyed()) {
+            super.close()
+        }
+    }
 }

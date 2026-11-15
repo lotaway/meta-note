@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { ipcRenderer } from 'electron'
-import { IPC_CHANNELS } from '../../main/constants'
 import { SubtitleStyle, DEFAULT_SUBTITLE_STYLE } from '../types/Subtitle'
 import SubtitleSettingsPanel from '../components/SubtitleSettingsPanel'
+import { apiFetch, resolveApiBase } from '../services/local-api'
 
-const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`
+// Full URL configurable via env (e.g., VITE_VOICE_API_URL=http://localhost:5051)
+const API_BASE_URL = resolveApiBase(import.meta.env.VITE_VOICE_API_URL)
 
 const OverlayContainer = styled.div`
     position: fixed;
@@ -64,31 +64,31 @@ export default function SubtitlesOverlay() {
     const [isSettingsVisible, setIsSettingsVisible] = useState(false)
 
     useEffect(() => {
-        const handleText = (_event: Electron.IpcRendererEvent, newText: string) => {
+        const handleText = (newText: string) => {
             setText(newText)
         }
 
-        const handleStyle = (_event: Electron.IpcRendererEvent, newStyle: Partial<SubtitleStyle>) => {
+        const handleStyle = (newStyle: Partial<SubtitleStyle>) => {
             setStyle(prev => ({ ...prev, ...newStyle }))
         }
 
-        ipcRenderer.on(IPC_CHANNELS.SUBTITLES_TEXT, handleText)
-        ipcRenderer.on(IPC_CHANNELS.SUBTITLES_STYLE, handleStyle)
+        window.desktop.onSubtitlesText(handleText)
+        window.desktop.onSubtitlesStyle(handleStyle)
 
         return () => {
-            ipcRenderer.off(IPC_CHANNELS.SUBTITLES_TEXT, handleText)
-            ipcRenderer.off(IPC_CHANNELS.SUBTITLES_STYLE, handleStyle)
+            window.desktop.offSubtitlesText(handleText)
+            window.desktop.offSubtitlesStyle(handleStyle)
         }
     }, [])
 
     const playTTS = async () => {
         if (!text) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
+            const response = await apiFetch('/api/tts/synthesize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, voice_profile_id: 'default' })
-            });
+            }, API_BASE_URL);
             if (response.ok) {
                 const blob = await response.blob();
                 const audio = new Audio(URL.createObjectURL(blob));

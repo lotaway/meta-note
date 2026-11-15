@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { ipcRenderer } from 'electron'
 import DirectorySelector from '../components/DirectorySelector'
 
 interface SelectorVal {
@@ -43,22 +42,20 @@ export default function Files2video({ buttonTitle = "Select" }: Files2videoProps
     newSelectors[index].directoryPath = directoryPath
     setSelectors(newSelectors)
     
-    const result: { names: string[], paths: string[] } = await ipcRenderer.invoke("readFileInDirectory", directoryPath)
+    const result = await window.desktop.readFileInDirectory(directoryPath)
     setVideoPaths(result.paths.filter(path => path.match(/.(mp4|flv)$/) !== null))
   }
 
   async function generateVideo() {
-    if (videoPaths.length === 0) {
-      return Promise.reject("没有视频")
-    }
-    
+    if (!hasSelected || videoPaths.length === 0) return
+
     const updatedSelectors = selectors.map(selector => ({
       ...selector,
       title: 'Please ' + selector.title.toLowerCase()
     }))
     setSelectors(updatedSelectors)
-    
-    return await ipcRenderer.invoke("mergeVideo", videoPaths.map(item => String(item)))
+
+    return await window.desktop.mergeVideo(videoPaths, selectors[0].directoryPath)
   }
 
   useEffect(() => {

@@ -10,3 +10,27 @@ bin
 .vscode/settings.json
 
 logs/
+!.dockerignore
+
+# generated artefacts (root-level guard; sub-projects keep their own rules)
+node_modules/
+dist/
+dist-electron/
+native/
+target/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+
+# lockfiles are generated, not versioned
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+bun.lockb
+Cargo.lock
+
+# local configuration (keep the example file tracked)
+.env
+!.env.example

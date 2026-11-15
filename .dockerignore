@@ -1,0 +1,17 @@
+.git
+**/node_modules
+**/package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml
+**/native
+**/dist
+**/dist-electron
+**/coverage
+**/playwright-report
+**/test-results
+**/*.log
+**/.env
+**/.env.*
+system-support/target
+system-support/bin
+system-support/build

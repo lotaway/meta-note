@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { WebSocketServer } from 'ws'
-import chatGPTMonitor from '../../desktop-chatgpt'
-import deepSeekMonitor from '../../desktop-deepseek'
 
 @Injectable()
 export class WebSocketService {
@@ -27,39 +25,65 @@ export class WebSocketService {
 
                 try {
                     const message = JSON.parse(messageStr)
-                    if (message.type === 'login_request') {
-                        const model = message.model || 'chatgpt'
-                        console.log(`[WebSocket] Login request received for ${model}, opening external login...`)
 
-                        if (model === 'chatgpt') {
-                            chatGPTMonitor.openExternalLogin()
-                        } else if (model === 'deepseek') {
-                            deepSeekMonitor.openDeepSeekExternalLogin()
-                        } else {
+                    switch (message.type) {
+                        case 'hello':
                             ws.send(JSON.stringify({
-                                type: 'login_response',
-                                status: 'error',
-                                error: 'Unsupported model'
+                                type: 'hello_ack',
+                                status: 'ok',
+                                code: 200,
+                                timestamp: Date.now()
                             }))
-                            return
-                        }
+                            break
 
-                        ws.send(JSON.stringify({
-                            type: 'login_response',
-                            status: 'success',
-                            message: `External login initiated for ${model}`,
-                            model
-                        }))
-                    } else {
-                        console.log('[WebSocket] Unknown message type:', message.type)
-                        ws.send(JSON.stringify({
-                            type: 'error',
-                            error: 'Unknown message type'
-                        }))
+                        case 'ping':
+                            ws.send(JSON.stringify({
+                                type: 'pong',
+                                status: 'ok',
+                                code: 200,
+                                timestamp: Date.now()
+                            }))
+                            break
+
+                        case 'subscribe':
+                            ws.send(JSON.stringify({
+                                type: 'subscribe_ack',
+                                status: 'ok',
+                                code: 200,
+                                channels: message.channels || [],
+                                timestamp: Date.now()
+                            }))
+                            break
+
+                        case 'unsubscribe':
+                            ws.send(JSON.stringify({
+                                type: 'unsubscribe_ack',
+                                status: 'ok',
+                                code: 200,
+                                channels: message.channels || [],
+                                timestamp: Date.now()
+                            }))
+                            break
+
+                        default:
+                            console.log('[WebSocket] Unknown message type:', message.type)
+                            ws.send(JSON.stringify({
+                                type: 'error',
+                                status: 'error',
+                                code: 4001,
+                                error: `Unknown message type: ${message.type}`,
+                                timestamp: Date.now()
+                            }))
                     }
                 } catch (err) {
                     console.log('[WebSocket] Non-JSON message or parse error:', messageStr)
-                    ws.send(`Hello from ${appProtocol}!`)
+                    ws.send(JSON.stringify({
+                        type: 'error',
+                        status: 'error',
+                        code: 4000,
+                        error: 'Invalid message format: expected JSON',
+                        timestamp: Date.now()
+                    }))
                 }
             })
 
@@ -74,8 +98,7 @@ export class WebSocketService {
             ws.send(JSON.stringify({
                 type: 'welcome',
                 protocol: appProtocol,
-                timestamp: Date.now(),
-                supported_models: ['chatgpt', 'deepseek']
+                timestamp: Date.now()
             }))
         })
 

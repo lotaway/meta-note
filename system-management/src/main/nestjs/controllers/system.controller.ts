@@ -2,17 +2,27 @@ import * as express from 'express'
 import { HttpStatus } from '@nestjs/common'
 import { MediaService } from '../services/media.service'
 
+const MAX_PATH_LENGTH = 4096
+const MAX_VIDEO_PATHS = 64
+
+function validPath(value: unknown): value is string {
+    if (typeof value !== 'string') return false
+    if (value.length === 0 || value.length > MAX_PATH_LENGTH) return false
+    if (value.includes('\0')) return false
+    return !value.split(/[\\/]+/).includes('..')
+}
+
 export class SystemController {
     constructor(private readonly mediaService: MediaService) { }
 
     readFileInDirectory(req: express.Request, res: express.Response) {
-        try {
-            const { filePath } = req.query as { filePath: string }
-            if (!filePath) {
-                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Missing filePath' })
-                return
-            }
+        const { filePath } = req.query as { filePath?: unknown }
+        if (!validPath(filePath)) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid filePath' })
+            return
+        }
 
+        try {
             const result = this.mediaService.readFileInDirectory(filePath)
             res.json(result)
         } catch (error: any) {
@@ -21,13 +31,18 @@ export class SystemController {
     }
 
     async mergeVideo(req: express.Request, res: express.Response) {
-        try {
-            const { videos, outputPath } = req.body as { videos: string[], outputPath: string }
-            if (!videos || !outputPath) {
-                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Missing videos or outputPath' })
-                return
-            }
+        const { videos, outputPath } = (req.body ?? {}) as { videos?: unknown, outputPath?: unknown }
 
+        if (!Array.isArray(videos) || videos.length === 0 || videos.length > MAX_VIDEO_PATHS || !videos.every(validPath)) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid videos' })
+            return
+        }
+        if (!validPath(outputPath)) {
+            res.status(HttpStatus.BAD_REQUEST).json({ error: 'Invalid outputPath' })
+            return
+        }
+
+        try {
             const result = await this.mediaService.mergeVideo(videos, outputPath)
             res.json(result)
         } catch (error: any) {

@@ -2,10 +2,10 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useAudio } from '../contexts/AudioContext';
 import { AudioSourceType } from '../types/Audio';
-import { ipcRenderer } from 'electron';
-import { IPC_CHANNELS } from '../../main/constants';
+import { apiFetch, apiStreamUrl, resolveApiBase } from '../services/local-api';
 
-const API_BASE_URL = `http://localhost:${import.meta.env.VITE_WEB_SERVER_PORT || '5051'}`;
+// Full URL configurable via env (e.g., VITE_VOICE_API_URL=http://localhost:5051)
+const API_BASE_URL = resolveApiBase(import.meta.env.VITE_VOICE_API_URL);
 
 const Container = styled.div<{ $minimal?: boolean }>`
   background-color: ${props => props.$minimal ? 'transparent' : '#2a2a2a'};
@@ -182,7 +182,7 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
 
     const checkTtsStatus = useCallback(async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tts/status`);
+            const response = await apiFetch('/api/tts/status', {}, API_BASE_URL);
             const result = await response.json();
             if (result.code === 200) {
                 setTtsModelStatus(result.data);
@@ -196,7 +196,8 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
         setAppWorkerStatus('processing');
         setCurrentDownloadProgress(0);
 
-        const eventSource = new EventSource(`${API_BASE_URL}/api/tts/download`);
+        const downloadUrl = await apiStreamUrl('/api/tts/download', API_BASE_URL);
+        const eventSource = new EventSource(downloadUrl);
 
         eventSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -227,7 +228,7 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
         if (!confirm('Are you sure you want to delete the TTS model?')) return;
         setAppWorkerStatus('processing');
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tts/delete`, { method: 'POST' });
+            const response = await apiFetch('/api/tts/delete', { method: 'POST' }, API_BASE_URL);
             if (response.ok) {
                 await checkTtsStatus();
                 setAppWorkerStatus('idle');
@@ -240,14 +241,14 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
     const handlePlayTTS = async (text: string) => {
         if (!ttsModelStatus?.ready) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/api/tts/synthesize`, {
+            const response = await apiFetch('/api/tts/synthesize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text,
                     voice_profile_id: 'default'
                 })
-            });
+            }, API_BASE_URL);
 
             if (response.ok) {
                 const blob = await response.blob();
@@ -382,7 +383,7 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
                 
                 <Button 
                     $variant="success" 
-                    onClick={() => ipcRenderer.send(IPC_CHANNELS.SUBTITLES_OPEN)}
+                    onClick={() => void window.desktop.openSubtitles()}
                     style={{ width: mode === 'full' ? '100%' : 'auto' }}
                 >
                     Subtitles

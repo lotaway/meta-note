@@ -1,41 +1,31 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { StudyService } from './services/study.service'
 import { LLMService } from './services/llm.service'
 import { MediaService } from './services/media.service'
 import { WebSocketService } from './services/websocket.service'
-import { NoteService } from './services/note.service'
 import { TTSService } from './services/tts.service'
-import { NoteController } from './controllers/note.controller'
 import { TTSController } from './controllers/tts.controller'
-import { BilibiliDownloader } from './services/providers/bilibili.downloader'
-import { YoutubeDownloader } from './services/providers/youtube.downloader'
-import { DouyinDownloader } from './services/providers/douyin.downloader'
-import { KuaishouDownloader } from './services/providers/kuaishou.downloader'
-import { UniversalDownloader } from './services/providers/universal.downloader'
-import { VideoProcessor } from './services/providers/video-processor'
-import { Transcriber } from './services/providers/transcriber'
 import { LocalLLMProvider } from './services/providers/local-llm-provider'
 import { RemoteLLMProvider } from './services/providers/remote-llm-provider'
 import { LLMProviderStrategy } from './services/providers/llm-provider-strategy'
 import { LLMProvider } from './services/providers/llm-provider.interface'
+import { NoteService } from './services/note.service'
+import { StudyService } from './services/study.service'
+import { UniversalDownloader } from './services/providers/universal.downloader'
+import { BilibiliDownloader } from './services/providers/bilibili.downloader'
+import { YoutubeDownloader } from './services/providers/youtube.downloader'
+import { DouyinDownloader } from './services/providers/douyin.downloader'
+import { KuaishouDownloader } from './services/providers/kuaishou.downloader'
+import { VideoProcessor } from './services/providers/video-processor'
+import { Transcriber } from './services/providers/transcriber'
 
 @Module({
     imports: [ConfigModule.forRoot()],
-    controllers: [NoteController, TTSController],
+    controllers: [TTSController],
     providers: [
-        StudyService,
         MediaService,
         WebSocketService,
-        NoteService,
         TTSService,
-        BilibiliDownloader,
-        YoutubeDownloader,
-        DouyinDownloader,
-        KuaishouDownloader,
-        UniversalDownloader,
-        VideoProcessor,
-        Transcriber,
         LocalLLMProvider,
         {
             provide: 'LLM_PROVIDERS',
@@ -57,7 +47,16 @@ import { LLMProvider } from './services/providers/llm-provider.interface'
             },
             inject: ['LLM_PROVIDERS']
         },
-        LLMService
+        LLMService,
+        BilibiliDownloader,
+        YoutubeDownloader,
+        DouyinDownloader,
+        KuaishouDownloader,
+        UniversalDownloader,
+        VideoProcessor,
+        Transcriber,
+        NoteService,
+        StudyService
     ],
 })
 export class AppModule { }

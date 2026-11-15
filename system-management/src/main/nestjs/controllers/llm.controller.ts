@@ -1,100 +1,21 @@
-import { ChatgptConversationData } from '../../../types/ChatgptConversationData'
-import { CompletionData } from '../../../types/CompletionData'
 import * as express from 'express'
 import { HttpStatus } from '@nestjs/common'
-
-interface DeepSeekConversationData {
-    v?: any
-    p?: string
-    o?: string
-    [key: string]: any
-}
+import { LLMService } from '../services/llm.service'
+import { MonitorLLMController } from './monitor-llm.controller'
+import type { MonitorProvider } from '../../constants'
 
 export const DEFAULT_MODEL_INFO = {
-    "name": "unknown",
+    "name": "local",
     "version": "1.0.0",
     "object": "model",
     "owned_by": "lotaway",
     "api_version": "v1",
 }
 
-export const transformChatgptToCompletion = (data: ChatgptConversationData): CompletionData | null => {
-    if ((data as any) === '[DONE]') return null
-
-    const completion: CompletionData = {
-        id: data.message?.id || (data as any).message_id,
-        choices: [{
-            index: 0,
-            delta: {}
-        }]
-    }
-
-    if (data.p?.includes('/message/content/parts/0') && data.o === 'append' && typeof data.v === 'string') {
-        completion.choices[0].delta.content = data.v
-        return completion
-    }
-
-    if (!data.p && !data.o && typeof data.v === 'string') {
-        completion.choices[0].delta.content = data.v
-        return completion
-    }
-
-    if (data.v?.message?.content?.parts?.[0] && data.v.message.author.role === 'assistant') {
-        completion.choices[0].delta.content = data.v.message.content.parts[0]
-        completion.id = data.v.message.id
-        return completion
-    }
-
-    return null
-}
-
-export const transformDeepSeekToCompletion = (data: DeepSeekConversationData): CompletionData | null => {
-    if (!data) return null
-
-    const completion: CompletionData = {
-        id: Date.now().toString(),
-        choices: [{
-            index: 0,
-            delta: {}
-        }]
-    }
-
-    if (typeof data.v === 'string') {
-        completion.choices[0].delta.content = data.v
-        return completion
-    }
-
-    if (data.p && data.o && data.v !== undefined) {
-        if (data.p.includes('/content') && data.o === 'APPEND' && typeof data.v === 'string') {
-            completion.choices[0].delta.content = data.v
-            return completion
-        }
-    }
-
-    if (data.v?.response) {
-        const response = data.v.response
-        if (response.fragments && Array.isArray(response.fragments)) {
-            const content = response.fragments
-                .filter((f: any) => f.type === 'RESPONSE' && f.content)
-                .map((f: any) => f.content)
-                .join('')
-            if (content) {
-                completion.choices[0].delta.content = content
-                completion.id = response.message_id?.toString() || completion.id
-                return completion
-            }
-        }
-    }
-
-    return null
-}
-
 export class LLMController {
     constructor(
-        private readonly getChatGPTMonitor: () => any,
-        private readonly getChatGPTEventBus: () => any,
-        private readonly getDeepSeekMonitor: () => any,
-        private readonly getDeepSeekEventBus: () => any
+        private readonly llmService?: LLMService,
+        private readonly monitorController?: MonitorLLMController
     ) { }
 
     getShow(req: express.Request, res: express.Response) {
@@ -102,21 +23,34 @@ export class LLMController {
     }
 
     getTags(req: express.Request, res: express.Response) {
-        const models = [
-            { ...DEFAULT_MODEL_INFO, name: 'chatgpt' },
-            { ...DEFAULT_MODEL_INFO, name: 'deepseek' }
-        ]
-        const localProvider = process.env.LOCAL_LLM_PROVIDER
-        if (localProvider) {
-            models.push({ ...DEFAULT_MODEL_INFO, name: 'local' })
+        const models: Array<typeof DEFAULT_MODEL_INFO> = []
+        if (this.monitorController) {
+            models.push({ ...DEFAULT_MODEL_INFO, name: 'chatgpt' })
+            models.push({ ...DEFAULT_MODEL_INFO, name: 'deepseek' })
         }
+        models.push({ ...DEFAULT_MODEL_INFO })
         res.json(models)
     }
 
     async chatCompletions(req: express.Request, res: express.Response): Promise<void> {
         try {
-            const payload = req.body
-            const model = payload.model || 'chatgpt'
+            const payload = req.body ?? {}
+            const model = typeof payload.model === 'string' && payload.model ? payload.model : 'local'
+
+            if (model === 'chatgpt' || model === 'deepseek') {
+                if (!this.monitorController) {
+                    res.status(HttpStatus.SERVICE_UNAVAILABLE).json({ error: 'Monitor windows are unavailable' })
+                    return
+                }
+                await this.monitorController.chatCompletions(req, res, model as MonitorProvider)
+                return
+            }
+
+            if (model !== 'local') {
+                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Unsupported model' })
+                return
+            }
+
             let prompt = payload.prompt
             if (!prompt && payload.messages && Array.isArray(payload.messages)) {
                 const lastMsg = payload.messages[payload.messages.length - 1]
@@ -128,296 +62,46 @@ export class LLMController {
                 return
             }
 
-            if (model === 'chatgpt') {
-                await this.handleChatGPT(prompt, payload.stream || false, res, this.getChatGPTMonitor, this.getChatGPTEventBus)
-            } else if (model === 'deepseek') {
-                await this.handleDeepSeek(prompt, payload.stream || false, res, this.getDeepSeekMonitor, this.getDeepSeekEventBus)
-            } else if (model === 'local') {
-                await this.handleLocal(prompt, payload, res)
+            if (payload.stream) {
+                await this.handleStream(prompt, payload, res)
+            } else if (this.llmService) {
+                await this.handleNonStream(prompt, res)
             } else {
-                res.status(HttpStatus.BAD_REQUEST).json({ error: 'Unsupported model' })
+                await this.handleStream(prompt, payload, res)
             }
         } catch (error: any) {
             console.error('Error in chat completions:', error)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
-        }
-    }
-
-    private async handleChatGPT(
-        prompt: string,
-        stream: boolean,
-        res: express.Response,
-        getChatGPTMonitor: () => any,
-        getChatGPTEventBus: () => any
-    ): Promise<void> {
-        const monitorWindow = getChatGPTMonitor()
-        if (!monitorWindow) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'ChatGPT window not initialized' })
-            return
-        }
-
-        console.log('[ChatGPT API] Processing prompt:', prompt.substring(0, Math.min(prompt.length, 200)) + '...')
-
-        if (stream) {
-            await this.handleChatGPTStream(prompt, res, monitorWindow, getChatGPTEventBus())
-        } else {
-            await this.handleChatGPTNonStream(prompt, res, monitorWindow)
-        }
-    }
-
-    private async handleChatGPTStream(
-        prompt: string,
-        res: express.Response,
-        monitorWindow: any,
-        eventBus: any
-    ): Promise<void> {
-        res.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'
-        })
-
-        const DATA_PREFIX = "data: "
-        const DATA_END = "[DONE]"
-
-        const onChunk = (lines: string) => {
-            lines.split('\n')
-                .map(line => line.trim())
-                .filter(line => line.startsWith(DATA_PREFIX))
-                .forEach(line => {
-                    const dataStr = line.substring(DATA_PREFIX.length).trim()
-                    if (dataStr === DATA_END) {
-                        res.write(`${DATA_PREFIX}${DATA_END}\n\n`)
-                        cleanup()
-                        return
-                    }
-                    try {
-                        const data = JSON.parse(dataStr) as ChatgptConversationData
-                        const completion = transformChatgptToCompletion(data)
-                        if (!completion || completion.choices[0].delta.content === undefined) {
-                            return
-                        }
-                        res.write(`${DATA_PREFIX}${JSON.stringify(completion)}\n\n`)
-                    } catch (e) {
-                        // 忽略解析错误
-                    }
-                })
-        }
-
-        const cleanup = () => {
-            clearTimeout(timeout)
-            eventBus.off('sse_chunk', onChunk)
-            if (!res.writableEnded) {
-                res.end()
+            if (!res.headersSent) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
             }
         }
+    }
 
-        const timeout = setTimeout(() => {
-            cleanup()
-        }, 2 * 60 * 1000)
-
-        eventBus.on('sse_chunk', onChunk)
-        res.on('close', cleanup)
-
+    private async handleNonStream(prompt: string, res: express.Response): Promise<void> {
         try {
-            const result = await monitorWindow.webContents.executeJavaScript(`
-                (async () => {
-                    let retries = 2;
-                    while (retries > 0 && typeof window.automateChat !== 'function') {
-                        await new Promise(r => setTimeout(r, 500));
-                        retries--;
-                    }
-                    if (typeof window.automateChat !== 'function') {
-                        return { success: false, error: 'window.automateChat is not defined after waiting' };
-                    }
-                    return await window.automateChat(${JSON.stringify(prompt)});
-                })()
-            `)
-
-            if (!result.success) {
-                console.error('[ChatGPT API] Automation result:', result.error)
-                res.write(`data: {"error": "${result.error}"}\n\n`)
-                cleanup()
-            }
-        } catch (error: any) {
-            console.error('[ChatGPT API] Error:', error)
-            res.write(`data: {"error": "${error.message}"}\n\n`)
-            cleanup()
+            const response = await this.llmService!.completion(prompt)
+            const content = typeof response === 'string' ? response : response.content || JSON.stringify(response)
+            res.json({
+                id: Date.now().toString(),
+                object: 'chat.completion',
+                created: Math.floor(Date.now() / 1000),
+                model: 'local',
+                choices: [{
+                    index: 0,
+                    message: {
+                        role: 'assistant',
+                        content
+                    },
+                    finish_reason: 'stop'
+                }]
+            })
+        } catch (err: any) {
+            console.error('[LLM] Non-stream completion error:', err)
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: err.message })
         }
     }
 
-    private async handleChatGPTNonStream(
-        prompt: string,
-        res: express.Response,
-        monitorWindow: any
-    ): Promise<void> {
-        try {
-            const result = await monitorWindow.webContents.executeJavaScript(`
-                (async () => {
-                    let retries = 2;
-                    while (retries > 0 && typeof window.automateChat !== 'function') {
-                        await new Promise(r => setTimeout(r, 500));
-                        retries--;
-                    }
-                    if (typeof window.automateChat !== 'function') {
-                        return { success: false, error: 'window.automateChat is not defined after waiting' };
-                    }
-                    return await window.automateChat(${JSON.stringify(prompt)});
-                })()
-            `)
-
-            if (!result.success) {
-                console.error('[ChatGPT API] Automation result:', result.error)
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: result.error })
-                return
-            }
-
-            res.json({ message: 'ChatGPT completion successful', result })
-        } catch (error: any) {
-            console.error('[ChatGPT API] Error:', error)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
-        }
-    }
-
-    private async handleDeepSeek(
-        prompt: string,
-        stream: boolean,
-        res: express.Response,
-        getDeepSeekMonitor: () => any,
-        getDeepSeekEventBus: () => any
-    ): Promise<void> {
-        const deepSeekMonitorWindow = getDeepSeekMonitor()
-        if (!deepSeekMonitorWindow) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'DeepSeek window not initialized' })
-            return
-        }
-
-        console.log('[DeepSeek API] Processing prompt:', prompt.substring(0, Math.min(prompt.length, 200)) + '...')
-
-        if (stream) {
-            await this.handleDeepSeekStream(prompt, res, deepSeekMonitorWindow, getDeepSeekEventBus())
-        } else {
-            await this.handleDeepSeekNonStream(prompt, res, deepSeekMonitorWindow)
-        }
-    }
-
-    private async handleDeepSeekStream(
-        prompt: string,
-        res: express.Response,
-        monitorWindow: any,
-        eventBus: any
-    ): Promise<void> {
-        res.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'
-        })
-
-        const DATA_PREFIX = "data: "
-        const DATA_END = "[DONE]"
-
-        const onChunk = (lines: string) => {
-            lines.split('\n')
-                .map(line => line.trim())
-                .filter(line => line.startsWith(DATA_PREFIX))
-                .forEach(line => {
-                    const dataStr = line.substring(DATA_PREFIX.length).trim()
-                    if (dataStr === DATA_END) {
-                        res.write(`${DATA_PREFIX}${DATA_END}\n\n`)
-                        cleanup()
-                        return
-                    }
-                    try {
-                        const data = JSON.parse(dataStr)
-                        const completion = transformDeepSeekToCompletion(data)
-                        if (!completion || completion.choices[0].delta.content === undefined) {
-                            return
-                        }
-                        res.write(`${DATA_PREFIX}${JSON.stringify(completion)}\n\n`)
-                    } catch (e) {
-                        // 忽略解析错误
-                    }
-                })
-        }
-
-        const cleanup = () => {
-            clearTimeout(timeout)
-            eventBus.off('sse_chunk', onChunk)
-            if (!res.writableEnded) {
-                res.end()
-            }
-        }
-
-        const timeout = setTimeout(() => {
-            cleanup()
-        }, 2 * 60 * 1000)
-
-        eventBus.on('sse_chunk', onChunk)
-        res.on('close', cleanup)
-
-        try {
-            const result = await monitorWindow.webContents.executeJavaScript(`
-                (async () => {
-                    let retries = 2;
-                    while (retries > 0 && typeof window.automateChat !== 'function') {
-                        await new Promise(r => setTimeout(r, 500));
-                        retries--;
-                    }
-                    if (typeof window.automateChat !== 'function') {
-                        return { success: false, error: 'window.automateChat is not defined after waiting' };
-                    }
-                    return await window.automateChat(${JSON.stringify(prompt)});
-                })()
-            `)
-
-            if (!result.success) {
-                console.error('[DeepSeek API] Automation result:', result.error)
-                res.write(`data: {"error": "${result.error}"}\n\n`)
-                cleanup()
-            }
-        } catch (error: any) {
-            console.error('[DeepSeek API] Error:', error)
-            res.write(`data: {"error": "${error.message}"}\n\n`)
-            cleanup()
-        }
-    }
-
-    private async handleDeepSeekNonStream(
-        prompt: string,
-        res: express.Response,
-        monitorWindow: any
-    ): Promise<void> {
-        try {
-            const result = await monitorWindow.webContents.executeJavaScript(`
-                (async () => {
-                    let retries = 2;
-                    while (retries > 0 && typeof window.automateChat !== 'function') {
-                        await new Promise(r => setTimeout(r, 500));
-                        retries--;
-                    }
-                    if (typeof window.automateChat !== 'function') {
-                        return { success: false, error: 'window.automateChat is not defined after waiting' };
-                    }
-                    return await window.automateChat(${JSON.stringify(prompt)});
-                })()
-            `)
-
-            if (!result.success) {
-                console.error('[DeepSeek API] Automation result:', result.error)
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: result.error })
-                return
-            }
-
-            res.json({ message: 'DeepSeek completion successful', result })
-        } catch (error: any) {
-            console.error('[DeepSeek API] Error:', error)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
-        }
-    }
-
-    private async handleLocal(prompt: string, payload: any, res: express.Response): Promise<void> {
+    private async handleStream(prompt: string, payload: any, res: express.Response): Promise<void> {
         const localProvider = process.env.LOCAL_LLM_PROVIDER
         if (!localProvider) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'LOCAL_LLM_PROVIDER not configured' })
@@ -437,30 +121,29 @@ export class LLMController {
                 return
             }
 
-            if (payload.stream) {
-                res.writeHead(response.status, {
-                    'Content-Type': response.headers.get('Content-Type') || 'application/json',
-                    'Cache-Control': 'no-cache',
-                    'Connection': 'keep-alive',
-                    'X-Accel-Buffering': 'no'
-                })
+            res.writeHead(response.status, {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no'
+            })
 
-                const reader = response.body?.getReader()
-                if (reader) {
-                    while (true) {
-                        const { done, value } = await reader.read()
-                        if (done) break
-                        res.write(value)
-                    }
+            const reader = response.body?.getReader()
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    res.write(value)
                 }
-                res.end()
-            } else {
-                const data = await response.json()
-                res.json(data)
             }
+            res.end()
         } catch (err: any) {
-            console.error('[Local LLM API] Forwarding error:', err)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to forward request to local provider' })
+            console.error('[Local LLM] Streaming error:', err)
+            if (!res.headersSent) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to stream from local provider' })
+            } else {
+                res.end()
+            }
         }
     }
 }

@@ -1,50 +1,64 @@
-import path from 'path';
+import * as NativeTypes from '../../native/index'
 
-import type * as NativeTypes from '../../native/index';
-
-// Native interface
-type NativeModule = typeof NativeTypes;
-
-// Dynamically require the native module
-// In development, it points to the local build
-// In production, it might need adjustment based on where the file is unpacked
-let native: NativeModule;
+let native: typeof NativeTypes | null = null
 
 try {
-    // Try to require from the native directory
-    // This path is relative to the bundled main process file (dist-electron/main/desktop-main.js)
-    // resolving to project-root/native/index.node
-    native = require('../../native/index.node');
+    native = require('../../native/index.node')
 } catch (error) {
-    console.error('Failed to load native module:', error);
-    // Fallback or mock if needed
-    native = {
-        startCaptureService: () => "Native module not loaded",
-        stopCaptureService: () => false,
-        init: () => console.log("Native module not loaded - init skipped")
-    }
-}
-
-export function initializeMediaCapture() {
-    if (!native) return;
-    try {
-        const result = native.startCaptureService({
-            sourceType: 'desktop',
-            width: 1920,
-            height: 1080,
-            fps: 60
-        });
-        console.log("Capture service started:", result);
-    } catch (e) {
-        console.error("Error starting capture service:", e);
-    }
+    console.error('[NativeBridge] CRITICAL: Failed to load native module. All native features (camera, audio capture, system monitor) are UNAVAILABLE:', error)
+    native = null
 }
 
 export function initializeSupport() {
-    if (!native) return;
+    if (!native) return
     try {
-        native.init();
+        native.init()
     } catch (e) {
-        console.error("Error initializing support:", e);
+        console.error("Error initializing native support:", e)
     }
 }
+
+export function getSystemMonitor() {
+    if (!native) return null
+    return {
+        getSystemInfo: () => native!.getSystemInfo(),
+        getCpuInfo: () => native!.getCpuInfo(),
+        getMemoryInfo: () => native!.getMemoryInfo(),
+        getNetworkInfo: () => native!.getNetworkInfo(),
+        getDiskInfo: () => native!.getDiskInfo(),
+        getProcessList: () => native!.getProcessList(),
+    }
+}
+
+export function getCameraManager() {
+    if (!native) return null
+    return {
+        listCameras: () => native!.listCameras(),
+        startCamera: (index: number, width: number, height: number, fps: number) =>
+            native!.startCamera(index, width, height, fps),
+        stopCamera: () => native!.stopCamera(),
+        getLatestFrame: () => native!.getLatestFrame(),
+    }
+}
+
+export function getAudioManager() {
+    if (!native) return null
+    return {
+        listAudioDevices: () => native!.listAudioDevices(),
+        startAudioCapture: (deviceIndex: number, sampleRate: number = 0) =>
+            native!.startAudioCapture(deviceIndex, sampleRate),
+        stopAudioCapture: () => native!.stopAudioCapture(),
+        getAudioData: () => native!.getAudioData(),
+    }
+}
+
+export function getTTSManager() {
+    if (!native) return null
+    return {
+        listVoices: () => native!.listTtsVoices(),
+        synthesize: (text: string, voice: string, outputPath: string) =>
+            native!.synthesizeSpeech(text, voice, outputPath),
+    }
+}
+
+export default native

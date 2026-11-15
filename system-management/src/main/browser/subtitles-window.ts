@@ -42,8 +42,9 @@ export class SubtitlesWindow {
             resizable: true,
             hasShadow: false,
             webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
+                nodeIntegration: false,
+                contextIsolation: true,
+                sandbox: true,
                 preload: this.preloadPath
             }
         }

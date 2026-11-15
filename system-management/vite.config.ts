@@ -25,6 +25,25 @@ function getInjectEntries() {
 }
 
 export default defineConfig({
+  define: {
+    // Only the gateway address is configurable. Direct service addresses
+    // (10101 / 8082 / 8080) must never be injected into the renderer.
+    'import.meta.env.VITE_GATEWAY_URL': JSON.stringify(
+      process.env.VITE_GATEWAY_URL || '',
+    ),
+    'import.meta.env.VITE_GATEWAY_HOST': JSON.stringify(
+      process.env.VITE_GATEWAY_HOST || 'localhost',
+    ),
+    'import.meta.env.VITE_GATEWAY_PORT': JSON.stringify(
+      process.env.VITE_GATEWAY_PORT || '10081',
+    ),
+    'import.meta.env.VITE_WEB_SERVER_PORT': JSON.stringify(
+      process.env.WEB_SERVER_PORT || '5051',
+    ),
+    'import.meta.env.VITE_VOICE_API_URL': JSON.stringify(
+      process.env.VITE_VOICE_API_URL || '',
+    ),
+  },
   plugins: [
     react(),
     electron([
@@ -42,7 +61,6 @@ export default defineConfig({
             rollupOptions: {
               external: [
                 'better-sqlite3',
-                '@electron/remote',
                 'fluent-ffmpeg',
                 'ws',
                 'reflect-metadata',
@@ -84,7 +102,25 @@ export default defineConfig({
               output: {
                 entryFileNames: 'preload.js',
               },
-              external: ['better-sqlite3', '@electron/remote']
+              external: ['better-sqlite3']
+            }
+          },
+        },
+      },
+      {
+        entry: 'src/main/monitor-preload.ts',
+        onstart(options) {
+          options.reload()
+        },
+        vite: {
+          build: {
+            outDir: 'dist-electron/preload',
+            minify: false,
+            rollupOptions: {
+              output: {
+                entryFileNames: 'monitor-preload.js',
+              },
+              external: ['better-sqlite3']
             }
           },
         },

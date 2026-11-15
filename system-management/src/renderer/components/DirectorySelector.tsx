@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { dialog } from '@electron/remote'
 
 interface DirectorySelectorProps {
   title?: string
@@ -29,15 +28,13 @@ export default function DirectorySelector({
 
   async function handleButtonClick() {
     onButtonClick?.()
-    const openResult = await dialog.showOpenDialog({
+    const selected = await window.desktop.selectDirectory({
       title: dialogTitle,
-      defaultPath: directory,
-      properties: ["openDirectory"]
+      defaultPath: directory || undefined
     })
-    if (openResult.canceled) return
-    const newPath = openResult.filePaths[0]
-    setDirectory(newPath)
-    onPathChange?.(newPath)
+    if (!selected) return
+    setDirectory(selected)
+    onPathChange?.(selected)
   }
 
   return (

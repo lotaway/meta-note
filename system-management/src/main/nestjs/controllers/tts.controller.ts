@@ -6,13 +6,13 @@ export class TTSController {
 
     async synthesize(req: express.Request, res: express.Response) {
         const body = req.body;
-        if (!body.text || !body.voice_profile_id) {
-            return res.status(400).json({ code: 400, message: 'Text and voice_profile_id are required' });
+        if (!body.text) {
+            return res.status(400).json({ code: 400, message: 'Text is required' });
         }
 
         try {
-            const audioBuffer = await this.ttsService.synthesize(body.text, body.voice_profile_id);
-            res.setHeader('Content-Type', 'audio/mpeg');
+            const audioBuffer = await this.ttsService.synthesize(body.text, body.voice_profile_id || '');
+            res.setHeader('Content-Type', 'audio/wav');
             res.send(audioBuffer);
         } catch (error: any) {
             res.status(500).json({ code: 500, message: error.message });

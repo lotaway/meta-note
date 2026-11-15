@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { NoteController } from '../controllers/note.controller'
 import { UniversalDownloader } from './providers/universal.downloader'
 import { VideoProcessor } from './providers/video-processor'
 import { Transcriber, Transcript } from './providers/transcriber'
@@ -84,7 +83,7 @@ export class NoteService {
     }
 
     private buildPrompt(transcript: string, style: string, formats: string[], options: any): string {
-        let prompt = `Please generate a ${style} video note based on the following transcript. 
+        let prompt = `Please generate a ${style} video note based on the following transcript.
         Include: ${formats.join(', ')}.`;
 
         if (options.videoUnderstanding) {

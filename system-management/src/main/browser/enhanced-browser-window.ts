@@ -1,93 +1,63 @@
 import { EventEmitter } from 'node:events'
 import fs from 'node:fs'
-import { BaseBrowserWindow, BaseBrowserWindowOptions } from './base-browser-window'
+import { ipcMain } from 'electron'
+import { BaseBrowserWindow, type BaseBrowserWindowOptions } from './base-browser-window'
+import { AI_CHAT_CONSTANTS, IPC_CHANNELS } from '../constants'
 
 export interface EnhancedBrowserWindowOptions extends BaseBrowserWindowOptions {
-  injectScriptPath?: string
-  sseRawPrefix?: string
-  sseChunkEvent?: string
+    injectScriptPath?: string
+    sseChunkEvent?: string
 }
 
 export class EnhancedBrowserWindow extends BaseBrowserWindow {
-  protected eventBus: EventEmitter
-  protected injectScriptPath?: string
-  protected sseRawPrefix: string
-  protected sseChunkEvent: string
+    protected readonly eventBus = new EventEmitter()
+    private readonly injectScriptPath?: string
+    private readonly sseChunkEvent: string
+    private readonly sseListener: (event: Electron.IpcMainEvent, chunk: unknown) => void
 
-  constructor(options: EnhancedBrowserWindowOptions) {
-    super(options)
+    constructor(options: EnhancedBrowserWindowOptions) {
+        const { injectScriptPath, sseChunkEvent, ...baseOptions } = options
+        super(baseOptions)
 
-    this.eventBus = new EventEmitter()
-    this.injectScriptPath = options.injectScriptPath
-    this.sseRawPrefix = options.sseRawPrefix || '__SSE_PREFIX__'
-    this.sseChunkEvent = options.sseChunkEvent || 'sse-chunk'
+        this.injectScriptPath = injectScriptPath
+        this.sseChunkEvent = sseChunkEvent || AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT
+        this.eventBus.setMaxListeners(0)
 
-    if (process.env.NODE_ENV === 'development') {
-      this.webContents.openDevTools()
-    }
-
-    this.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
-      console.error(`[${this.title}] Failed to load ${validatedURL}:`, errorDescription, `(code: ${errorCode})`)
-    })
-
-    this.setupConsoleMonitoring()
-    this.setupInjection()
-  }
-
-  private setupConsoleMonitoring(): void {
-    this.webContents.on('console-message', (event, level, message) => {
-      if (message.startsWith(this.sseRawPrefix)) {
-        const base64Data = message.substring(this.sseRawPrefix.length)
-        try {
-          const rawChunk = decodeURIComponent(escape(atob(base64Data)))
-          this.eventBus.emit(this.sseChunkEvent, rawChunk)
-        } catch (e) {
-          console.error(`[${this.title}] Failed to decode raw chunk:`, e)
+        this.sseListener = (event, chunk) => {
+            if (event.sender.id !== this.webContents.id) return
+            if (typeof chunk !== 'string' || chunk.length === 0) return
+            this.eventBus.emit(this.sseChunkEvent, chunk)
         }
-      } else {
-        console.log(`[${this.title} Web] ${message}`)
-      }
-    })
-  }
 
-  private setupInjection(): void {
-    const inject = () => {
-      const script = this.getInjectScript()
-      if (!script) return
+        ipcMain.on(IPC_CHANNELS.MONITOR_SSE_CHUNK, this.sseListener)
+        this.on('closed', () => {
+            ipcMain.removeListener(IPC_CHANNELS.MONITOR_SSE_CHUNK, this.sseListener)
+        })
 
-      this.webContents.executeJavaScript(script)
-        .then(() => console.log(`[${this.title}] Injection success`))
-        .catch(err => console.error(`[${this.title}] Injection failed:`, err))
+        this.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+            console.error(`[${this.getTitle()}] Failed to load ${validatedURL}:`, errorDescription, `(code: ${errorCode})`)
+        })
+        this.webContents.on('did-finish-load', () => this.injectScript())
     }
 
-    this.webContents.on('did-finish-load', inject)
-    this.webContents.on('did-navigate', inject)
-    this.webContents.on('dom-ready', inject)
-  }
-
-  private getInjectScript(): string {
-    if (!this.injectScriptPath) {
-      return ''
+    public getEventBus(): EventEmitter {
+        return this.eventBus
     }
 
-    if (fs.existsSync(this.injectScriptPath)) {
-      return fs.readFileSync(this.injectScriptPath, 'utf8')
+    public injectScript(): void {
+        const script = this.getInjectScript()
+        if (!script) return
+        void this.webContents.executeJavaScript(script).catch(err => {
+            console.error(`[${this.getTitle()}] Injection failed:`, err)
+        })
     }
 
-    console.error(`[${this.title}] Inject script not found at:`, this.injectScriptPath)
-    return ''
-  }
-
-  public getEventBus(): EventEmitter {
-    return this.eventBus
-  }
-
-  public injectScript(): void {
-    const script = this.getInjectScript()
-    if (!script) return
-
-    this.webContents.executeJavaScript(script)
-      .then(() => console.log(`[${this.title}] Manual injection success`))
-      .catch(err => console.error(`[${this.title}] Manual injection failed:`, err))
-  }
+    private getInjectScript(): string {
+        if (!this.injectScriptPath) return ''
+        if (!fs.existsSync(this.injectScriptPath)) {
+            console.error(`[${this.getTitle()}] Inject script not found at:`, this.injectScriptPath)
+            return ''
+        }
+        return fs.readFileSync(this.injectScriptPath, 'utf8')
+    }
 }

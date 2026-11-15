@@ -1,120 +1,90 @@
 import { session, shell } from 'electron'
 import path from 'node:path'
-import { AI_CHAT_CONSTANTS } from './constants'
+import { APP_DISPLAY_NAME, APP_PROTOCOL_DEFAULT } from '../brand'
+import { AI_CHAT_CONSTANTS, MONITOR_HOSTS } from './constants'
 import { EnhancedBrowserWindow } from './browser/enhanced-browser-window'
 
-interface ConversationEvent {
-  message?: {
-    id: string
-    content: {
-      parts: string[]
-    }
-  }
-}
-
-const CHATGPT_CONSTANTS = {
-  HOST: AI_CHAT_CONSTANTS.CHATGPT_HOST,
-  SSE_RAW_PREFIX: AI_CHAT_CONSTANTS.SSE_RAW_PREFIX,
-  SSE_CHUNK_EVENT: AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT,
-  SESSION_COOKIE_NAME: AI_CHAT_CONSTANTS.SESSION_COOKIE_NAME,
-  COOKIE_DOMAIN: AI_CHAT_CONSTANTS.COOKIE_DOMAIN
-} as const
+const PARTITION = 'persist:chatgpt'
+const HOST = MONITOR_HOSTS.chatgpt
 
 class ChatGPTMonitor extends EnhancedBrowserWindow {
-  constructor() {
-    const partition = 'persist:chatgpt'
-
-    super({
-      url: CHATGPT_CONSTANTS.HOST,
-      title: 'ChatGPT Monitor',
-      injectScriptPath: path.join(__dirname, 'chatgpt-inject.js'),
-      sseRawPrefix: CHATGPT_CONSTANTS.SSE_RAW_PREFIX,
-      sseChunkEvent: CHATGPT_CONSTANTS.SSE_CHUNK_EVENT,
-      partition
-    })
-
-    const proxyUrl = process.env.PROXY_URL
-    if (proxyUrl && proxyUrl.trim()) {
-      const sessionInstance = session.fromPartition(partition)
-      sessionInstance.setProxy({ proxyRules: proxyUrl.trim() })
-        .then(() => {
-          console.log(`[${this.title}] Proxy set successfully: ${proxyUrl}`)
+    constructor() {
+        super({
+            url: HOST,
+            title: `${APP_DISPLAY_NAME} - ChatGPT Monitor`,
+            partition: PARTITION,
+            injectScriptPath: path.join(__dirname, 'chatgpt-inject.js'),
+            sseChunkEvent: AI_CHAT_CONSTANTS.SSE_CHUNK_EVENT,
         })
-        .catch((err: Error) => {
-          console.error(`[${this.title}] Failed to set proxy:`, err)
-        })
-    }
-  }
 
-  public async setSessionToken(token: string): Promise<void> {
-    const cookie = {
-      url: CHATGPT_CONSTANTS.HOST,
-      name: CHATGPT_CONSTANTS.SESSION_COOKIE_NAME,
-      value: token,
-      domain: CHATGPT_CONSTANTS.COOKIE_DOMAIN
+        const proxyUrl = process.env.PROXY_URL
+        if (proxyUrl && proxyUrl.trim()) {
+            void session.fromPartition(PARTITION)
+                .setProxy({ proxyRules: proxyUrl.trim() })
+                .catch(err => console.error('[ChatGPT] Failed to set proxy:', err))
+        }
     }
 
-    await this.setSessionCookie(cookie)
-  }
+    public async setSessionToken(token: string): Promise<void> {
+        await this.setSessionCookie({
+            url: HOST,
+            name: AI_CHAT_CONSTANTS.SESSION_COOKIE_NAME,
+            value: token,
+            domain: AI_CHAT_CONSTANTS.COOKIE_DOMAIN,
+        })
+    }
 
-  public destroy(): void {
-    super.destroy()
-    chatGPTMonitor = null
-  }
+    public destroy(): void {
+        super.destroy()
+        chatGPTMonitor = null
+    }
 
-  public close() {
-    super.close()
-    chatGPTMonitor = null
-  }
+    public close(): void {
+        super.close()
+        chatGPTMonitor = null
+    }
 }
 
 let chatGPTMonitor: ChatGPTMonitor | null = null
 
 export function getChatGPTMonitor(): ChatGPTMonitor {
-  if (!chatGPTMonitor || !chatGPTMonitor.exists()) {
-    chatGPTMonitor = new ChatGPTMonitor()
-    chatGPTMonitor.load()
-  }
-  return chatGPTMonitor
+    if (!chatGPTMonitor || !chatGPTMonitor.exists()) {
+        chatGPTMonitor = new ChatGPTMonitor()
+        chatGPTMonitor.load()
+    }
+    return chatGPTMonitor
 }
 
 export function setupChatGPTMonitor(): void {
-  const monitor = getChatGPTMonitor()
-  if (monitor.exists()) {
-    monitor.focus()
-  }
-}
-
-export function setSessionToken(token: string): void {
-  const monitor = getChatGPTMonitor()
-  monitor.setSessionToken(token).catch(err => {
-    console.error('[ChatGPT] Failed to set session token:', err)
-  })
-}
-
-export function openExternalLogin(): void {
-  const appProtocol = process.env.APP_PROTOCOL || 'meta-note'
-  const redirectUri = encodeURIComponent(`${appProtocol}://auth`)
-  const loginUrl = `${CHATGPT_CONSTANTS.HOST}/auth/login?redirect_uri=${redirectUri}&callbackUrl=${redirectUri}`
-
-  console.log('[ChatGPT] Opening external login:', loginUrl)
-  shell.openExternal(loginUrl)
+    const monitor = getChatGPTMonitor()
+    if (monitor.exists()) {
+        monitor.focus()
+    }
 }
 
 export function getChatGPTEventBus() {
-  const monitor = getChatGPTMonitor()
-  return monitor.getEventBus()
+    return getChatGPTMonitor().getEventBus()
 }
 
-export function getConversationCache(): ConversationEvent[] {
-  return []
+export function setSessionToken(token: string): void {
+    void getChatGPTMonitor().setSessionToken(token).catch(err => {
+        console.error('[ChatGPT] Failed to set session token:', err)
+    })
+}
+
+export function openExternalLogin(): void {
+    const protocol = process.env.APP_PROTOCOL || APP_PROTOCOL_DEFAULT
+    const redirectUri = encodeURIComponent(`${protocol}://auth`)
+    const loginUrl = `${HOST}/auth/login?redirect_uri=${redirectUri}&callbackUrl=${redirectUri}`
+    void shell.openExternal(loginUrl).catch(err => {
+        console.error('[ChatGPT] Failed to open external login:', err)
+    })
 }
 
 export default {
-  setupChatGPTMonitor,
-  getConversationCache,
-  setSessionToken,
-  openExternalLogin,
-  getChatGPTEventBus,
-  getChatGPTMonitor
+    setupChatGPTMonitor,
+    getChatGPTEventBus,
+    getChatGPTMonitor,
+    setSessionToken,
+    openExternalLogin,
 }

@@ -1,11 +1,11 @@
 import { Injectable, MessageEvent } from '@nestjs/common';
-import axios from 'axios';
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
 import { Observable, Observer } from 'rxjs';
 import crypto from 'node:crypto';
 import { TTS_CONSTANTS, TTS_MODEL_FILES } from '../../constants';
+import { getTTSManager } from '../../rust-bridge';
 
 interface ModelIntegrity {
     isValid: boolean;
@@ -18,12 +18,14 @@ interface ModelStatus {
     files: Record<string, boolean>;
     integrity: ModelIntegrity;
     path: string;
+    nativeAvailable: boolean;
 }
 
 @Injectable()
 export class TTSService {
     private readonly modelDir = path.join(app.getPath('userData'), 'models', 'xtts-v2');
     private readonly voiceProfilesDir = path.join(app.getPath('userData'), 'voice_profiles');
+    private readonly ttsManager = getTTSManager();
 
     constructor() {
         fs.ensureDirSync(this.modelDir);
@@ -31,11 +33,27 @@ export class TTSService {
     }
 
     async synthesize(text: string, voiceProfileId: string): Promise<Buffer> {
-        const status = await this.getModelStatus();
-        if (!status.ready) {
-            throw new Error('TTS Model not ready');
+        if (!this.ttsManager) {
+            throw new Error('TTS native module not loaded: system TTS unavailable');
         }
-        return Buffer.from('mock-audio-data');
+
+        if (!text || text.trim().length === 0) {
+            throw new Error('TTS text cannot be empty');
+        }
+
+        const voice = voiceProfileId || 'Samantha';
+        const tmpFile = path.join(app.getPath('temp'), `tts-${Date.now()}.wav`);
+
+        try {
+            this.ttsManager.synthesize(text, voice, tmpFile);
+
+            const audioBuffer = await fs.readFile(tmpFile);
+            return audioBuffer;
+        } catch (error: any) {
+            throw new Error(`TTS synthesis failed: ${error.message}`);
+        } finally {
+            await fs.remove(tmpFile).catch(() => {});
+        }
     }
 
     private async calculateHash(filePath: string): Promise<string> {
@@ -90,7 +108,8 @@ export class TTSService {
             : { isValid: false, details: 'Files missing' };
 
         return {
-            ready: allFilesExist,
+            ready: this.ttsManager !== null,
+            nativeAvailable: this.ttsManager !== null,
             version: TTS_CONSTANTS.MODEL_VERSION,
             files: filePresence,
             integrity,
@@ -145,35 +164,45 @@ export class TTSService {
     }
 
     private async streamToFile(url: string, dest: string, onProgress: (d: number, t: number) => void): Promise<void> {
-        const response = await axios({
-            url,
+        const response = await fetch(url, {
             method: 'GET',
-            responseType: 'stream',
-            timeout: 120000,
             headers: { 'User-Agent': 'Mozilla/5.0' },
-            maxRedirects: 10
+            signal: AbortSignal.timeout(120000)
         });
 
-        const total = parseInt(response.headers['content-length'], 10) || 0;
+        if (!response.ok) {
+            throw new Error(`Download failed: ${response.status} ${response.statusText}`)
+        }
+
+        const total = parseInt(response.headers.get('content-length') || '0', 10);
         let downloaded = 0;
         let lastReport = Date.now();
 
         const writer = fs.createWriteStream(dest);
-        response.data.on('data', (chunk: Buffer) => {
-            downloaded += chunk.length;
-            const now = Date.now();
-            if (total > 0 && now - lastReport > 200) {
-                onProgress(downloaded, total);
-                lastReport = now;
-            }
-        });
-
-        response.data.pipe(writer);
+        const reader = response.body!.getReader();
 
         return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-            response.data.on('error', reject);
+            const pump = async () => {
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+                        downloaded += value.length
+                        const now = Date.now()
+                        if (total > 0 && now - lastReport > 200) {
+                            onProgress(downloaded, total)
+                            lastReport = now
+                        }
+                        writer.write(value)
+                    }
+                    writer.end()
+                    writer.on('finish', resolve)
+                } catch (err) {
+                    reject(err)
+                }
+            }
+            pump()
+            writer.on('error', reject)
         });
     }
 

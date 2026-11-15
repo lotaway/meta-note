@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
-import { ipcRenderer } from 'electron'
-import { IPC_CHANNELS } from '../../main/constants'
+import type { AudioSourceInfo } from '../../global'
 import { AudioSourceType, AUDIO_CONFIG, AudioRecordingError } from '../types/Audio'
 
 const VOICE_API_URL = import.meta.env.VITE_VOICE_API_URL || 'http://localhost:8000'
@@ -10,7 +9,7 @@ interface AudioContextType {
     startRecording: (sourceId: string, sourceType: AudioSourceType) => Promise<void>
     stopRecording: () => void
     requestTranscription: (file: File) => Promise<string>
-    availableSources: Electron.DesktopCapturerSource[]
+    availableSources: AudioSourceInfo[]
     reloadSources: () => Promise<void>
     latestTranscript: string
     updateTranscript: (text: string) => void
@@ -21,7 +20,7 @@ const AudioContext = createContext<AudioContextType | null>(null)
 
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isStreaming, setIsStreaming] = useState(false)
-    const [availableSources, setAvailableSources] = useState<Electron.DesktopCapturerSource[]>([])
+    const [availableSources, setAvailableSources] = useState<AudioSourceInfo[]>([])
     const [latestTranscript, setLatestTranscript] = useState('')
     
     // Web Audio API state
@@ -34,13 +33,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const responseRef = useRef<Response | null>(null)
 
     const reloadSources = useCallback(async () => {
-        const sources = await ipcRenderer.invoke(IPC_CHANNELS.GET_AUDIO_SOURCES)
+        const sources = await window.desktop.getAudioSources()
         setAvailableSources(sources)
     }, [])
 
     const updateTranscript = useCallback((text: string) => {
         setLatestTranscript(text)
-        ipcRenderer.send(IPC_CHANNELS.SUBTITLES_TEXT, text)
+        window.desktop.sendSubtitlesText(text)
     }, [])
 
     const handleSSELine = useCallback((line: string) => {

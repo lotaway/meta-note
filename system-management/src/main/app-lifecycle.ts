@@ -1,9 +1,7 @@
 import { app, BrowserWindow } from "electron"
-import * as remote from "@electron/remote/main"
-import chatGPTMonitor from "./desktop-chatgpt"
-import deepSeekMonitor from "./desktop-deepseek"
 import { LLMService } from "./nestjs/services/llm.service"
 import { SubtitlesWindow } from "./browser/subtitles-window"
+import { APP_DISPLAY_NAME } from "../brand"
 
 export interface AppConfig {
     isDev: boolean
@@ -45,16 +43,16 @@ export class AppLifecycle {
         this.mainWindow = new BrowserWindow({
             width: this.config.windowWidth,
             height: this.config.windowHeight,
+            title: APP_DISPLAY_NAME,
             resizable: true,
             webPreferences: {
                 devTools: this.config.isDev,
-                nodeIntegration: true,
-                contextIsolation: false,
+                nodeIntegration: false,
+                contextIsolation: true,
+                sandbox: true,
                 preload: this.config.preloadPath
             }
         })
-        remote.initialize()
-        remote.enable(this.mainWindow.webContents)
         if (this.config.isDev) {
             await this.mainWindow.loadURL(`http://localhost:${this.config.devServerPort}`)
         } else {
@@ -96,21 +94,6 @@ export class AppLifecycle {
         app.on('open-url', (event, url) => {
             event.preventDefault()
             console.log('Received URL:', url)
-            try {
-                const u = new URL(url)
-                if (u.protocol !== `${this.config.appProtocol}:`) {
-                    return
-                }
-                if (u.host === 'auth') {
-                    const token = u.searchParams.get('token')
-                    if (token) chatGPTMonitor.setSessionToken(token)
-                } else if (u.host === 'auth-deepseek') {
-                    const token = u.searchParams.get('token')
-                    if (token) deepSeekMonitor.setDeepSeekSessionToken(token)
-                }
-            } catch (e) {
-                console.error('Failed to parse incoming URL:', e)
-            }
         })
 
         void app.whenReady().then(() => {

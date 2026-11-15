@@ -1,8 +1,4 @@
 export const IPC_CHANNELS = {
-    OPEN_CHATGPT_WINDOW: 'open-chatgpt-window',
-    OPEN_EXTERNAL_LOGIN: 'open-external-login',
-    OPEN_DEEPSEEK_WINDOW: 'open-deepseek-window',
-    OPEN_DEEPSEEK_EXTERNAL_LOGIN: 'open-deepseek-external-login',
     READ_FILE_IN_DIRECTORY: 'readFileInDirectory',
     MERGE_VIDEO: 'mergeVideo',
     LLM_COMPLETION: 'llm:completion',
@@ -12,6 +8,43 @@ export const IPC_CHANNELS = {
     SUBTITLES_TEXT: 'subtitles:text',
     SUBTITLES_STYLE: 'subtitles:style',
     GET_AUDIO_SOURCES: 'audio:get-sources',
+    AUDIO_LIST_DEVICES: 'audio:list-devices',
+    AUDIO_START_CAPTURE: 'audio:start-capture',
+    AUDIO_STOP_CAPTURE: 'audio:stop-capture',
+    AUDIO_GET_DATA: 'audio:get-data',
+    SELECT_DIRECTORY: 'dialog:select-directory',
+    OPEN_EXTERNAL: 'shell:open-external',
+    GET_OS_NETWORK_INTERFACES: 'system:network-interfaces',
+    GET_LOCAL_API_TOKEN: 'system:local-api-token',
+    GET_GATEWAY_TOKEN: 'system:gateway-token',
+    INVALIDATE_GATEWAY_TOKEN: 'system:gateway-token-invalidate',
+    OPEN_MONITOR_WINDOW: 'monitor:open-window',
+    OPEN_EXTERNAL_LOGIN: 'monitor:open-external-login',
+    MONITOR_SSE_CHUNK: 'monitor:sse-chunk',
+} as const
+
+export const EXTERNAL_TARGETS = {
+    chatgpt: 'https://chatgpt.com/',
+    deepseek: 'https://chat.deepseek.com/',
+    googleLogin: 'https://accounts.google.com/',
+    deepseekLogin: 'https://chat.deepseek.com/',
+} as const
+
+export type ExternalTarget = keyof typeof EXTERNAL_TARGETS
+
+export const MONITOR_PROVIDERS = ['chatgpt', 'deepseek'] as const
+export type MonitorProvider = typeof MONITOR_PROVIDERS[number]
+
+export const MONITOR_HOSTS = {
+    chatgpt: 'https://chatgpt.com',
+    deepseek: 'https://chat.deepseek.com',
+} as const
+
+export const AI_CHAT_CONSTANTS = {
+    SSE_CHUNK_EVENT: 'sse-chunk',
+    SESSION_COOKIE_NAME: '__Secure-next-auth.session-token',
+    CHATGPT_HOST: 'https://chatgpt.com',
+    COOKIE_DOMAIN: '.chatgpt.com',
 } as const
 
 export const SUBTITLES_WINDOW_CONSTANTS = {
@@ -21,20 +54,11 @@ export const SUBTITLES_WINDOW_CONSTANTS = {
     ROUTE_HASH: 'subtitles'
 } as const
 
-export const AI_CHAT_CONSTANTS = {
-    SSE_RAW_PREFIX: '__SSE_PREFIX__',
-    SSE_CHUNK_EVENT: 'sse-chunk',
-    SESSION_COOKIE_NAME: '__Secure-next-auth.session-token',
-    CHATGPT_HOST: 'https://chatgpt.com',
-    COOKIE_DOMAIN: '.chatgpt.com',
-} as const
-
 export const ROUTE_PATHS = {
     SHOW: '/api/show',
     TAGS: '/api/tags',
     AUTH_TOKEN: '/v1/auth/token',
     CHAT_COMPLETIONS: '/v1/chat/completions',
-    STUDY_REQUEST: '/api/study/request',
     CONFIG: '/api/config',
     SCREENSHOT_APP: '/screenshot/app',
     SCREENSHOT_DESKTOP: '/screenshot/desktop',
@@ -44,6 +68,10 @@ export const ROUTE_PATHS = {
     TTS_SYNTHESIZE: '/api/tts/synthesize',
     TTS_DOWNLOAD: '/api/tts/download',
     TTS_DELETE: '/api/tts/delete',
+    STUDY_REQUEST: '/api/study/request',
+    NOTE_GENERATE: '/api/note/generate',
+    NOTE_STATUS: '/api/note/status/:id',
+    NOTE_RESULT: '/api/note/:id',
 } as const
 
 export const STUDY_CONSTANTS = {

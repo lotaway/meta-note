@@ -3,9 +3,9 @@ export interface ChatgptConversationData {
     event?: string
     message?: ChatgptMessage
     conversation_id?: string
-    p?: string // patch path
-    o?: string // operation: add, append, patch
-    v?: any    // value
+    p?: string
+    o?: string
+    v?: any
     metadata?: any
     marker?: string
 }

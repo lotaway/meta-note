@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useMousePosition, useScroll } from '../utils/hooks'
 import Files2video from '../features/Files2video'
+import { APP_DISPLAY_NAME } from '../../brand'
 
 enum Status {
     NoInit,
@@ -87,27 +88,27 @@ const ActionButtons = () => (
     <ActionButtonContainer>
         <PremiumButton
             $bgColor="#10a37f"
-            onClick={() => window.desktop.requestOpenChatGPTWindow()}
+            onClick={() => void window.desktop.openMonitor('chatgpt')}
         >
-            Open ChatGPT Monitor
+            Open ChatGPT Monitor (In-app)
         </PremiumButton>
         <PremiumButton
             $bgColor="#4285f4"
-            onClick={() => window.desktop.requestOpenExternalLogin()}
+            onClick={() => void window.desktop.openExternalLogin('chatgpt')}
         >
-            Google Login (System Browser)
+            ChatGPT Login (System Browser)
         </PremiumButton>
         <PremiumButton
             $bgColor="#10b981"
-            onClick={() => window.desktop.requestOpenDeepseekWindow()}
+            onClick={() => void window.desktop.openMonitor('deepseek')}
         >
-            Open Deepseek Monitor
+            Open DeepSeek Monitor (In-app)
         </PremiumButton>
         <PremiumButton
             $bgColor="#6366f1"
-            onClick={() => window.desktop.requestOpenDeepseekExternalLogin()}
+            onClick={() => void window.desktop.openExternalLogin('deepseek')}
         >
-            Deepseek Login (System Browser)
+            DeepSeek Login (System Browser)
         </PremiumButton>
     </ActionButtonContainer>
 )
@@ -127,9 +128,9 @@ const InfoDisplay = () => {
 }
 
 export default function Settings() {
-    const [name] = useState<string>("Meta Note")
+    const [name] = useState<string>(APP_DISPLAY_NAME)
     const [commonData, setCommonData] = useState<States>({
-        welcomeTitle: `welcome to use Meta Note`,
+        welcomeTitle: `welcome to use ${APP_DISPLAY_NAME}`,
         status: Status.NoInit
     })
 

@@ -1,13 +1,11 @@
-pub mod api;
-pub mod application;
-pub mod domain;
-pub mod infrastructure;
+pub mod monitor;
+pub mod media;
+pub mod audio;
+pub mod tts;
 
 use napi_derive::napi;
 
-pub use api::*;
-
 #[napi]
 pub fn init() {
-  println!("Support initialled");
+    println!("system-support v0.2.0 initialized");
 }
