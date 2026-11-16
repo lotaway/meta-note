@@ -46,7 +46,7 @@ docker compose -f docker-compose.yml -f docker-compose.digital-twin.yml \
 | 中间件 | `redis` | refresh token 与黑名单 |
 | 中间件 | `kafka` | `digital-twin.*` 事件订阅 |
 
-`gateway` 的 `10081` 是客户端**唯一应该连接**的入口（端口在主仓库 `docker-compose.server.yml` 中写死）。注意一个叠加编排的细节：Compose 对 `ports` 列表是累加合并，`docker-compose.digital-twin.yml` 里的 `ports: []` 并不能取消基文件的映射，`factory-service:10101` 与 `mall-user-service:10083` 仍会发布到宿主。这不改变客户端的调用方式（`gateway-client.ts` / `gateway-token.ts` 已固定走 10081），但现场若要求「除 10081 外零宿主端口」，需要额外在 overlay 用 `ports: !reset []` 或把基文件改成 `expose:`——**该改动尚未做**。
+`gateway` 的 `10081` 是**唯一对宿主发布的端口**：主仓库 `docker-compose.server.yml` 里只有 gateway 保留 `ports:`，其余 13 个 Java 服务都改为 `expose:`，仅在 compose 网络内可见。客户端统一经网关访问（`gateway-client.ts` / `gateway-token.ts` 固定走 10081），网关再按 zk 服务发现转发到 `factory-service:10101`、`mall-user-service:10083` 等容器内端口。调试时要直连某个服务，请进容器或用 `docker compose exec`，不要再给服务加 `ports:` 宿主映射。
 
 三个 Java 服务由 `docker-compose.digital-twin.yml` 统一切到 `prod`，读取 `application-common-prod.yml` 的 `${VAR:-...}` 存储配置；dev profile 里的 `192.168.1.194` 只在开发时生效。
 
