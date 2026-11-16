@@ -1,0 +1,166 @@
+# Release orchestration for the local factory stack.
+#
+# This file is the deployment contract: it only references published images and
+# never builds from source. The images are produced by the meta-web-three CI
+# (gateway / factory-service / mall-user-service targets of server/Dockerfile),
+# or loaded from an offline docker save bundle on an air-gapped site.
+#
+# For development, use meta-web-three's docker-compose.yml together with
+# docker-compose.digital-twin.yml instead: that path builds from source.
+#
+# Only gateway:10081 is published to the host. factory-service and
+# mall-user-service stay inside the compose network, so every client call must
+# pass through the gateway's JWT check.
+
+x-common-env: &common-env
+  SPRING_PROFILES_ACTIVE: prod
+  DATASOURCE_URL: "${DATASOURCE_URL:-jdbc:postgresql://postgres:5432/metawebthree}"
+  DATASOURCE_USERNAME: "${POSTGRES_USER:-admin}"
+  DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:-123123}"
+  REDIS_PASSWORD: "${REDIS_PASSWORD:-123123}"
+  SPRING_CLOUD_ZOOKEEPER_CONNECT_STRING: zookeeper:2181
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  # gateway validates locally and mall-user-service signs with the same key;
+  # the default matches server/common application-common.yml.
+  JWT_SECRET: "${JWT_SECRET:-mwt-dev-only-jwt-secret-please-override-0123456789abcdefghijklmnopqrstuvwxyz}"
+  INTERNAL_TOKEN_SECRET: "${INTERNAL_TOKEN_SECRET:-mwt-internal-secret-2024}"
+
+x-common-depends: &common-depends
+  zookeeper:
+    condition: service_healthy
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  kafka:
+    condition: service_started
+
+services:
+  gateway:
+    image: "${GATEWAY_IMAGE:-ghcr.io/lotaway/meta-web-three-gateway:0.0.0-dev}"
+    environment:
+      <<: *common-env
+    depends_on: *common-depends
+    ports:
+      - "${GATEWAY_PORT:-10081}:10081"
+    volumes:
+      - gateway_data:/server/gateway
+    networks:
+      - factory-net
+    restart: unless-stopped
+
+  factory-service:
+    image: "${FACTORY_SERVICE_IMAGE:-ghcr.io/lotaway/meta-web-three-factory-service:0.0.0-dev}"
+    environment:
+      <<: *common-env
+      SERVER_PORT: "10101"
+      INTERNAL_TOKEN_ENABLED: "true"
+      DIGITAL_TWIN_WEBSOCKET_ALLOWED_ORIGINS: "*"
+      JAVA_OPTS: "-Xms512m -Xmx1024m"
+    depends_on: *common-depends
+    ports: []
+    volumes:
+      - factory_service_data:/server/factory
+    networks:
+      - factory-net
+    restart: unless-stopped
+
+  mall-user-service:
+    image: "${MALL_USER_SERVICE_IMAGE:-ghcr.io/lotaway/meta-web-three-mall-user-service:0.0.0-dev}"
+    environment:
+      <<: *common-env
+    depends_on: *common-depends
+    ports: []
+    volumes:
+      - mall_user_service_data:/server/mall-user
+    networks:
+      - factory-net
+    restart: unless-stopped
+
+  zookeeper:
+    image: "${ZOOKEEPER_IMAGE:-zookeeper:3.9}"
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: ruok
+    volumes:
+      - zookeeper_data:/data
+    networks:
+      - factory-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  postgres:
+    image: "${POSTGRES_IMAGE:-postgres:16}"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-admin}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-123123}"
+      POSTGRES_DB: "${POSTGRES_DB:-metawebthree}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - factory-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-metawebthree}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: "${REDIS_IMAGE:-redis:7}"
+    command:
+      - redis-server
+      - --requirepass
+      - "${REDIS_PASSWORD:-123123}"
+      - --databases
+      - "20"
+    volumes:
+      - redis_data:/data
+    networks:
+      - factory-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-123123} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  kafka:
+    image: "${KAFKA_IMAGE:-confluentinc/cp-kafka:7.6.1}"
+    environment:
+      CLUSTER_ID: "${KAFKA_CLUSTER_ID:-b28ea04f9004080a4a34207b23292d3}"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - factory-net
+    restart: unless-stopped
+
+networks:
+  factory-net:
+    driver: bridge
+
+volumes:
+  gateway_data:
+  factory_service_data:
+  mall_user_service_data:
+  zookeeper_data:
+  postgres_data:
+  redis_data:
+  kafka_data:
