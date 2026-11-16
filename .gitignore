@@ -8,6 +8,7 @@ bin
 .idea
 .vs
 .vscode/settings.json
+.workbuddy
 
 logs/
 
