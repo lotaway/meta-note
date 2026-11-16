@@ -1,7 +1,7 @@
 import type { Device } from '../components/digital-twin/scene/FactoryScene'
 import type { Alert } from '../components/digital-twin/alert/AlertPanel'
-import { digitalTwinApi as generatedApi } from './generated'
-import type { DigitalTwinDevice, DigitalTwinAlert, DigitalTwinStatsSummary, ChartPoint } from './generated'
+import { digitalTwinApi as digitalTwinClient } from './clients'
+import type { DigitalTwinDevice, DigitalTwinAlert, DigitalTwinStatsSummary, ChartPoint } from './clients'
 
 const statusMap: Record<string, Device['status']> = {
   ONLINE: 'online',
@@ -74,30 +74,30 @@ export function parseWsEventData(data: unknown): Record<string, unknown> {
 
 export const digitalTwinApi = {
   async fetchDevices(): Promise<Device[]> {
-    const list = await generatedApi.fetchDevices()
+    const list = await digitalTwinClient.fetchDevices()
     return (list ?? []).map((d) => mapApiDevice(d))
   },
 
   async fetchActiveAlerts(devices: Device[]): Promise<Alert[]> {
     const nameByCode = new Map(devices.map((d) => [d.code, d.name]))
-    const list = await generatedApi.fetchActiveAlerts()
+    const list = await digitalTwinClient.fetchActiveAlerts()
     return (list ?? []).map((a) => mapApiAlert(a, nameByCode))
   },
 
   async fetchStatsSummary(): Promise<DigitalTwinStatsSummary> {
-    return generatedApi.fetchStatsSummary()
+    return digitalTwinClient.fetchStatsSummary()
   },
 
   async acknowledgeAlert(alertId: string, acknowledgedBy = 'operator'): Promise<void> {
-    return generatedApi.acknowledgeAlert(alertId, acknowledgedBy)
+    return digitalTwinClient.acknowledgeAlert(alertId, acknowledgedBy)
   },
 
   async resolveAlert(alertId: string, resolvedBy = 'operator', solution = ''): Promise<void> {
-    return generatedApi.resolveAlert(alertId, resolvedBy, solution)
+    return digitalTwinClient.resolveAlert(alertId, resolvedBy, solution)
   },
 
   isReachable(): Promise<boolean> {
-    return generatedApi.isReachable()
+    return digitalTwinClient.isReachable()
   },
 }
 

@@ -18,6 +18,14 @@ meta-note (本仓库)  ── 纯本地工厂的 Electron 桌面端
 
 > 本仓库已从 monorepo 独立出来，只包含桌面客户端与原生模块。`server/`（gateway / factory-service）、`apps/backstage-admin` 以及根 compose / k8s 编排仍留在原 `meta-web-three` 仓库，需另行启动；所有跨服务通讯一律经 gateway 校验 JWT。唯一的交付形态是 Electron 桌面端：仓库内不含 Web 版静态托管、nginx 镜像、第二套 compose 或 k8s 前端部署资产，也不在 `meta-web-three` 里提交本仓库内容。
 
+## 接口契约与同步机制
+
+本仓库只交付 Electron 桌面端，唯一的对外调用路径是 `gateway:10081/factory-service/**`。后端服务、共享的 OpenAPI 生成脚本（`apps/tools/`）和编排都位于同级仓库 `meta-web-three`；本仓库**有意不生成接口客户端**，也不入库 spec 快照或任何生成产物，客户端封装全部手写维护。路线选择的证据与理由见本仓库 [`TODO.md`](TODO.md) 的决策记录，具体目录与操作步骤见 [`system-management/README.md`](system-management/README.md) 的「API 客户端：有意不生成」。
+
+跨仓库契约的同步流程：后端 controller 是单一事实来源；端点变更时对照 controller 更新 `system-management/src/renderer/services/clients/**` 的路径、请求体与类型，同步更新客户端 README 的口径表，跑 `npm run typecheck` 与 `npm run test:run`，并在提交信息 / PR 描述中注明对应的后端仓库 commit 或分支。涉及 JWT、内部令牌或 WebSocket 事件类型的变更，还需复核 `gateway-client.ts` 与 `gateway-token.ts`。
+
+CI 只跑原生模块构建、`npm run typecheck` 和 `npm run test:run`：**不启动后端、不下载 spec、不执行任何代码生成**，因此全新检出无需联网契约源即可通过检查。
+
 ## 目录说明
 
 ### `system-management/` — 桌面客户端

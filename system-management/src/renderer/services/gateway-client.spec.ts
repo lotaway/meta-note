@@ -97,7 +97,7 @@ describe('gateway-client', () => {
     expect(url).not.toMatch(/:(10101|8082|8080)\b/)
   })
 
-  it('attaches the token to generated axios clients', async () => {
+  it('attaches the token to hand-written API clients', async () => {
     const client: any = Object.assign(vi.fn(), {
       interceptors: {
         request: { use: vi.fn() },

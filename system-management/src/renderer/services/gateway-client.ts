@@ -53,7 +53,7 @@ export async function gatewayFetch(path: string, init: RequestInit = {}): Promis
   return send(path, refreshed, init)
 }
 
-/** Attach the gateway JWT to an axios client created in the generated layer. */
+/** Attach the gateway JWT to a hand-written API client instance. */
 export function installGatewayAuth(client: AxiosInstance): void {
   const retried = new WeakSet<InternalAxiosRequestConfig>()
   client.interceptors.request.use(async (config) => {

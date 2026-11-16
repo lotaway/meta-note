@@ -60,6 +60,33 @@ docker compose -f docker-compose.yml -f docker-compose.digital-twin.yml up -d fa
 
 This repository has no Web deployment: the only delivery form is the Electron desktop app. There is no nginx / static-hosting build, no frontend container image and no k8s manifest; the renderer relies on `window.desktop` local capabilities and cannot run as a standalone browser page.
 
+## API 客户端：有意不生成
+
+本仓库**不引入 OpenAPI 代码生成**（2026-11-16 的路线 B 决定，理由见仓库根 `TODO.md` 的决策记录）。网关侧的 spec 依赖后端全部服务在线，且生成的 TS 类型在缺少 `@Schema` 的 controller 上比手写类型更弱；因此这里选择维护一份显式的手写客户端，并把契约同步写进文档。本仓库不提供 `generate:api`，**不要从 `meta-web-three/apps/tools/OpenApiToTS.js` 复制生成脚本**。
+
+`src/renderer/services/clients/` 是手写客户端目录（不要误认为生成物）：
+
+| 文件 | 职责 |
+|---|---|
+| `clients/digital-twin/api.ts` | 数字孪生 REST：设备列表、活跃告警、统计摘要、告警确认/解决；封装 axios 实例并挂接 `installGatewayAuth` |
+| `clients/digital-twin/types.ts` | 上述接口的手写 DTO 类型 |
+| `clients/mes/api.ts` | MES SCADA 遥测/指令与追溯 REST |
+| `clients/mes/types.ts` | 上述接口的手写 DTO 类型 |
+| `clients/index.ts` | 对外 barrel 导出 |
+
+告警规则 REST 位于同级的 `src/renderer/services/api/alertRule.ts`（同样手写，走 `gatewayFetch`），不在 `clients/` 目录内。
+
+**适用范围**：仅 `gateway:10081/factory-service/**` 的 REST 调用——digital-twin、alert-rules、MES/SCADA/traceability。
+
+**不适用范围（始终手写，不纳入任何生成范围）**：数字孪生 WebSocket 握手与 `DEVICE_STATUS_CHANGED` / `DEVICE_POSITION_UPDATED` / `PRODUCTION_OUTPUT_UPDATED` / `ALERT_CREATED` 事件、本地 `127.0.0.1:5051` HTTP 与 SSE、`window.desktop` preload IPC 桥接、MQTT 主题、主进程 login / refreshToken。
+
+### 后端契约同步机制
+
+- **单一事实来源**是 `meta-web-three` 的 `server/factory-domain/factory-service/` controller 及其 `server/README.md`。本仓库不持有 OpenAPI spec 快照，也不提交任何生成产物；`meta-web-three/DEVELOPMENT.md` 第 3 节只覆盖该仓库的 `apps/client` 与 `apps/backstage-admin`，不再描述本仓库。
+- **新增或变更端点**时：对照后端 controller 修改 `services/clients/**` 的路径、请求体与类型 → 更新本 README 的口径表 → 跑 `npm run typecheck` 与 `npm run test:run` → 在提交信息 / PR 描述里注明对应的后端仓库 commit 或分支。
+- **固定口径**（与上文「Cross-service access: gateway + JWT」一致）：REST base `http://localhost:10081/factory-service`（`VITE_GATEWAY_URL` / `_HOST` / `_PORT`）、`Authorization: Bearer <jwt>`、WS `ws://localhost:10081/factory-service/ws/digital-twin?token=<jwt>`、JWT 由主进程持有且不进入渲染层 bundle、禁止直连 `factory-service:10101` 等服务端口。
+- 契约变更若涉及 JWT / 内部令牌 / WS 事件类型，必须同时复核 `src/renderer/config/gateway.ts`、`src/renderer/services/gateway-client.ts`、`src/main/gateway-token.ts`。
+
 ## Local HTTP API authentication (Electron-internal)
 
 The Electron main process exposes a loopback-only HTTP API on `127.0.0.1:${WEB_SERVER_PORT}` (default `5051`). This is an internal API: its only consumer is this application's own renderer, and there is no other caller in this repository. It does not involve `server/` and does not use the gateway JWT.

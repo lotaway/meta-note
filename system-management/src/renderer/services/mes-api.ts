@@ -1,10 +1,10 @@
-import { mesApi } from './generated'
+import { mesApi } from './clients'
 export type {
   TelemetryRecord,
   TelemetryMetric,
   DeviceCommand,
   TraceRecord,
   TraceChain,
-} from './generated'
+} from './clients'
 
 export { mesApi }
