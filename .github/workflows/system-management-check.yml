@@ -18,7 +18,7 @@ on:
 # and would otherwise change the preinstalled toolchain silently.
 jobs:
   native-build-and-test:
-    name: Native build, typecheck and unit tests
+    name: Native build, typecheck, unit, e2e and Electron smoke
     runs-on: ubuntu-24.04
 
     defaults:
@@ -39,15 +39,23 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install native build dependencies
+      - name: Install native build and display dependencies
+        # xvfb + GTK/NSS stack are required to launch a real Electron window
+        # on a headless runner. The smoke spec is wrapped with xvfb-run below.
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            pkg-config libasound2-dev libv4l-dev libudev-dev
+            pkg-config libasound2-dev libv4l-dev libudev-dev \
+            xvfb libgtk-3-0 libnss3 libxss1 libasound2t64 libgbm1 \
+            libdrm2 libxkbcommon0 libatk1.0-0 libatk-bridge2.0-0 \
+            libcups2t64 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libpango-1.0-0 libcairo2 libatspi2.0-0 \
+            libx11-xcb1
 
       - name: Install dependencies
-        env:
-          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+        # Electron binary download is intentionally NOT skipped: the smoke
+        # test launches the real Electron runtime. This app has no lockfile;
+        # the registry is pinned in system-management/.npmrc.
         run: npm install --legacy-peer-deps
 
       - name: Build native module
@@ -57,4 +65,31 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
+        # Run under the plain Node ABI, before better-sqlite3 is rebuilt for
+        # Electron. Unit tests mock native modules and need the Node binding.
         run: npm run test:run
+
+      - name: Build renderer and main process
+        # Produces dist/index.html and dist-electron/main/desktop-main.js,
+        # which the browser e2e dev server and the Electron smoke both consume.
+        run: npm run build
+
+      - name: Install Playwright browser
+        # Chromium is only for the browser-level e2e suite; headless needs no
+        # xvfb. --with-deps is omitted because the display deps above cover it.
+        run: npx playwright install chromium
+
+      - name: Browser e2e tests
+        run: npm run test:e2e
+
+      - name: Rebuild better-sqlite3 for Electron ABI
+        # Validates the declared native dependency against Electron's ABI —
+        # the gap the previous workflow never covered. Must happen after the
+        # Node-ABI unit tests and before the Electron launch.
+        run: npm run rebuild:sqlite3
+
+      - name: Electron runtime smoke
+        # Real Electron startup, window.desktop bridge and NAPI-RS module load
+        # under a virtual display. This is the only check that catches
+        # native-ABI or preload regressions that unit/browser tests cannot.
+        run: xvfb-run -a npm run test:smoke

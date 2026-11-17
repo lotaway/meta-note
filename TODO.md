@@ -48,6 +48,7 @@
   - 需决策：是否允许 CI 引入 xvfb 与 Electron 二进制下载（会增加构建时长与镜像体积）；若只做手动冒烟，由谁提供运行记录。
   - 环境要求：headless Electron 需要 xvfb 与图形依赖；真机冒烟需要可用的桌面环境。
   - 关闭条件：CI 或手动记录中有一次真实 Electron 启动、原生模块加载成功、真实业务 UI 渲染通过的结果。运行验证须另行获准。
+  - **2026-11-17 实现进展（待 CI 验收）**：用户决策按"测试 → 全自动化"处理，引入 xvfb 做 CI 自动冒烟。已落地：`system-management/.npmrc` 固定 registry 到 npmjs；新增 `src/e2e/smoke/electron-smoke.spec.ts`（用 Playwright `_electron.launch()` 启动真实 Electron，断言 window.desktop 具名方法、#app 真实渲染、NAPI-RS 原生模块无 `[NativeBridge] CRITICAL` 日志）+ 独立 `playwright.smoke.config.ts` + `package.json` 的 `test:smoke` 脚本；`vitest.config.ts` 的 exclude 增加 `src/e2e/**` 避免冒烟被单误跑；CI workflow 改造为装 xvfb + 图形依赖、取消 `ELECTRON_SKIP_BINARY_DOWNLOAD=1`、加 `npm run build` / `npx playwright install chromium` / `npm run test:e2e` / `npm run rebuild:sqlite3` / `xvfb-run -a npm run test:smoke`，顺序上 test:run 在 rebuild 之前避免 Node/Electron ABI 冲突。本地验证：`npm run typecheck` 通过、`npm run test:run` 通过（16/176）、`playwright --list` 两套配置分别收集 1（冒烟）/13（浏览器）用例。真实运行受限于本地 Electron 二进制缺失与 Playwright CDN 下载卡住，交由 CI（境外 runner）验证。关闭前需确认 CI 绿。
 
 - [ ] 7. 补齐测试覆盖并让 Playwright e2e 可复现运行。
   - 问题：`system-management/src` 现有 18 个测试 / e2e 文件（含 `src/renderer/e2e/gateway-auth.spec.ts`、`scene.spec.ts` 与 `playwright.config.ts`），覆盖集中在主进程与少数服务 / 组件；`services/clients/**`（改名后）与 `services/api/alertRule.ts` 缺直接用例，3D 场景、告警流、图表没有响应式 / 视觉 / 性能覆盖，现有性能断言只检查 `not.toThrow()`（如 `AlertFlow.test.tsx:695`、`RealTimeDataDisplay.test.tsx:226`）。CI 不执行 `npm run test:e2e`，也没有图形环境。
@@ -55,6 +56,8 @@
   - 需决策：是否要求数值化覆盖率门槛；e2e 是否进 CI（需 xvfb）还是仅保留手动记录。
   - 环境要求：Playwright 浏览器二进制 + xvfb；真实 3D 渲染冒烟需要图形环境。
   - 关闭条件：`npm run test:run` 与选定的 e2e 子集通过，API 客户端与关键组件有行为断言，CI 或手动记录可复现。运行验证须另行获准。
+  - **2026-11-17 实现进展（待 CI 验收）**：用户决策 e2e 属测试、纳入 CI 全自动。CI workflow 已新增 `npx playwright install chromium` + `npm run test:e2e` 步骤（headless chromium 不需要 xvfb）。本地用 `playwright --list` 确认 13 个浏览器用例可被正确收集（`gateway-auth.spec.ts` 4 个 + `scene.spec.ts` 9 个）；本地实跑因 Playwright 浏览器版本不匹配（缓存 chromium-1076，1.60 需要 headless-shell-1255）且 CDN 下载卡住未完成，CI 装正确版本后应可运行。
+  - **未覆盖（本轮未做，仍待决策）**：任务 7 原始范围里的"为 `services/clients/**` 与 `api/alertRule.ts` 补直接用例""把 `not.toThrow()` 性能断言换成可观测断言""数值化覆盖率门槛"尚未处理——这些属代码层补强，与本次"CI 自动化"决策不同轴。是否继续补，留待用户确认。
 
 - [ ] 8. 清理前端代码原则与质量欠账（含未接线的实时通道）。
   - 问题（2026-11-16 对 `system-management/src` 的静态测量）：163 个 `.ts/.tsx` 文件里有 517 行含中文文本、105 个 `catch` 块，尚未区分 i18n 文案与注释 / 日志；含 `@media` 的文件数为 0、`aria-*` 命中 27 处，缺响应式断点与 ErrorBoundary。`src/renderer/services/mqtt.ts` 的 `DigitalTwinMQTT` / `useDigitalTwinMQTT`、`src/renderer/hooks/useAlertNotification.ts` 与 `src/main/constants.ts:92` 的 `WEBSOCKET_URL`（本地 5050）都只有定义或 barrel 导出，没有业务调用方；历史上还有约 227 行的长函数，需重新测量后拆分。CODE_PINCEPLES 要求代码文本一律英文（i18n 除外）、函数不超过 20 行、不吞异常、使用卫语句。
