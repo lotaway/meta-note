@@ -25,7 +25,7 @@ describe('Transcriber', () => {
         const result = await new Transcriber().transcribe(audioPath)
         expect(result).toEqual({ text: 'real transcript' })
         const [url, form] = mocks.post.mock.calls[0]
-        expect(url).toContain('/v1/audio/transcriptions')
+        expect(url).toBe('http://localhost:8081/v1/audio/transcriptions')
         expect(form).toBeInstanceOf(FormData)
         expect(form.get('model')).toBe('whisper-1')
         expect(form.get('response_format')).toBe('json')

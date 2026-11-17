@@ -20,6 +20,24 @@ Edit `.env` and set the voice service endpoint:
 VITE_VOICE_API_URL=http://localhost:8000
 ```
 
+### 3. Port reference
+
+This desktop app binds or calls the following ports. All are loopback-only unless noted. This is the single port table for desktop-local services; the gateway port is shared with the `meta-web-three` backend.
+
+| Port | Service | Config key / default | Notes |
+|---|---|---|---|
+| `10081` | gateway | `VITE_GATEWAY_URL` / `_HOST` / `_PORT` | Shared with `meta-web-three`; the only route to `server/`. See Cross-service access below. |
+| `5050` | local WebSocket server | `WEBSOCKET_PORT` | Desktop-local; defined but currently not wired to a business caller (see TODO task 8). |
+| `5051` | in-app HTTP API + SSE | `WEB_SERVER_PORT` | Electron main process, loopback-only, session token required. |
+| `5173` | Vite dev server | `DEV_SERVER_PORT` | Development mode only. |
+| `8000` | voice API (`/voice/to/text`) | `VITE_VOICE_API_URL` | Front-end voice service URL. |
+| `8080` | embedded llama-server | hardcoded in `local-llm-provider.ts` | Serves `/health` `/completion` `/embedding` on `127.0.0.1`. |
+| `8081` | Whisper-compatible transcription | `WHISPER_URL` | `POST /v1/audio/transcriptions`. Was `8080` but moved to avoid colliding with llama-server. |
+
+`8080` and `8081` must stay different: the embedded llama-server owns `8080`, so the transcription endpoint defaults to `8081`. Changing either default requires updating `.env.example`, the code default and this table together.
+
+The ports `10101` / `8082` / `8080` mentioned under Cross-service access belong to backend services in `meta-web-three` and are **never** configured or called directly here — the `8080` there refers to a backend service port, not the local llama-server. Everything under `server/` is reached through `gateway:10081`.
+
 ## Cross-service access: gateway + JWT
 
 Everything under `server/` (digital-twin REST, alert rules, MES/SCADA/traceability and the digital-twin WebSocket) is reached **only** through `gateway:10081`. Direct calls to `factory-service:10101` / `:8082` / `:8080` are not used anywhere in the renderer.

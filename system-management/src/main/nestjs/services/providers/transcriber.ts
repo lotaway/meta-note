@@ -18,7 +18,7 @@ interface WhisperResponse {
 
 @Injectable()
 export class Transcriber {
-    private readonly endpoint = process.env.WHISPER_URL || 'http://localhost:8080/v1/audio/transcriptions'
+    private readonly endpoint = process.env.WHISPER_URL || 'http://localhost:8081/v1/audio/transcriptions'
     private readonly model = process.env.WHISPER_MODEL || 'whisper-1'
 
     async transcribe(audioPath: string): Promise<Transcript> {

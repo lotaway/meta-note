@@ -62,13 +62,16 @@
   - 需决策：哪些中文字符串属于可保留的 i18n 资源；MQTT / 本地 5050 通道保留还是移除；是否设定断点数值。
   - 关闭条件：中文文本只留在 i18n 资源，catch 与长函数按原则处理，响应式 / 焦点态 / ErrorBoundary 落地，未接线通道被接入或删除，检查通过。
 
-- [ ] 9. 统一桌面端 env 与端口口径。
-  - 问题：`system-management/.env.example:15` 的 `WHISPER_URL` 默认 `http://localhost:8080/v1/audio/transcriptions`，`src/main/nestjs/services/providers/transcriber.ts:21` 用同一默认值，而 `src/main/nestjs/services/providers/local-llm-provider.ts:11` 内置 `llama-server` 也占用 `8080`，两者同时启动必然冲突；同一份 `.env.example:30` 又写着「不要配置 10101 / 8082 / 8080」，口径自相矛盾。唯一端口表（gateway `10081`、Whisper、llama-server、`5051` / `5050` / `8000`）尚未写进 README。
-  - 建议：给 `llama-server` 或 `WHISPER_URL` 换一个不冲突的端口并同步 `.env.example` 与代码默认值；修正「不要配置 8080」的注释口径；在 README 写明唯一端口表；`VITE_MQTT_URL` 已从 `.env.example` 移除，无需再补 broker。
-  - 需决策：确定 `8080` 归属（Whisper 还是 llama-server）与新端口值；端口表由本仓库 README 还是后端仓库 README 维护。
-  - 关闭条件：`.env.example`、代码默认值与 README 口径一致，同时启动语音转写与本地 LLM 不再抢端口。运行验证须另行获准。
-
 ## 归档
+
+### 2026-11-17 — 任务 9（统一桌面端 env 与端口口径）
+
+- 决策（用户确认）：`8080` 归内嵌 `llama-server`（`local-llm-provider.ts` 硬编码，保留）；Whisper 转写默认端口改为 `8081`。唯一端口表由本仓库 `system-management/README.md` 维护。
+- `.env.example`：`WHISPER_URL` 默认值 `8080` → `8081`；改写 Cross-service access 注释，明确 `10101 / 8082 / 8080` 是 `meta-web-three` 后端服务端口、与本地 llama-server `8080` 无关，并指向 README 端口表。
+- `src/main/nestjs/services/providers/transcriber.ts:21`：代码默认值 `8080` → `8081`。
+- `src/main/nestjs/services/providers/transcriber.spec.ts`：端口断言由 `toContain('/v1/audio/transcriptions')` 收紧为 `toBe('http://localhost:8081/v1/audio/transcriptions')`。
+- `system-management/README.md`：Environment Configuration 下新增「Port reference」唯一端口表（`10081` / `5050` / `5051` / `5173` / `8000` / `8080` / `8081`），并说明 `8080`+`8081` 必须不同、后端服务端口不在此配置。
+- 验收：`npm run typecheck` 通过；`npm run test:run` 通过（16 个测试文件 / 176 个测试）。未做真机同时启动验证（运行验证须另行获准），但 `.env.example`、代码默认值与 README 三处口径已一致。
 
 ### 2026-11-16 — 任务 1-4（A 组：手写客户端正名与路线 B 文档）
 
