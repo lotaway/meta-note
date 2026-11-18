@@ -34,31 +34,29 @@
 
 ### 从主仓库迁入的任务（2026-11-16）
 
-主仓库 `meta-web-three/TODO.md` 已清理为纯任务列表，不再跟踪完成情况与本仓库专属事项；下面 4 条是其中仍需在本仓库闭环的重要部分。
+主仓库 `meta-web-three/TODO.md` 已清理为纯任务列表，不再跟踪完成情况与本仓库专属事项；下面 3 条是其中仍需在本仓库闭环的重要部分（任务 9 已完成并归档）。
 
 - [ ] 6. 补齐 Electron 运行时冒烟检查与 CI 原生 ABI 覆盖。
   - 问题：`.github/workflows/system-management-check.yml` 只跑 `npm run build:native` → `npm run typecheck` → `npm run test:run`，且第 50 行设 `ELECTRON_SKIP_BINARY_DOWNLOAD=1`；`package.json:21` 有 `rebuild:sqlite3`，CI 却不执行，声明的 `better-sqlite3 ^11.0.0` 原生 ABI 从未在运行时被检验，也没有加载真实业务 UI 的启动冒烟。仓库无 `.npmrc`，`npm install --legacy-peer-deps` 的 registry 未固定（lockfile 按约定不入库）。
-  - 建议：新增 `.npmrc` 固定 registry；CI 增加 `npm run rebuild:sqlite3`，取消 `ELECTRON_SKIP_BINARY_DOWNLOAD=1` 并用 `xvfb-run` 启动无头 Electron，加载一次真实业务 UI 断言 `window.desktop` 具名桥接可用；或记录一份有图形界面的手动冒烟结果。
-  - 需决策：是否允许 CI 引入 xvfb 与 Electron 二进制下载（会增加构建时长与镜像体积）；若只做手动冒烟，由谁提供运行记录。
-  - 环境要求：headless Electron 需要 xvfb 与图形依赖；真机冒烟需要可用的桌面环境。
-  - 关闭条件：CI 或手动记录中有一次真实 Electron 启动、原生模块加载成功、真实业务 UI 渲染通过的结果。运行验证须另行获准。
-  - **2026-11-18 更正（用户决策）**：Electron 冒烟改为**手动**，不进 CI、不引入 xvfb 与 Electron 二进制下载等复杂度。CI workflow 已回退为最小三件套（native build → typecheck → unit tests）。手动冒烟脚本保留供按需运行：`src/e2e/smoke/electron-smoke.spec.ts`（Playwright `_electron.launch()` 启动真实 Electron，断言 window.desktop 具名方法、`#app` 真实渲染、NAPI-RS 原生模块无 `[NativeBridge] CRITICAL` 日志）、`playwright.smoke.config.ts`、`package.json` 的 `test:smoke` 脚本。真机运行需另行获准，关闭前需有一次手动冒烟记录。
+  - 原始建议（已被下方决策取代，仅留背景）：曾在 CI 引入 xvfb 与 Electron 二进制下载做无头冒烟。
+  - 环境要求：真机冒烟需要可用的桌面环境。
+  - 关闭条件：保留一次手动冒烟记录（真实 Electron 启动、原生模块加载成功、真实业务 UI 渲染通过）。
+  - **决策（2026-11-18，用户已定，无待决事项）**：Electron 冒烟**手动**，不进 CI、不引入 xvfb 与 Electron 二进制下载等复杂度。CI workflow 已回退为最小三件套（native build → typecheck → unit tests）。手动冒烟脚本保留供按需运行：`src/e2e/smoke/electron-smoke.spec.ts`（Playwright `_electron.launch()` 启动真实 Electron，断言 window.desktop 具名方法、`#app` 真实渲染、NAPI-RS 原生模块无 `[NativeBridge] CRITICAL` 日志）、`playwright.smoke.config.ts`、`package.json` 的 `test:smoke` 脚本。真机运行由用户在有桌面环境时按需执行，不设审批前置。
 
 - [ ] 7. 补齐测试覆盖并让 Playwright e2e 可复现运行。
   - 问题：`system-management/src` 现有 18 个测试 / e2e 文件（含 `src/renderer/e2e/gateway-auth.spec.ts`、`scene.spec.ts` 与 `playwright.config.ts`），覆盖集中在主进程与少数服务 / 组件；`services/clients/**`（改名后）与 `services/api/alertRule.ts` 缺直接用例，3D 场景、告警流、图表没有响应式 / 视觉 / 性能覆盖，现有性能断言只检查 `not.toThrow()`（如 `AlertFlow.test.tsx:695`、`RealTimeDataDisplay.test.tsx:226`）。CI 不执行 `npm run test:e2e`，也没有图形环境。
-  - 建议：为 API 客户端与关键渲染组件补行为断言；给出可在无头环境运行的 e2e 子集（或明确标注需要图形环境并保留手动记录）；把「不抛异常」类断言换成可观测状态 / 输出断言。
-  - 需决策：是否要求数值化覆盖率门槛；e2e 是否进 CI（需 xvfb）还是仅保留手动记录。
-  - 环境要求：Playwright 浏览器二进制 + xvfb；真实 3D 渲染冒烟需要图形环境。
-  - 关闭条件：`npm run test:run` 与选定的 e2e 子集通过，API 客户端与关键组件有行为断言，CI 或手动记录可复现。运行验证须另行获准。
-  - **2026-11-18 更正（用户决策）**：浏览器 e2e 同为**手动**，不进 CI。CI workflow 已移除 `npx playwright install chromium` 与 `npm run test:e2e`。手动运行方式：先 `npm run build`，再 `npm run test:e2e`（`playwright.config.ts` 的 `webServer` 会起 dev server）。`playwright --list` 已确认 13 个浏览器用例可收集（`gateway-auth.spec.ts` 4 个 + `scene.spec.ts` 9 个）；本地实跑受限于 Playwright 浏览器版本不匹配与 CDN 下载，需在有网络的环境完成。
-  - **仍待处理（代码层补强）**：为 `services/clients/**` 与 `api/alertRule.ts` 补直接用例；把 `not.toThrow()` 性能断言换成可观测断言。是否设数值化覆盖率门槛留待用户确认。
+  - 环境要求：Playwright 浏览器二进制；真实 3D 渲染冒烟需要图形环境。
+  - 关闭条件：`npm run test:run` 与 e2e 子集通过，API 客户端与关键组件有行为断言，手动记录可复现。
+  - **决策（2026-11-18，用户已定，无待决事项）**：浏览器 e2e **手动**，不进 CI；**不设数值化覆盖率门槛**（用户未要求，不自行加准则）。CI workflow 已移除 `npx playwright install chromium` 与 `npm run test:e2e`。手动运行方式：先 `npm run build`，再 `npm run test:e2e`（`playwright.config.ts` 的 `webServer` 会起 dev server）。`playwright --list` 已确认 13 个浏览器用例可收集（`gateway-auth.spec.ts` 4 个 + `scene.spec.ts` 9 个）；本地实跑受限于 Playwright 浏览器版本不匹配与 CDN 下载，由用户在有网络的环境按需执行。
+  - **仍待处理（代码层补强）**：为 `services/clients/**` 与 `api/alertRule.ts` 补直接用例；把 `not.toThrow()` 性能断言换成可观测断言。
 
 - [ ] 8. 优化前端代码质量（含未接线的实时通道）。
   - 口径更正（2026-11-18，用户明确）：**本任务不涉及翻译代码注释 / 日志 / 文案，也不引入"代码文本一律英文"之类准则**。用户的语言要求仅针对本 `TODO.md`（用中文记录），从未施加到源码。此前从 `CODE_PINCEPLES` 衍生出的"函数不超过 20 行 / 不吞异常 / 用卫语句"等也属于自行扩大准则范围，不作为本任务验收项。本任务只做有实际收益的代码质量优化。
-  - 问题（2026-11-16 静态测量，需重新核实后按需处理）：105 个 `catch` 块中有多少是"记录后忽略"的吞异常；约 227 行历史长函数需重新测量再决定是否拆分；`src/renderer/services/mqtt.ts` 的 `DigitalTwinMQTT` / `useDigitalTwinMQTT`、`src/renderer/hooks/useAlertNotification.ts`、`src/main/constants.ts` 的 `WEBSOCKET_URL`（本地 5050）只有定义或 barrel 导出、无业务调用方；缺响应式断点与 ErrorBoundary（`@media` 命中 0，`aria-*` 命中 27）。以上为候选项，不要求全做。
-  - 建议：优先处理确实吞掉错误、影响可观测性的 catch；拆分经测量确认过长的函数；未接线通道按决策接入或删除；响应式 / 焦点态 / ErrorBoundary 按实际需要补。每轮跑 `npm run typecheck` 与 `npm run test:run`。
-  - 需决策：MQTT / 本地 5050 通道保留还是移除；是否设断点数值；吞异常与长函数本轮处理哪些。
-  - 关闭条件：经确认的问题项处理完毕，未接线通道有明确结论，检查通过。
+  - 2026-11-18 核实结论（测量后判定，无待决事项）：
+    - `catch`：24 个候选中仅 2 个是纯空 catch（`monitor-llm.controller.ts:200`、`AudioContext.tsx:56`），均为畸形 SSE 的合理忽略；其余都有日志或错误状态。**无吞异常缺陷需修**。
+    - 未接线通道：`DigitalTwinMQTT` / `useDigitalTwinMQTT` / `useAlertNotification` / 5050 `WEBSOCKET_URL` 确认只有定义 + barrel 导出、无业务调用方。按"不扩大范围"原则**保持现状，本轮不接入也不删除**——接入或删除属功能取舍，用户未要求。
+    - 响应式断点 / ErrorBoundary：用户未要求，**不设断点数值**、不为此新增准则或大改。
+  - 结论：经核实无需改动的代码质量项，本任务当前无实质待办。若后续发现具体缺陷，按"有实际收益才做"单独处理，每轮跑 `npm run typecheck` 与 `npm run test:run`。
 
 ## 归档
 
