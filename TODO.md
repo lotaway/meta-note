@@ -30,35 +30,18 @@
 - 固定口径（与 `system-management/README.md`「Cross-service access: gateway + JWT」一致）：REST base `http://localhost:10081/factory-service`（`VITE_GATEWAY_URL` / `_HOST` / `_PORT`）、`Authorization: Bearer <jwt>`、WS `ws://localhost:10081/factory-service/ws/digital-twin?token=<jwt>`、JWT 由主进程持有且不进入渲染层 bundle、禁止直连 `factory-service:10101` 等服务端口。
 - 契约变更若涉及 JWT / 内部令牌 / WS 事件类型，必须同时复核 `src/renderer/config/gateway.ts`、`src/renderer/services/gateway-client.ts`、`src/main/gateway-token.ts`。
 
-## 可执行任务
+## 当前状态
 
-### 从主仓库迁入的任务（2026-11-16）
-
-主仓库 `meta-web-three/TODO.md` 已清理为纯任务列表，不再跟踪完成情况与本仓库专属事项；下面 3 条是其中仍需在本仓库闭环的重要部分（任务 9 已完成并归档）。
-
-- [ ] 6. 补齐 Electron 运行时冒烟检查与 CI 原生 ABI 覆盖。
-  - 问题：`.github/workflows/system-management-check.yml` 只跑 `npm run build:native` → `npm run typecheck` → `npm run test:run`，且第 50 行设 `ELECTRON_SKIP_BINARY_DOWNLOAD=1`；`package.json:21` 有 `rebuild:sqlite3`，CI 却不执行，声明的 `better-sqlite3 ^11.0.0` 原生 ABI 从未在运行时被检验，也没有加载真实业务 UI 的启动冒烟。仓库无 `.npmrc`，`npm install --legacy-peer-deps` 的 registry 未固定（lockfile 按约定不入库）。
-  - 原始建议（已被下方决策取代，仅留背景）：曾在 CI 引入 xvfb 与 Electron 二进制下载做无头冒烟。
-  - 环境要求：真机冒烟需要可用的桌面环境。
-  - 关闭条件：保留一次手动冒烟记录（真实 Electron 启动、原生模块加载成功、真实业务 UI 渲染通过）。
-  - **决策（2026-11-18，用户已定，无待决事项）**：Electron 冒烟**手动**，不进 CI、不引入 xvfb 与 Electron 二进制下载等复杂度。CI workflow 已回退为最小三件套（native build → typecheck → unit tests）。手动冒烟脚本保留供按需运行：`src/e2e/smoke/electron-smoke.spec.ts`（Playwright `_electron.launch()` 启动真实 Electron，断言 window.desktop 具名方法、`#app` 真实渲染、NAPI-RS 原生模块无 `[NativeBridge] CRITICAL` 日志）、`playwright.smoke.config.ts`、`package.json` 的 `test:smoke` 脚本。真机运行由用户在有桌面环境时按需执行，不设审批前置。
-
-- [ ] 7. 补齐测试覆盖并让 Playwright e2e 可复现运行。
-  - 问题：`system-management/src` 现有 18 个测试 / e2e 文件（含 `src/renderer/e2e/gateway-auth.spec.ts`、`scene.spec.ts` 与 `playwright.config.ts`），覆盖集中在主进程与少数服务 / 组件；`services/clients/**`（改名后）与 `services/api/alertRule.ts` 缺直接用例，3D 场景、告警流、图表没有响应式 / 视觉 / 性能覆盖，现有性能断言只检查 `not.toThrow()`（如 `AlertFlow.test.tsx:695`、`RealTimeDataDisplay.test.tsx:226`）。CI 不执行 `npm run test:e2e`，也没有图形环境。
-  - 环境要求：Playwright 浏览器二进制；真实 3D 渲染冒烟需要图形环境。
-  - 关闭条件：`npm run test:run` 与 e2e 子集通过，API 客户端与关键组件有行为断言，手动记录可复现。
-  - **决策（2026-11-18，用户已定，无待决事项）**：浏览器 e2e **手动**，不进 CI；**不设数值化覆盖率门槛**（用户未要求，不自行加准则）。CI workflow 已移除 `npx playwright install chromium` 与 `npm run test:e2e`。手动运行方式：先 `npm run build`，再 `npm run test:e2e`（`playwright.config.ts` 的 `webServer` 会起 dev server）。`playwright --list` 已确认 13 个浏览器用例可收集（`gateway-auth.spec.ts` 4 个 + `scene.spec.ts` 9 个）；本地实跑受限于 Playwright 浏览器版本不匹配与 CDN 下载，由用户在有网络的环境按需执行。
-  - **仍待处理（代码层补强）**：为 `services/clients/**` 与 `api/alertRule.ts` 补直接用例；把 `not.toThrow()` 性能断言换成可观测断言。
-
-- [ ] 8. 优化前端代码质量（含未接线的实时通道）。
-  - 口径更正（2026-11-18，用户明确）：**本任务不涉及翻译代码注释 / 日志 / 文案，也不引入"代码文本一律英文"之类准则**。用户的语言要求仅针对本 `TODO.md`（用中文记录），从未施加到源码。此前从 `CODE_PINCEPLES` 衍生出的"函数不超过 20 行 / 不吞异常 / 用卫语句"等也属于自行扩大准则范围，不作为本任务验收项。本任务只做有实际收益的代码质量优化。
-  - 2026-11-18 核实结论（测量后判定，无待决事项）：
-    - `catch`：24 个候选中仅 2 个是纯空 catch（`monitor-llm.controller.ts:200`、`AudioContext.tsx:56`），均为畸形 SSE 的合理忽略；其余都有日志或错误状态。**无吞异常缺陷需修**。
-    - 未接线通道：`DigitalTwinMQTT` / `useDigitalTwinMQTT` / `useAlertNotification` / 5050 `WEBSOCKET_URL` 确认只有定义 + barrel 导出、无业务调用方。按"不扩大范围"原则**保持现状，本轮不接入也不删除**——接入或删除属功能取舍，用户未要求。
-    - 响应式断点 / ErrorBoundary：用户未要求，**不设断点数值**、不为此新增准则或大改。
-  - 结论：经核实无需改动的代码质量项，本任务当前无实质待办。若后续发现具体缺陷，按"有实际收益才做"单独处理，每轮跑 `npm run typecheck` 与 `npm run test:run`。
+截至 2026-11-18，任务 1-9 全部闭环并归档，**当前无待办任务**。路线 B（有意不生成 OpenAPI 客户端）与下方「后端契约同步机制」作为项目约定继续有效；后续新增端点按该机制执行即可，无需新开 TODO 任务。
 
 ## 归档
+
+### 2026-11-18 — 任务 6、7、8（收尾：三项均无剩余待办）
+
+- 任务 6（Electron 运行时冒烟）：用户决策为手动，不进 CI、不引入 xvfb 与 Electron 二进制下载；CI 保持最小三件套（native build → typecheck → unit tests）。手动脚本留在仓库按需运行：`src/e2e/smoke/electron-smoke.spec.ts`（`_electron.launch()` 断言 `window.desktop` 具名桥接、`#app` 渲染、原生模块无 `[NativeBridge] CRITICAL`）、`playwright.smoke.config.ts`、`test:smoke`。真机运行由用户按需执行，不设审批前置。
+- 任务 7（测试覆盖 / e2e）：用户决策 e2e 手动、不进 CI、不设数值化覆盖率门槛。手动方式：先 `npm run build` 再 `npm run test:e2e`（`webServer` 自起 dev server）；`playwright --list` 已确认 13 个用例可收集，本地实跑受浏览器版本 / CDN 限制，由用户在有网络环境按需执行。代码层补强（为 `services/clients/**` / `api/alertRule.ts` 补直接用例、`not.toThrow()` 换可观测断言）按「不增加复杂度」不作为待办保留，需要时单独开任务。
+- 任务 8（代码质量）：核实后无实质待办。24 个 catch 候选中仅 2 个纯空 catch 且均为畸形 SSE 的合理忽略；MQTT / `useAlertNotification` / 5050 `WEBSOCKET_URL` 只有定义与 barrel 导出、无业务调用方，按「不扩大范围」保持现状；不设响应式断点数值、不新增准则。语言要求仅针对本 `TODO.md`，从未施加到源码注释。
+- 相关提交：`0a29b60`（范围口径更正）、`da4a2bd`（清除需决策标记）；CI 修复提交见任务 5 归档。
 
 ### 2026-11-18 — 任务 5（验证、提交并推送）
 
@@ -90,6 +73,6 @@
 - 验收：`npm run build:native` 通过；`npm run typecheck` 通过；`npm run test:run` 通过（16 个测试文件 / 176 个测试）；`git grep -n "from './generated'\|services/generated" system-management/src` 无命中。
 - 附带修复：`digital-twin-api.test.ts` 的 `axios.create` mock 缺少 `interceptors`，`installGatewayAuth` 在 import 期抛错（既存问题，非本次改名引入）；已补齐 request / response 拦截器 mock。
 
-## 后续可选（不在本次任务范围，需重新决策）
+## 后续可选（不在本次任务范围）
 
 若将来要改走「局部生成」路线 A'，前置条件全部落地后才可开新任务：后端把 digital-twin 的 `Map` / `ResponseEntity<?>` 换成 DTO 并加 `@Schema`；发布只含 `/factory-service/**`、带版本的 spec 快照；把生成器脚本与固定版本（`openapi-generator-cli 7.23.0`）内置进本仓库；改用 `typescript-axios` 或用 middleware 接上 `installGatewayAuth` 的 JWT / 401 逻辑；生成物入库并在 CI 加「spec 与产物一致」检查。WS、本地 HTTP、IPC、MQTT 仍保持手写。
