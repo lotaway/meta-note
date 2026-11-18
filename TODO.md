@@ -32,12 +32,6 @@
 
 ## 可执行任务
 
-- [ ] 5. 验证、提交并推送（独立仓库）。
-  - 在 `system-management/` 依次跑 `npm run typecheck`、`npm run test:run`；确认 `.github/workflows/system-management-check.yml` 仍无需增加生成步骤（CI 不启动后端，生成物也不入库）。
-  - 提交范围只含 `TODO.md` 与上述 B 路线改动文件；**不要顺手 add 未跟踪的 `.workbuddy/` 与 `system-management/scripts/xgather.py`**。提交信息使用纯英文（沿用本仓库既有 `docs(...)` 风格），推送到 `origin/main`。
-  - 跨仓库口径：主仓库 `meta-web-three/TODO.md` 已清理为纯任务列表，不再保留 meta-note 专属任务与完成情况归档；本文件是桌面端任务的唯一跟踪点，无需回写主仓库。
-  - 关闭条件：本地两项检查通过、CI 绿、改动已推送到 `lotaway/meta-note`，且主仓库对应任务已归档。
-
 ### 从主仓库迁入的任务（2026-11-16）
 
 主仓库 `meta-web-three/TODO.md` 已清理为纯任务列表，不再跟踪完成情况与本仓库专属事项；下面 4 条是其中仍需在本仓库闭环的重要部分。
@@ -67,6 +61,17 @@
   - 关闭条件：经确认的问题项处理完毕，未接线通道有明确结论，检查通过。
 
 ## 归档
+
+### 2026-11-18 — 任务 5（验证、提交并推送）
+
+- 本地检查：`npm run typecheck` 通过；`npm run test:run` 通过（16 个测试文件 / 176 个测试）。CI 无需生成步骤，继续不启动后端、不入库生成物。
+- CI 修复过程（run #5/#6 失败，run #7 全绿）：
+  - 原 CI 在浏览器 e2e 步骤失败；按用户决策 e2e / Electron 冒烟改为手动，workflow 回退为 native build → typecheck → unit tests 三件套，不引入 xvfb / Electron 二进制下载。
+  - 回退时误删了原生构建所需的 apt 依赖，`alsa-sys` 缺 `libasound2-dev` 而编译失败；已恢复 `pkg-config` / `libasound2-dev` / `libv4l-dev` / `libudev-dev`（不含显示依赖）。
+  - `youtube-dl-exec` 的 postinstall 经未鉴权 GitHub API 下载 yt-dlp，共享 runner IP 触发限流导致安装失败（run #2/#4/#6 同因）；CI 不运行下载相关代码，已设 `YOUTUBE_DL_SKIP_DOWNLOAD=1` 跳过。
+- 相关提交：`dbcd55b`（CI 精简）、`51e2101`（恢复原生构建依赖）、`328da7a`（跳过 yt-dlp 下载）、`0a29b60`（TODO 口径更正）。均经 GitHub Git Data API 推送（本环境 git push 走代理返回 502，仅 api.github.com 可达），提交 SHA 与本地一致，本地 / 远端均同步。
+- 跨仓口径：本文件是桌面端任务唯一跟踪点，无需回写 `meta-web-three`；任务 5 原关闭条件中「主仓库对应任务已归档」与此冲突，按用户决策以本文件为准。
+- 关闭条件：CI run #7 全绿、改动已推送到 `lotaway/meta-note`、本地两项检查通过。
 
 ### 2026-11-17 — 任务 9（统一桌面端 env 与端口口径）
 
