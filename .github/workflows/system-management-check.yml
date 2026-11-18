@@ -52,8 +52,12 @@ jobs:
         # Electron binary download stays skipped: browser e2e and Electron smoke
         # are manual-only checks (see TODO tasks 6/7), not CI gates. No lockfile;
         # the registry is pinned in system-management/.npmrc.
+        # yt-dlp's postinstall downloads a binary via the unauthenticated GitHub
+        # API and fails on shared-runner rate limits; CI never runs downloading
+        # code, so skip it (the binary is only needed for manual video features).
         env:
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+          YOUTUBE_DL_SKIP_DOWNLOAD: '1'
         run: npm install --legacy-peer-deps
 
       - name: Build native module
