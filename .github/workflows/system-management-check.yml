@@ -39,6 +39,15 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install native build dependencies
+        # Required by the Rust NAPI build (alsa-sys needs libasound2-dev,
+        # plus pkg-config / libudev for other crates). Display deps for
+        # e2e/smoke are intentionally omitted — those are manual-only now.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config libasound2-dev libv4l-dev libudev-dev
+
       - name: Install dependencies
         # Electron binary download stays skipped: browser e2e and Electron smoke
         # are manual-only checks (see TODO tasks 6/7), not CI gates. No lockfile;
