@@ -1,134 +1,79 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
-test.describe('3D Scene Loading E2E Tests', () => {
+/**
+ * Browser-level e2e coverage for the digital-twin view.
+ *
+ * The note editor is the default route, so every scene test must first open
+ * the Digital Twin page. Gateway calls are stubbed at the network layer and
+ * the desktop bridge is stubbed in the browser, so no backend or Electron
+ * runtime is required.
+ */
+const JWT = 'e2e-service-account-jwt'
+
+async function openDigitalTwin(page: Page): Promise<void> {
+  await page.goto('/')
+  await page.getByRole('button', { name: /Digital Twin/i }).click()
+  await expect(page.locator('canvas')).toBeVisible({ timeout: 30_000 })
+}
+
+test.describe('Digital Twin scene', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    await page.addInitScript((token) => {
+      // English labels keep assertions stable across the locale setting.
+      localStorage.setItem('meta-note.language', 'en')
+      const named: Record<string, unknown> = {
+        getGatewayToken: async () => token,
+        invalidateGatewayToken: async () => {},
+      }
+      ;(window as unknown as Record<string, unknown>).desktop = new Proxy(named, {
+        get(target, property) {
+          if (property in target) return target[property as string]
+          return async () => null
+        },
+      })
+    }, JWT)
+
+    await page.route('**/factory-service/**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }))
   })
 
-  test('should load the 3D scene container', async ({ page }) => {
-    const canvas = page.locator('canvas')
-    await expect(canvas).toBeVisible({ timeout: 30000 })
+  test('renders the 3D scene canvas with non-zero size', async ({ page }) => {
+    await openDigitalTwin(page)
+
+    const box = await page.locator('canvas').boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.width).toBeGreaterThan(0)
+    expect(box!.height).toBeGreaterThan(0)
   })
 
-  test('should initialize scene with grid and environment', async ({ page }) => {
-    await page.goto('/')
+  test('handles camera drag without page errors', async ({ page }) => {
+    const pageErrors: string[] = []
+    page.on('pageerror', error => pageErrors.push(error.message))
+    await openDigitalTwin(page)
 
-    const canvas = page.locator('canvas')
-    await expect(canvas).toBeVisible({ timeout: 30000 })
-
-    const canvasBox = await canvas.boundingBox()
-    expect(canvasBox).not.toBeNull()
-    expect(canvasBox!.width).toBeGreaterThan(0)
-    expect(canvasBox!.height).toBeGreaterThan(0)
-  })
-
-  test('should load device models in scene', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    await page.waitForTimeout(2000)
-
-    const hasCanvasContent = await page.evaluate(() => {
-      const canvas = document.querySelector('canvas')
-      if (!canvas) return false
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
-      if (!gl) return false
-      const pixels = new Uint8Array(4)
-      gl.readPixels(1, 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-      return true
-    })
-
-    expect(hasCanvasContent).toBe(true)
-  })
-
-  test('should respond to camera controls', async ({ page }) => {
-    await page.goto('/')
-
-    const canvas = page.locator('canvas')
-    await expect(canvas).toBeVisible({ timeout: 30000 })
-
-    const initialBox = await canvas.boundingBox()
-    expect(initialBox).not.toBeNull()
-
-    await page.mouse.move((initialBox!.x + initialBox!.width) / 2, (initialBox!.y + initialBox!.height) / 2)
+    const box = (await page.locator('canvas').boundingBox())!
+    const centerX = box.x + box.width / 2
+    const centerY = box.y + box.height / 2
+    await page.mouse.move(centerX, centerY)
     await page.mouse.down()
-    await page.mouse.move(initialBox!.x + 100, initialBox!.y + 100)
+    await page.mouse.move(centerX + 100, centerY + 60, { steps: 8 })
     await page.mouse.up()
 
-    await page.waitForTimeout(500)
-  })
-})
-
-test.describe('Real-time Data Display E2E Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
+    expect(pageErrors).toEqual([])
   })
 
-  test('should establish WebSocket connection for real-time data', async ({ page }) => {
-    await page.goto('/')
+  test('shows the device list and a connection status badge', async ({ page }) => {
+    await openDigitalTwin(page)
 
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    const wsConnected = await page.evaluate(() => {
-      return (window as any).__WS_CONNECTED__ === true
-    }).catch(() => false)
-
-    expect(wsConnected).toBe(true)
+    await expect(page.getByText('Device List')).toBeVisible()
+    await expect(page.getByText(/Event Sync|Realtime Connected|Service Offline/)).toBeVisible()
   })
 
-  test('should update UI when receiving real-time data', async ({ page }) => {
-    await page.goto('/')
+  test('opens the alerts tab with its device alert count', async ({ page }) => {
+    await openDigitalTwin(page)
 
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    await page.waitForTimeout(3000)
-
-    const hasUpdatedData = await page.evaluate(() => {
-      const statsPanel = document.querySelector('[data-testid="stats-panel"]')
-      return statsPanel !== null
-    }).catch(() => true)
-  })
-})
-
-test.describe('Alert Flow E2E Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/')
-  })
-
-  test('should display active alerts', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    const alertIndicator = page.locator('[class*="alert"], [data-testid="alert-indicator"]').first()
-
-    await page.waitForTimeout(2000)
-  })
-
-  test('should allow alert acknowledgment', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    const ackButton = page.locator('button:has-text("acknowledge"), button:has-text("确认")').first()
-
-    if (await ackButton.isVisible().catch(() => false)) {
-      await ackButton.click()
-      await page.waitForTimeout(500)
-    }
-  })
-
-  test('should allow alert resolution', async ({ page }) => {
-    await page.goto('/')
-
-    await page.waitForSelector('canvas', { timeout: 30000 })
-
-    const resolveButton = page.locator('button:has-text("resolve"), button:has-text("解决")').first()
-
-    if (await resolveButton.isVisible().catch(() => false)) {
-      await resolveButton.click()
-      await page.waitForTimeout(500)
-    }
+    const alertsTab = page.getByRole('button', { name: /Alerts \d+/ })
+    await alertsTab.click()
+    await expect(alertsTab).toBeVisible()
   })
 })

@@ -24,6 +24,11 @@ function getInjectEntries() {
     })
 }
 
+// Browser e2e tests only need the renderer dev server. Skipping the Electron
+// plugin avoids launching a real window (which needs a display) and the
+// Electron binary download during headless CI runs.
+const browserOnly = process.env.VITE_BROWSER_E2E === '1'
+
 export default defineConfig({
   define: {
     // Only the gateway address is configurable. Direct service addresses
@@ -46,7 +51,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    electron([
+    ...(browserOnly ? [] : [electron([
       {
         entry: 'src/main/desktop-main.ts',
         vite: {
@@ -125,7 +130,7 @@ export default defineConfig({
           },
         },
       },
-    ]),
+    ])]),
     renderer(),
   ],
 })
