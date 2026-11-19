@@ -56,7 +56,9 @@ const appConfig: AppConfig = {
     windowHeight: WINDOW_HEIGHT,
     appProtocol: APP_PROTOCOL,
     preloadPath: path.join(__dirname, "../preload/preload.js"),
-    distPath: "dist/index.html"
+    // Resolved from this file, not the process cwd: Electron's loadFile()
+    // otherwise looks for dist-electron/main/dist/index.html.
+    distPath: path.resolve(__dirname, "../../dist/index.html")
 }
 
 let nestApp: INestApplicationContext | null = null

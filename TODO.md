@@ -51,7 +51,9 @@
 
 **CI run #11 后续**：Browser e2e 通过后 `Rebuild better-sqlite3 for Electron ABI` 步骤 exit 255。核实 `better-sqlite3` 在 `src/` 无任何 import（仅 package.json 声明），冒烟测试也不依赖它；该步骤是我方恢复 CI 时新增的无效门禁，已从 workflow 移除，避免为死依赖编译原生模块。若将来真正启用 SQLite，再在对应任务里补回 ABI 验证。
 
-**验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）全通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。`xvfb-run` Electron 冒烟仍由 CI 验证。
+**CI run #12 后续**：只剩 Electron 冒烟步骤失败。本地装好 Electron 二进制后复现出两处真实缺陷：① `desktop-main.ts` 的 `distPath: "dist/index.html"` 由 `loadFile()` 相对 `dist-electron/main/` 解析成不存在的 `dist-electron/main/dist/index.html`，窗口落在 `chrome-error://chromewebdata/`，`#app` 自然不存在；改为 `path.resolve(__dirname, '../../dist/index.html')`（打包后同样指向 asar 内 `dist/index.html`）。② 冒烟 spec 会把外部 `ELECTRON_RUN_AS_NODE=1` 透传给 Electron 导致其以 Node 模式启动；启动时显式剔除。修复后本地 `npm run test:smoke` 通过（真实窗口、bridge、NAPI 加载）。
+
+**验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）、`npm run test:smoke` 均通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。CI 最终状态以最新 run 为准。
 
 ### 2026-11-19 晚 — i18n、错误覆盖与函数长度治理
 

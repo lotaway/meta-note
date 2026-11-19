@@ -32,9 +32,12 @@ function collectMainOutput(app: ElectronApplication): () => string {
 
 test.describe('Electron runtime smoke', () => {
   test('opens the real app with UI, bridge and native module loaded', async () => {
+    // ELECTRON_RUN_AS_NODE makes the binary behave as plain Node and breaks
+    // any GUI launch. It must never leak into the smoke environment.
+    const { ELECTRON_RUN_AS_NODE: _unused, ...cleanEnv } = process.env
     const app = await electron.launch({
       args: [MAIN_ENTRY],
-      env: { ...process.env, NODE_ENV: 'production' },
+      env: { ...cleanEnv, NODE_ENV: 'production' },
       timeout: 60_000,
     })
     const readOutput = collectMainOutput(app)
