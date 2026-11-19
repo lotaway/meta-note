@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useMemo } from 'react'
 import { Card } from './components/Card'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -110,8 +111,8 @@ function HeatmapCell({ shelf, heatmapValue, isSelected, onClick }: HeatmapCellPr
         boxShadow
       }}
       title={shelf
-        ? `${shelf.code}\n负载: ${shelf.currentLoad}/${shelf.capacity}\n状态: ${shelf.status}`
-        : '空位'
+        ? t('warehouse.shelfTooltip', { code: shelf.code, load: shelf.currentLoad, capacity: shelf.capacity, status: shelf.status })
+        : t('warehouse.emptySlot')
       }
     >
       {shelf && (
@@ -183,9 +184,7 @@ function HeatmapLegend() {
             background: Colors.heatmap.cold,
             borderRadius: BorderRadius.sm
           }}
-        />
-        低
-      </span>
+        />{t('warehouse.urgency.low')}</span>
       <span style={{ display: 'flex', alignItems: 'center', gap: Spacing.xs }}>
         <span
           style={{
@@ -194,9 +193,7 @@ function HeatmapLegend() {
             background: Colors.heatmap.normal,
             borderRadius: BorderRadius.sm
           }}
-        />
-        中
-      </span>
+        />{t('warehouse.urgency.medium')}</span>
       <span style={{ display: 'flex', alignItems: 'center', gap: Spacing.xs }}>
         <span
           style={{
@@ -205,9 +202,7 @@ function HeatmapLegend() {
             background: Colors.heatmap.hot,
             borderRadius: BorderRadius.sm
           }}
-        />
-        高
-      </span>
+        />{t('warehouse.urgency.high')}</span>
     </div>
   )
 }
@@ -227,7 +222,7 @@ function ChartHeader({ showLabels }: { showLabels: boolean }) {
         borderBottom: `1px solid ${Colors.border}`
       }}
     >
-      <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>库位热度图</span>
+      <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>{t('warehouse.heatmapTitle')}</span>
       <HeatmapLegend />
     </div>
   )
@@ -237,7 +232,7 @@ function SummaryStats({ summary }: { summary: { total: number; active: number; h
   return (
     <div
       role="status"
-      aria-label="摘要统计"
+      aria-label={t('warehouse.summaryAria')}
       style={{
         marginTop: Spacing.xl,
         paddingTop: Spacing.lg,
@@ -248,15 +243,15 @@ function SummaryStats({ summary }: { summary: { total: number; active: number; h
       }}
     >
       <div>
-        <span style={{ color: Colors.textMuted }}>总库位: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.totalSlots')}</span>
         <span style={{ color: Colors.text }}>{summary.total}</span>
       </div>
       <div>
-        <span style={{ color: Colors.textMuted }}>活跃: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.active')}</span>
         <span style={{ color: Colors.success }}>{summary.active}</span>
       </div>
       <div>
-        <span style={{ color: Colors.textMuted }}>高热度: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.highHeat')}</span>
         <span style={{ color: Colors.danger }}>{summary.hot}</span>
       </div>
     </div>
@@ -282,7 +277,7 @@ function HeatmapGrid({
     <div style={{ overflowX: 'auto' }}>
       <div
         role="grid"
-        aria-label="库位热力图网格"
+        aria-label={t('warehouse.heatmapGridAria')}
         style={{
           display: 'grid',
           gridTemplateColumns: `${HEATMAP_CONFIG.headerColumnWidth} repeat(${maxColumn}, ${HEATMAP_CONFIG.gridColumnWidth})`,

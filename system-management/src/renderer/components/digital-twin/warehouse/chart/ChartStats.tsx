@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 import { Colors, Spacing, FontSizes } from '../styles/constants'
 
 export interface DemandForecastPoint { date: string; actual?: number; forecast: number; lowerBound?: number; upperBound?: number }
@@ -11,10 +12,10 @@ export function ChartStats({ data }: ChartStatsProps) {
   const labelStyle = { color: Colors.textMuted, fontSize: FontSizes.xs, marginBottom: '2px' }
 
   return (
-    <div role="region" aria-label="统计信息" style={{ marginTop: Spacing.xl, paddingTop: Spacing.lg, borderTop: `1px solid ${Colors.border}`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: Spacing.lg, textAlign: 'center' }}>
-      <div><div style={labelStyle}>最新预测</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: Colors.primary }}>{Math.round(latest)}</div></div>
-      <div><div style={labelStyle}>平均预测</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: Colors.text }}>{avg}</div></div>
-      <div><div style={labelStyle}>趋势</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: trend ? Colors.success : Colors.danger }}>{trend ? '↑ 上升' : '↓ 下降'}</div></div>
+    <div role="region" aria-label={t('warehouse.statsAria')} style={{ marginTop: Spacing.xl, paddingTop: Spacing.lg, borderTop: `1px solid ${Colors.border}`, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: Spacing.lg, textAlign: 'center' }}>
+      <div><div style={labelStyle}>{t('warehouse.chart.latestForecast')}</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: Colors.primary }}>{Math.round(latest)}</div></div>
+      <div><div style={labelStyle}>{t('warehouse.chart.averageForecast')}</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: Colors.text }}>{avg}</div></div>
+      <div><div style={labelStyle}>{t('warehouse.chart.trend')}</div><div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: trend ? Colors.success : Colors.danger }}>{trend ? t('warehouse.chart.trendUp') : t('warehouse.chart.trendDown')}</div></div>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 import { Colors, FontSizes, BorderRadius, Spacing } from '../styles/constants'
 
 const STATUS_STYLES = {
@@ -8,10 +9,10 @@ const STATUS_STYLES = {
 } as const
 
 const STATUS_LABELS = {
-  pending: '待审批',
-  approved: '已审批',
-  ordered: '已下单',
-  rejected: '已拒绝'
+  pending: t('warehouse.filter.pending'),
+  approved: t('warehouse.filter.approved'),
+  ordered: t('warehouse.filter.ordered'),
+  rejected: t('warehouse.filter.rejected')
 } as const
 
 interface StatusBadgeProps {

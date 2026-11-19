@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { useMousePosition, useScroll } from '../utils/hooks'
 import Files2video from '../features/Files2video'
 import { APP_DISPLAY_NAME } from '../../brand'
+import { currentLanguage, setLanguage, type AppLanguage } from '../i18n'
 
 enum Status {
     NoInit,
@@ -84,29 +85,64 @@ const InfoItem = styled.span`
   color: #44aa88;
 `
 
+const LanguageRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+`
+
+const LanguageButton = styled.button<{ $active: boolean }>`
+  padding: 6px 14px;
+  border: 1px solid ${props => props.$active ? '#10a37f' : '#555'};
+  border-radius: 5px;
+  background: ${props => props.$active ? '#10a37f' : 'transparent'};
+  color: ${props => props.$active ? '#fff' : '#ccc'};
+  cursor: pointer;
+  font-weight: ${props => props.$active ? 'bold' : 'normal'};
+
+  &:hover {
+    border-color: #10a37f;
+  }
+`
+
+const LanguageSwitcher = () => {
+    const active = currentLanguage()
+    return (
+        <LanguageRow>
+            <LanguageButton $active={active === 'zh-CN'} onClick={() => setLanguage('zh-CN' as AppLanguage)}>简体中文</LanguageButton>
+            <LanguageButton $active={active === 'en'} onClick={() => setLanguage('en' as AppLanguage)}>English</LanguageButton>
+        </LanguageRow>
+    )
+}
+
+const invokeIpc = (action: () => Promise<void>, label: string): void => {
+    void action().catch(err => console.error(`[Settings] ${label} failed:`, err))
+}
+
 const ActionButtons = () => (
     <ActionButtonContainer>
         <PremiumButton
             $bgColor="#10a37f"
-            onClick={() => void window.desktop.openMonitor('chatgpt')}
+            onClick={() => invokeIpc(() => window.desktop.openMonitor('chatgpt'), 'openMonitor chatgpt')}
         >
             Open ChatGPT Monitor (In-app)
         </PremiumButton>
         <PremiumButton
             $bgColor="#4285f4"
-            onClick={() => void window.desktop.openExternalLogin('chatgpt')}
+            onClick={() => invokeIpc(() => window.desktop.openExternalLogin('chatgpt'), 'openExternalLogin chatgpt')}
         >
             ChatGPT Login (System Browser)
         </PremiumButton>
         <PremiumButton
             $bgColor="#10b981"
-            onClick={() => void window.desktop.openMonitor('deepseek')}
+            onClick={() => invokeIpc(() => window.desktop.openMonitor('deepseek'), 'openMonitor deepseek')}
         >
             Open DeepSeek Monitor (In-app)
         </PremiumButton>
         <PremiumButton
             $bgColor="#6366f1"
-            onClick={() => void window.desktop.openExternalLogin('deepseek')}
+            onClick={() => invokeIpc(() => window.desktop.openExternalLogin('deepseek'), 'openExternalLogin deepseek')}
         >
             DeepSeek Login (System Browser)
         </PremiumButton>
@@ -143,6 +179,7 @@ export default function Settings() {
             <MainTitle>{name}</MainTitle>
             <SubTitle>{commonData.welcomeTitle}</SubTitle>
             <ContentSection>
+                <LanguageSwitcher />
                 <InfoDisplay />
                 <ActionButtons />
                 <TooltipText>

@@ -197,8 +197,8 @@ export class MonitorLLMController {
                         const completion = transform(JSON.parse(dataStr))
                         if (!completion || completion.choices[0].delta.content === undefined) return
                         res.write(`${DATA_PREFIX}${JSON.stringify(completion)}\n\n`)
-                    } catch {
-                        // Ignore malformed SSE payloads.
+                    } catch (err) {
+                        console.debug('Dropped malformed SSE payload:', err)
                     }
                 })
         }

@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 import { Component, ReactNode } from 'react'
 
 interface Props {
@@ -29,9 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
           background: 'rgba(239, 68, 68, 0.1)',
           borderRadius: '8px',
           border: '1px solid #ef4444'
-        }}>
-          组件加载失败，请刷新页面重试
-        </div>
+        }}>{t('warehouse.errorFallback')}</div>
       )
     }
     return this.props.children

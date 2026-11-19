@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useMemo } from 'react'
 import { Card } from './components/Card'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -36,10 +37,10 @@ const UTIL_COLORS = [
 ] as const
 
 const STATUS_LABELS = {
-  active: '占用',
-  full: '满载',
-  empty: '空闲',
-  maintenance: '维护'
+  active: t('warehouse.slot.active'),
+  full: t('warehouse.slot.full'),
+  empty: t('device.status.idle'),
+  maintenance: t('warehouse.slot.maintenance')
 } as const
 
 const STATUS_VALUE_COLORS = {
@@ -230,7 +231,7 @@ function CapacityProgress({
           fontSize: FontSizes.md
         }}
       >
-        <span style={{ color: Colors.textSecondary }}>容量进度</span>
+        <span style={{ color: Colors.textSecondary }}>{t('warehouse.capacityProgress')}</span>
         <span style={{ color: Colors.text }}>{usedCap} / {totalCap}</span>
       </div>
       <ProgressBar value={rate} max={100} color={utilColor} />
@@ -240,16 +241,16 @@ function CapacityProgress({
 
 function ShelfStatusGrid({ stats }: { stats: { occupied: number; full: number; empty: number; maintenance: number } }) {
   const items = [
-    { label: '占用', value: stats.occupied, color: Colors.success },
-    { label: '满载', value: stats.full, color: Colors.danger },
-    { label: '空闲', value: stats.empty, color: Colors.textMuted },
-    { label: '维护', value: stats.maintenance, color: Colors.warning }
+    { label: t('warehouse.slot.active'), value: stats.occupied, color: Colors.success },
+    { label: t('warehouse.slot.full'), value: stats.full, color: Colors.danger },
+    { label: t('device.status.idle'), value: stats.empty, color: Colors.textMuted },
+    { label: t('warehouse.slot.maintenance'), value: stats.maintenance, color: Colors.warning }
   ]
 
   return (
     <div
       role="list"
-      aria-label="库位状态统计"
+      aria-label={t('warehouse.slotStatusAria')}
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
@@ -299,15 +300,15 @@ function FooterStats({ warehouse }: { warehouse: Warehouse }) {
       }}
     >
       <div>
-        <span style={{ color: Colors.textMuted }}>总面积: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.totalArea')}</span>
         <span style={{ color: Colors.text }}>{warehouse.totalArea} m²</span>
       </div>
       <div>
-        <span style={{ color: Colors.textMuted }}>使用面积: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.usedArea')}</span>
         <span style={{ color: Colors.success }}>{warehouse.usedArea} m²</span>
       </div>
       <div>
-        <span style={{ color: Colors.textMuted }}>容量: </span>
+        <span style={{ color: Colors.textMuted }}>{t('warehouse.capacity')}</span>
         <span style={{ color: Colors.primary }}>{warehouse.capacity}</span>
       </div>
     </div>
@@ -329,7 +330,7 @@ function CompactWarehouseStatus({
   return (
     <div
       role="status"
-      aria-label={`${warehouse.name} 状态`}
+      aria-label={t('warehouse.statusPanelAria', { name: warehouse.name })}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -402,12 +403,12 @@ function FullWarehouseStatus({
         }}
       >
         <StatCard
-          label="面积利用率"
+          label={t('warehouse.areaUtilization')}
           value={`${stats.rate.toFixed(1)}%`}
           color={utilColor}
         />
         <StatCard
-          label="库位占用"
+          label={t('warehouse.slotOccupancy')}
           value={`${stats.occupied}/${stats.total}`}
           color={Colors.primary}
         />

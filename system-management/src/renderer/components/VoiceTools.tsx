@@ -383,7 +383,7 @@ export default function VoiceTools({ mode, onClose }: VoiceToolsProps) {
 
                 <Button
                     $variant="success"
-                    onClick={() => void window.desktop.openSubtitles()}
+                    onClick={() => void window.desktop.openSubtitles().catch(err => console.error('[VoiceTools] openSubtitles failed:', err))}
                     style={{ width: mode === 'full' ? '100%' : 'auto' }}
                 >
                     Subtitles

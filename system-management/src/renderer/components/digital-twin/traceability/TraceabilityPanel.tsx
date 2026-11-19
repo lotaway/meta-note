@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState } from 'react'
 import { mesApi, type TraceRecord, type TraceChain } from '../../../services/mes-api'
 
@@ -63,33 +64,33 @@ export function TraceabilityPanel() {
   }
 
   const handleFullChain = async () => {
-    if (!traceCode.trim()) { setError('请输入追溯码'); return }
+    if (!traceCode.trim()) { setError(t('trace.enterCode')); return }
     setLoading(true); setError('')
     try {
       const result = await mesApi.getTraceChain(traceCode)
       if (result) { setChain(result); setMode('chain'); setRecords([]) }
-      else { setError('未找到该追溯码的追溯链') }
-    } catch (e) { console.error('查询失败', e); setError('查询失败') }
+      else { setError(t('trace.notFound')) }
+    } catch (e) { console.error(t('trace.queryFailed'), e); setError(t('trace.queryFailed')) }
     setLoading(false)
   }
 
   const handleForward = async () => {
-    if (!traceCode.trim()) { setError('请输入追溯码'); return }
+    if (!traceCode.trim()) { setError(t('trace.enterCode')); return }
     setLoading(true); setError('')
     try {
       const list = await mesApi.forwardTrace(traceCode)
       setRecords(list); setMode('forward'); setChain(null)
-    } catch (e) { console.error('正向追溯查询失败', e); setError('正向追溯查询失败') }
+    } catch (e) { console.error(t('trace.forwardQueryFailed'), e); setError(t('trace.forwardQueryFailed')) }
     setLoading(false)
   }
 
   const handleBackward = async () => {
-    if (!traceCode.trim()) { setError('请输入追溯码'); return }
+    if (!traceCode.trim()) { setError(t('trace.enterCode')); return }
     setLoading(true); setError('')
     try {
       const list = await mesApi.backwardTrace(traceCode)
       setRecords(list); setMode('backward'); setChain(null)
-    } catch (e) { console.error('反向追溯查询失败', e); setError('反向追溯查询失败') }
+    } catch (e) { console.error(t('trace.backwardQueryFailed'), e); setError(t('trace.backwardQueryFailed')) }
     setLoading(false)
   }
 
@@ -100,22 +101,16 @@ export function TraceabilityPanel() {
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input
             style={inputStyle}
-            placeholder="输入追溯码"
+            placeholder={t('trace.codePlaceholder')}
             value={traceCode}
             onChange={(e) => setTraceCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleFullChain()}
           />
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button style={{ ...buttonBase, background: '#3b82f6' }} onClick={handleFullChain}>
-            完整链
-          </button>
-          <button style={{ ...buttonBase, background: '#10b981' }} onClick={handleForward}>
-            正向追溯
-          </button>
-          <button style={{ ...buttonBase, background: '#f59e0b' }} onClick={handleBackward}>
-            反向追溯
-          </button>
+          <button style={{ ...buttonBase, background: '#3b82f6' }} onClick={handleFullChain}>{t('trace.mode.full')}</button>
+          <button style={{ ...buttonBase, background: '#10b981' }} onClick={handleForward}>{t('trace.mode.forward')}</button>
+          <button style={{ ...buttonBase, background: '#f59e0b' }} onClick={handleBackward}>{t('trace.mode.backward')}</button>
         </div>
         {error && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>{error}</div>
@@ -123,9 +118,7 @@ export function TraceabilityPanel() {
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>
-          查询中...
-        </div>
+        <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>{t('trace.querying')}</div>
       )}
 
       {/* Full chain display */}
@@ -134,7 +127,7 @@ export function TraceabilityPanel() {
           {/* Root node */}
           <div style={cardStyle}>
             <div style={{ fontSize: 13, color: '#3b82f6', fontWeight: 'bold', marginBottom: 8 }}>
-              🔵 根节点
+              {t('trace.rootNode')}
             </div>
             <RecordRow record={chain.root} getTagStyle={getTagStyle} />
           </div>
@@ -143,7 +136,7 @@ export function TraceabilityPanel() {
           {chain.forwardPath && chain.forwardPath.length > 0 && (
             <div style={cardStyle}>
               <div style={{ fontSize: 13, color: '#10b981', fontWeight: 'bold', marginBottom: 8 }}>
-                ➡️ 正向路径 ({chain.forwardPath.length} 个节点)
+                {t('trace.forwardPath', { count: chain.forwardPath.length })}
               </div>
               {chain.forwardPath.map((r, i) => (
                 <div key={i} style={{ marginBottom: 6 }}>
@@ -158,7 +151,7 @@ export function TraceabilityPanel() {
           {chain.backwardPath && chain.backwardPath.length > 0 && (
             <div style={cardStyle}>
               <div style={{ fontSize: 13, color: '#f59e0b', fontWeight: 'bold', marginBottom: 8 }}>
-                ⬅️ 反向路径 ({chain.backwardPath.length} 个节点)
+                {t('trace.backwardPath', { count: chain.backwardPath.length })}
               </div>
               {chain.backwardPath.map((r, i) => (
                 <div key={i} style={{ marginBottom: 6 }}>
@@ -175,9 +168,9 @@ export function TraceabilityPanel() {
       {!loading && !chain && mode && records.length > 0 && (
         <div style={cardStyle}>
           <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, color: '#e2e8f0' }}>
-            {mode === 'forward' ? '➡️ 正向追溯结果' : '⬅️ 反向追溯结果'}
+            {mode === 'forward' ? t('trace.forwardResult') : t('trace.backwardResult')}
             <span style={{ fontSize: 11, color: '#64748b', marginLeft: 8 }}>
-              ({records.length} 个记录)
+              {t('trace.recordCount', { count: records.length })}
             </span>
           </div>
           {records.map((r, i) => (
@@ -189,9 +182,7 @@ export function TraceabilityPanel() {
       )}
 
       {!loading && !chain && mode && records.length === 0 && !error && (
-        <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>
-          暂无追溯结果
-        </div>
+        <div style={{ textAlign: 'center', padding: 24, color: '#64748b', fontSize: 12 }}>{t('trace.noResults')}</div>
       )}
     </div>
   )
@@ -212,12 +203,12 @@ function RecordRow({ record, getTagStyle }: {
         <span style={getTagStyle(record.traceType)}>{record.traceType}</span>
         <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 'bold' }}>{record.traceCode}</span>
         {record.source && (
-          <span style={{ fontSize: 10, color: '#64748b' }}>来源: {record.source}</span>
+          <span style={{ fontSize: 10, color: '#64748b' }}>{t('trace.source')} {record.source}</span>
         )}
       </div>
       <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#94a3b8', flexWrap: 'wrap' }}>
-        {record.batchNo && <span>批次: {record.batchNo}</span>}
-        {record.productCode && <span>产品: {record.productCode}</span>}
+        {record.batchNo && <span>{t('trace.batch')} {record.batchNo}</span>}
+        {record.productCode && <span>{t('trace.product')} {record.productCode}</span>}
         {record.sn && <span>SN: {record.sn}</span>}
         {record.createdAt && <span>{new Date(record.createdAt).toLocaleString()}</span>}
       </div>

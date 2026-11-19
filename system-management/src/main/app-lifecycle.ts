@@ -79,7 +79,7 @@ export class AppLifecycle {
                 return
             }
             void this.createWindow().catch(err => {
-                console.error("重新创建窗口失败", err)
+                console.error("Failed to recreate window", err)
             })
         })
 
@@ -98,6 +98,6 @@ export class AppLifecycle {
 
         void app.whenReady().then(() => {
             this.config.isLinux ? setTimeout(this.onInit, 300) : this.onInit()
-        })
+        }).catch(err => console.error('[lifecycle] app ready failed:', err))
     }
 }

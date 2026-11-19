@@ -22,8 +22,8 @@ export class ScreenshotController {
             res.set('Content-Type', 'image/jpeg')
             res.send(jpeg)
         } catch (err: any) {
-            console.debug(`截图失败:${err}`)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败:${err}` })
+            console.debug(`Screenshot failed:${err}`)
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `Screenshot failed:${err}` })
         }
     }
 
@@ -52,7 +52,7 @@ export class ScreenshotController {
                         height: display.size.height
                     }
                 }).catch((err: any) => {
-                    console.debug(`截图失败:${err}`)
+                    console.debug(`Screenshot failed:${err}`)
                 })
 
                 const displaySource = sources?.find(
@@ -70,11 +70,11 @@ export class ScreenshotController {
             if (screenshots.length > 0) {
                 res.json(screenshots)
             } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败` })
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `Screenshot failed` })
             }
         } catch (err: any) {
             console.error('Desktop screenshot error:', err)
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `截图失败` })
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `Screenshot failed` })
         }
     }
 }

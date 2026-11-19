@@ -17,77 +17,80 @@ interface MonitorWindow extends Window {
 
 const pageWindow = window as unknown as MonitorWindow
 
-function init(): void {
-    if (!window.location.hostname.includes('deepseek.com')) {
-        return
+async function reportStream(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<void> {
+    const decoder = new TextDecoder()
+    try {
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            const chunk = decoder.decode(value, { stream: true })
+            if (chunk) pageWindow.monitor?.reportSseChunk(chunk)
+        }
+    } catch (err) {
+        console.error('[DeepSeek Monitor] Interceptor stream error:', err)
     }
+}
 
+function installFetchInterceptor(): void {
     const originalFetch = window.fetch
-
     window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
         const response = await originalFetch(...args)
         const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url
         if (!url.includes('/api/v0/chat/completion')) return response
 
         const reader = response.clone().body?.getReader()
-        if (!reader) return response
-
-        const decoder = new TextDecoder()
-        void (async (): Promise<void> => {
-            try {
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    const chunk = decoder.decode(value, { stream: true })
-                    if (chunk) pageWindow.monitor?.reportSseChunk(chunk)
-                }
-            } catch (err) {
-                console.error('[DeepSeek Monitor] Interceptor stream error:', err)
-            }
-        })()
-
+        if (reader) void reportStream(reader)
         return response
     }
+}
 
-    pageWindow.automateChat = async (prompt: string): Promise<AutomationResult> => {
-        try {
-            const textarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]')
+function findSendButton(): HTMLDivElement | null {
+    return document.querySelector<HTMLDivElement>('div._7436101') ||
+        document.querySelector<HTMLDivElement>('div.bcc55ca1') ||
+        document.querySelector<HTMLDivElement>('div[role="button"]')
+}
 
-            if (!textarea) {
-                return { success: false, error: 'Input area not found' }
-            }
-            htmlElementFocus(textarea, window)
-            textarea.value = prompt
-            textarea.dispatchEvent(new Event('input', { bubbles: true }))
-            textarea.dispatchEvent(new Event('change', { bubbles: true }))
+async function automateChat(prompt: string): Promise<AutomationResult> {
+    try {
+        const textarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="Message DeepSeek"]')
+        if (!textarea) return { success: false, error: 'Input area not found' }
 
-            await new Promise<void>(resolve => setTimeout(resolve, 800))
+        htmlElementFocus(textarea, window)
+        textarea.value = prompt
+        textarea.dispatchEvent(new Event('input', { bubbles: true }))
+        textarea.dispatchEvent(new Event('change', { bubbles: true }))
 
-            const sendButton = document.querySelector<HTMLDivElement>('div._7436101') ||
-                document.querySelector<HTMLDivElement>('div.bcc55ca1') ||
-                document.querySelector<HTMLDivElement>('div[role="button"]')
+        await new Promise<void>(resolve => setTimeout(resolve, 800))
 
-            if (!sendButton || sendButton.classList.contains('disabled')) {
-                return { success: false, error: 'Send button state invalid' }
-            }
-
-            sendButton.click()
-            return { success: true }
-        } catch (err: any) {
-            return { success: false, error: err.message }
+        const sendButton = findSendButton()
+        if (!sendButton || sendButton.classList.contains('disabled')) {
+            return { success: false, error: 'Send button state invalid' }
         }
-    }
 
-    const handleLoginClick = (): void => {
+        sendButton.click()
+        return { success: true }
+    } catch (err: any) {
+        return { success: false, error: err.message }
+    }
+}
+
+function installLoginHandler(): void {
+    const href = window.location.href
+    if (!href.includes('/login') && !href.includes('/auth')) return
+    const loginButton = document.querySelector<HTMLButtonElement>('button[type="submit"]')
+    loginButton?.addEventListener('click', () => {
         if (!pageWindow.monitor) return
         void pageWindow.monitor.requestOpenExternalLogin('deepseek').catch(err => {
             console.error('[DeepSeek Monitor] Failed to open external login:', err)
         })
-    }
+    }, false)
+}
 
-    if (!window.location.href.includes('/login') && !window.location.href.includes('/auth')) return
-    const loginButton = document.querySelector<HTMLButtonElement>('button[type="submit"]')
-    loginButton?.addEventListener('click', handleLoginClick, false)
+function init(): void {
+    if (!window.location.hostname.includes('deepseek.com')) return
+    installFetchInterceptor()
+    pageWindow.automateChat = automateChat
+    installLoginHandler()
 }
 
 init()

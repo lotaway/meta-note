@@ -17,6 +17,73 @@ function appendChartPoint(prev: ChartPoint[], value: number): ChartPoint[] {
   return next.length > MAX_CHART_POINTS ? next.slice(-MAX_CHART_POINTS) : next
 }
 
+function patchDevice(device: Device, payload: Record<string, unknown>): Device {
+  if (device.code !== payload.deviceCode) return device
+  const updated = { ...device }
+  if (payload.status) {
+    const status = String(payload.status).toLowerCase()
+    if (['online', 'offline', 'running', 'idle', 'warning', 'error'].includes(status)) {
+      updated.status = status as Device['status']
+    }
+  }
+  const position = payload.position as { x?: number; y?: number; z?: number } | undefined
+  if (position) {
+    updated.position = [
+      position.x ?? device.position[0],
+      position.y ?? device.position[1],
+      position.z ?? device.position[2],
+    ]
+  }
+  if (payload.rotation !== undefined) updated.rotation = Number(payload.rotation)
+  return updated
+}
+
+interface EventCallbacks {
+  onDevicePatch(payload: Record<string, unknown>): void
+  onAlertCreated(): void
+  onProductionOutput(value: number): void
+  onStatsRefresh(): void
+}
+
+function createMessageHandler(callbacks: EventCallbacks) {
+  return (message: { type: string; data: unknown }) => {
+    const payload = parseWsEventData(message.data)
+    switch (message.type) {
+      case 'DEVICE_STATUS_CHANGED':
+      case 'AGV_POSITION_UPDATED':
+      case 'DEVICE_POSITION_UPDATED':
+        callbacks.onDevicePatch(payload)
+        break
+      case 'ALERT_CREATED':
+        callbacks.onAlertCreated()
+        break
+      case 'PRODUCTION_OUTPUT_UPDATED': {
+        const output = Number(payload.output)
+        if (!Number.isNaN(output)) callbacks.onProductionOutput(output)
+        callbacks.onStatsRefresh()
+        break
+      }
+    }
+  }
+}
+
+async function connectGatewayWs(handlers: {
+  onMessage: (message: { type: string; data: unknown }) => void
+  onOpen: () => void
+  onClose: () => void
+}): Promise<DigitalTwinWebSocket> {
+  const url = await buildGatewayWsUrl()
+  const ws = new DigitalTwinWebSocket({
+    url,
+    onOpen: handlers.onOpen,
+    onClose: handlers.onClose,
+    reconnectAttempts: 10,
+  })
+  ws.subscribe('*', handlers.onMessage)
+  ws.connect()
+  return ws
+}
+
 export function useDigitalTwinData() {
   const [devices, setDevices] = useState<Device[]>([])
   const [alerts, setAlerts] = useState<Alert[]>([])
@@ -86,35 +153,8 @@ export function useDigitalTwinData() {
   }, [markFailure])
 
   const patchDeviceFromEvent = useCallback((payload: Record<string, unknown>) => {
-    const deviceCode = payload.deviceCode as string | undefined
-    if (!deviceCode) return
-
-    setDevices((prev) =>
-      prev.map((d) => {
-        if (d.code !== deviceCode) return d
-        const updated = { ...d }
-        if (payload.status) {
-          const status = String(payload.status).toLowerCase()
-          if (
-            ['online', 'offline', 'running', 'idle', 'warning', 'error'].includes(status)
-          ) {
-            updated.status = status as Device['status']
-          }
-        }
-        const position = payload.position as { x?: number; y?: number; z?: number } | undefined
-        if (position) {
-          updated.position = [
-            position.x ?? d.position[0],
-            position.y ?? d.position[1],
-            position.z ?? d.position[2],
-          ]
-        }
-        if (payload.rotation !== undefined) {
-          updated.rotation = Number(payload.rotation)
-        }
-        return updated
-      }),
-    )
+    if (!payload.deviceCode) return
+    setDevices((prev) => prev.map((device) => patchDevice(device, payload)))
   }, [])
 
   useEffect(() => {
@@ -125,62 +165,34 @@ export function useDigitalTwinData() {
     let disposed = false
     let ws: DigitalTwinWebSocket | null = null
 
-    const handleMessage = (message: { type: string; data: unknown }) => {
-      const payload = parseWsEventData(message.data)
+    const handleMessage = createMessageHandler({
+      onDevicePatch: patchDeviceFromEvent,
+      onAlertCreated: () => void refreshAlerts(),
+      onProductionOutput: (value) => setChartData((prev) => appendChartPoint(prev, value)),
+      onStatsRefresh: () => void refreshStats(),
+    })
 
-      switch (message.type) {
-        case 'DEVICE_STATUS_CHANGED':
-        case 'AGV_POSITION_UPDATED':
-        case 'DEVICE_POSITION_UPDATED':
-          patchDeviceFromEvent(payload)
-          break
-        case 'ALERT_CREATED':
-          void refreshAlerts()
-          break
-        case 'PRODUCTION_OUTPUT_UPDATED': {
-          const output = Number(payload.output)
-          if (!Number.isNaN(output)) {
-            setChartData((prev) => appendChartPoint(prev, output))
-          }
-          void refreshStats()
-          break
+    void connectGatewayWs({
+      onMessage: handleMessage,
+      onOpen: () => {
+        setIsConnected(true)
+        if (needsReconcileRef.current) {
+          needsReconcileRef.current = false
+          void refreshAll()
         }
-        default:
-          break
-      }
-    }
-
-    // The WS handshake carries the JWT as ?token=; it must be resolved from
-    // the main process before the connection is created.
-    void (async () => {
-      let url: string
-      try {
-        url = await buildGatewayWsUrl()
-      } catch (err) {
-        if (!disposed) markFailure(err)
+      },
+      onClose: () => {
+        setIsConnected(false)
+        needsReconcileRef.current = true
+      },
+    }).then((connected) => {
+      if (disposed) {
+        connected.disconnect()
         return
       }
-      if (disposed) return
-
-      ws = new DigitalTwinWebSocket({
-        url,
-        onOpen: () => {
-          setIsConnected(true)
-          if (needsReconcileRef.current) {
-            needsReconcileRef.current = false
-            void refreshAll()
-          }
-        },
-        onClose: () => {
-          setIsConnected(false)
-          needsReconcileRef.current = true
-        },
-        reconnectAttempts: 10,
-      })
-      ws.subscribe('*', handleMessage)
-      ws.connect()
-      wsRef.current = ws
-    })()
+      ws = connected
+      wsRef.current = connected
+    }).catch((err) => markFailure(err))
 
     return () => {
       disposed = true

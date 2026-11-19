@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useMemo } from 'react'
 import { Card } from './components/Card'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -14,10 +15,10 @@ const SUGGESTION_CONFIG = {
 const URGENCY_ORDER = ['critical', 'high', 'medium', 'low'] as const
 
 const URGENCY_LABELS: Record<string, string> = {
-  critical: '紧急',
-  high: '高优先级',
-  medium: '中等',
-  low: '低优先级'
+  critical: t('warehouse.priority.critical'),
+  high: t('warehouse.priority.high'),
+  medium: t('warehouse.priority.medium'),
+  low: t('warehouse.priority.low')
 }
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -72,7 +73,7 @@ function UrgencyGroupHeader({ urgency, count }: { urgency: string; count: number
   return (
     <div
       role="group"
-      aria-label={`${label} 级别补货建议`}
+      aria-label={t('warehouse.restockLevelAria', { label })}
       style={{ marginBottom: Spacing.xl }}
     >
       <div
@@ -185,9 +186,7 @@ function EmptyState() {
         color: Colors.textMuted,
         fontSize: FontSizes.lg
       }}
-    >
-      暂无补货建议
-    </div>
+    >{t('warehouse.noRestock')}</div>
   )
 }
 
@@ -268,7 +267,7 @@ export function RestockSuggestions({
 
         <div
           role="list"
-          aria-label="补货建议列表"
+          aria-label={t('warehouse.restockListAria')}
           style={{
             maxHeight: SUGGESTION_CONFIG.maxHeight,
             overflowY: 'auto',

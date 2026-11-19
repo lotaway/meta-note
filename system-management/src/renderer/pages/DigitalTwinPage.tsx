@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { useState } from 'react'
 import styled from 'styled-components'
 import { FactoryScene, Device, Alert, DeviceStatus, AlertPanel, DeviceChart, StatsCard, AudioMonitor, ScadaPanel, TraceabilityPanel } from '../components/digital-twin'
@@ -193,25 +194,23 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
       <ToastContainer />
       <LeftPanel>
         <Header>
-          <Title>设备列表</Title>
+          <Title>{t('digitalTwin.deviceList')}</Title>
           <ConnectionStatus $connected={isConnected && apiAvailable === true}>
             {apiAvailable === false
-              ? '服务离线'
+              ? t('digitalTwin.serviceOffline')
               : isConnected
-                ? '实时已连接'
-                : '事件同步'}
+                ? t('digitalTwin.realtimeConnected')
+                : t('digitalTwin.eventSync')}
           </ConnectionStatus>
         </Header>
         {loadError && (
           <Banner $variant="error">
-            {loadError}（请确认 gateway:10081 与 factory-service 已启动，且 .env 中已配置有效的 GATEWAY_TOKEN）
+            {loadError} {t('digitalTwin.loadErrorHint')}
           </Banner>
         )}
         <PanelContent>
           {devices.length === 0 && apiAvailable !== false ? (
-            <div style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-              暂无设备数据
-            </div>
+            <div style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>{t('digitalTwin.noDevices')}</div>
           ) : (
             <DeviceStatus devices={devices} onDeviceSelect={handleDeviceClick} />
           )}
@@ -220,8 +219,8 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
 
       <MainArea>
         <Header>
-          <Title>🏭 数字孪生工厂</Title>
-          <CloseButton onClick={onClose}>退出</CloseButton>
+          <Title>{t('digitalTwin.pageTitle')}</Title>
+          <CloseButton onClick={onClose}>{t('digitalTwin.exit')}</CloseButton>
         </Header>
         <SceneContainer>
           <FactoryScene
@@ -234,24 +233,15 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
 
       <RightPanel>
         <TabBar>
-          <Tab $active={activeTab === 'devices'} onClick={() => setActiveTab('devices')}>
-            设备详情
-          </Tab>
+          <Tab $active={activeTab === 'devices'} onClick={() => setActiveTab('devices')}>{t('digitalTwin.tab.device')}</Tab>
           <Tab $active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')}>
-            告警 {alerts.filter((a) => a.status === 'triggered').length}
-          </Tab>
-          <Tab $active={activeTab === 'charts'} onClick={() => setActiveTab('charts')}>
-            图表
-          </Tab>
-          <Tab $active={activeTab === 'rules'} onClick={() => setActiveTab('rules')}>
-            规则配置
-          </Tab>
+            {t('digitalTwin.alertCount', { count: alerts.filter((a) => a.status === 'triggered').length })}          </Tab>
+          <Tab $active={activeTab === 'charts'} onClick={() => setActiveTab('charts')}>{t('digitalTwin.tab.chart')}</Tab>
+          <Tab $active={activeTab === 'rules'} onClick={() => setActiveTab('rules')}>{t('digitalTwin.tab.rule')}</Tab>
           <Tab $active={activeTab === 'scada'} onClick={() => setActiveTab('scada')}>
             SCADA
           </Tab>
-          <Tab $active={activeTab === 'trace'} onClick={() => setActiveTab('trace')}>
-            追溯
-          </Tab>
+          <Tab $active={activeTab === 'trace'} onClick={() => setActiveTab('trace')}>{t('digitalTwin.tab.trace')}</Tab>
         </TabBar>
 
         <PanelContent>
@@ -262,17 +252,17 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
                   <h3 style={{ margin: '0 0 16px 0', color: '#3b82f6' }}>{selectedDevice.name}</h3>
                   <StatsRow>
                     <StatsCard
-                      title="状态"
+                      title={t('alertRule.column.status')}
                       value={
                         selectedDevice.status === 'running'
-                          ? '运行中'
+                          ? t('device.status.running')
                           : selectedDevice.status === 'idle'
-                            ? '空闲'
+                            ? t('device.status.idle')
                             : selectedDevice.status
                       }
                       color={selectedDevice.status === 'running' ? '#10b981' : '#f59e0b'}
                     />
-                    <StatsCard title="类型" value={selectedDevice.type} color="#3b82f6" />
+                    <StatsCard title={t('digitalTwin.typeTitle')} value={selectedDevice.type} color="#3b82f6" />
                   </StatsRow>
                   <StatsRow>
                     <StatsCard
@@ -289,13 +279,11 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
                     />
                   </StatsRow>
                   <div style={{ marginTop: '16px' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>
-                      实时产量
-                    </div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{t('digitalTwin.realtimeOutput')}</div>
                     <DeviceChart
-                      title="设备产量趋势"
+                      title={t('digitalTwin.outputTrend')}
                       data={chartData}
-                      unit="件"
+                      unit={t('digitalTwin.unitPiece')}
                       color="#10b981"
                     />
                   </div>
@@ -320,33 +308,33 @@ export default function DigitalTwinPage({ onClose }: DigitalTwinPageProps) {
             <div>
               <NotificationSettings>
                 <SettingsButton $active={soundEnabled} onClick={() => setSoundEnabled(!soundEnabled)}>
-                  🔊 声音 {soundEnabled ? '开' : '关'}
+                  {t('digitalTwin.sound')} {soundEnabled ? t('common.on') : t('common.off')}
                 </SettingsButton>
                 <SettingsButton $active={notifEnabled} onClick={() => setNotifEnabled(!notifEnabled)}>
-                  🔔 通知 {notifEnabled ? '开' : '关'}
+                  {t('digitalTwin.notification')} {notifEnabled ? t('common.on') : t('common.off')}
                 </SettingsButton>
               </NotificationSettings>
               <StatsRow>
-                <StatsCard title="在线设备" value={onlineCount} color="#10b981" />
-                <StatsCard title="运行中" value={runningCount} color="#3b82f6" />
+                <StatsCard title={t('digitalTwin.onlineDevices')} value={onlineCount} color="#10b981" />
+                <StatsCard title={t('device.status.running')} value={runningCount} color="#3b82f6" />
               </StatsRow>
               <StatsRow>
                 <StatsCard
-                  title="告警"
+                  title={t('device.status.warning')}
                   value={stats?.activeAlertCount ?? alerts.filter((a) => a.status === 'triggered').length}
                   color="#ef4444"
                 />
                 <StatsCard
-                  title="效率"
+                  title={t('digitalTwin.efficiency')}
                   value={efficiency.toFixed(1)}
                   unit="%"
                   color="#f59e0b"
                 />
               </StatsRow>
-              <DeviceChart title="今日产量" data={chartData} unit="件" color="#3b82f6" />
+              <DeviceChart title={t('digitalTwin.todayOutput')} data={chartData} unit={t('digitalTwin.unitPiece')} color="#3b82f6" />
               <div style={{ height: '16px' }} />
               <DeviceChart
-                title="设备利用率"
+                title={t('digitalTwin.deviceUtilization')}
                 data={utilizationChartData}
                 unit="%"
                 color="#8b5cf6"

@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useMemo } from 'react'
 import { Card } from './components/Card'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -90,14 +91,14 @@ function FilterBar({ filter, setFilter, severityFilter, setSeverityFilter }: Fil
 
   return (
     <div style={{ padding: `${Spacing.lg} ${Spacing.xl}`, borderBottom: `1px solid ${Colors.border}`, display: 'flex', gap: Spacing.md }}>
-      <FilterButton label="全部" isActive={filter === 'all'} onClick={() => setFilter('all')} />
-      <FilterButton label="未处理" isActive={filter === 'unacknowledged'} onClick={() => setFilter('unacknowledged')} />
-      <FilterButton label="已处理" isActive={filter === 'acknowledged'} onClick={() => setFilter('acknowledged')} />
+      <FilterButton label={t('common.all')} isActive={filter === 'all'} onClick={() => setFilter('all')} />
+      <FilterButton label={t('alert.unread')} isActive={filter === 'unacknowledged'} onClick={() => setFilter('unacknowledged')} />
+      <FilterButton label={t('warehouse.inventoryFilter.processed')} isActive={filter === 'acknowledged'} onClick={() => setFilter('acknowledged')} />
       <div style={{ width: '1px', background: Colors.border }} />
-      <FilterButton label="全部级别" isActive={severityFilter === 'all'} onClick={() => setSeverityFilter('all')} />
-      <button onClick={() => setSeverityFilter('critical')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('critical'), color: getSeverityTextColor('critical'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>紧急</button>
-      <button onClick={() => setSeverityFilter('warning')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('warning'), color: getSeverityTextColor('warning'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>警告</button>
-      <button onClick={() => setSeverityFilter('info')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('info'), color: getSeverityTextColor('info'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>提示</button>
+      <FilterButton label={t('alert.filterAllLevels')} isActive={severityFilter === 'all'} onClick={() => setSeverityFilter('all')} />
+      <button onClick={() => setSeverityFilter('critical')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('critical'), color: getSeverityTextColor('critical'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>{t('warehouse.urgency.critical')}</button>
+      <button onClick={() => setSeverityFilter('warning')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('warning'), color: getSeverityTextColor('warning'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>{t('common.level.warning')}</button>
+      <button onClick={() => setSeverityFilter('info')} style={{ padding: `${Spacing.xs} 10px`, borderRadius: BorderRadius.md, border: 'none', ...getSeverityButtonStyle('info'), color: getSeverityTextColor('info'), fontSize: FontSizes.sm, cursor: 'pointer', transition: Transitions.normal }}>{t('warehouse.hint')}</button>
     </div>
   )
 }
@@ -118,7 +119,7 @@ function AlertList({
   if (alerts.length === 0) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: Colors.textMuted, fontSize: FontSizes.lg }}>
-        ✓ 暂无告警
+        {t('warehouse.noInventoryAlerts')}
       </div>
     )
   }
@@ -176,7 +177,7 @@ export function InventoryAlertPanel({
   const header = (
     <div style={{ padding: Spacing.xl, borderBottom: `1px solid ${Colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: Spacing.lg }}>
-        <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>库存告警</span>
+        <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>{t('warehouse.inventoryAlerts')}</span>
         {summary.total > 0 && (
           <span style={{ background: Colors.danger, color: '#fff', fontSize: FontSizes.xs, fontWeight: 600, padding: ALERT_CONFIG.badgePadding, borderRadius: ALERT_CONFIG.badgeRadius }}>
             {summary.total}

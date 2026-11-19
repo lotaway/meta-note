@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useEffect } from 'react'
 import { alertRuleApi, type AlertRule } from '../../../services/api/alertRule'
 import { AlertRuleForm } from './AlertRuleForm'
@@ -23,7 +24,7 @@ export function AlertRuleList() {
       const data = await alertRuleApi.list()
       setRules(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载失败')
+      setError(err instanceof Error ? err.message : t('common.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -42,17 +43,17 @@ export function AlertRuleList() {
       }
       loadRules()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '操作失败')
+      setError(err instanceof Error ? err.message : t('common.operationFailed'))
     }
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这条告警规则吗？')) return
+    if (!confirm(t('alertRule.confirmDelete'))) return
     try {
       await alertRuleApi.delete(id)
       loadRules()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '删除失败')
+      setError(err instanceof Error ? err.message : t('common.deleteFailed'))
     }
   }
 
@@ -87,13 +88,13 @@ export function AlertRuleList() {
   }
 
   if (loading) {
-    return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>加载中...</div>
+    return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>{t('common.loading')}</div>
   }
 
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
-        <h3 style={{ margin: 0, color: '#e2e8f0' }}>告警规则配置</h3>
+        <h3 style={{ margin: 0, color: '#e2e8f0' }}>{t('alertRule.listTitle')}</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           <select
             value={filter}
@@ -106,12 +107,12 @@ export function AlertRuleList() {
               color: '#e2e8f0',
             }}
           >
-            <option value="all">全部</option>
-            <option value="enabled">已启用</option>
-            <option value="disabled">已禁用</option>
+            <option value="all">{t('common.all')}</option>
+            <option value="enabled">{t('alertRule.filter.enabled')}</option>
+            <option value="disabled">{t('alertRule.filter.disabled')}</option>
           </select>
           <button style={buttonStyle} onClick={() => { setEditingRule(null); setShowForm(true) }}>
-            + 创建规则
+            {t('alertRule.createRule')}
           </button>
         </div>
       </div>
@@ -123,18 +124,18 @@ export function AlertRuleList() {
       )}
 
       {filteredRules.length === 0 ? (
-        <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>暂无告警规则</div>
+        <div style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>{t('alertRule.listEmpty')}</div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #334155' }}>
-              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>规则编码</th>
-              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>规则名称</th>
-              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>指标</th>
-              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>条件</th>
-              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>级别</th>
-              <th style={{ textAlign: 'center', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>状态</th>
-              <th style={{ textAlign: 'center', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>操作</th>
+              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.ruleCode')}</th>
+              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.ruleName')}</th>
+              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.metric')}</th>
+              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.condition')}</th>
+              <th style={{ textAlign: 'left', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.level')}</th>
+              <th style={{ textAlign: 'center', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.status')}</th>
+              <th style={{ textAlign: 'center', padding: '12px 8px', color: '#94a3b8', fontSize: '13px' }}>{t('alertRule.column.action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -171,7 +172,7 @@ export function AlertRuleList() {
                       fontSize: '12px',
                     }}
                   >
-                    {rule.enabled ? '启用' : '禁用'}
+                    {rule.enabled ? t('alertRule.enabled') : t('alertRule.disabled')}
                   </button>
                 </td>
                 <td style={{ padding: '12px 8px', textAlign: 'center' }}>
@@ -187,9 +188,7 @@ export function AlertRuleList() {
                       fontSize: '12px',
                       marginRight: '8px',
                     }}
-                  >
-                    编辑
-                  </button>
+                  >{t('common.edit')}</button>
                   <button
                     onClick={() => handleDelete(rule.id)}
                     style={{
@@ -201,9 +200,7 @@ export function AlertRuleList() {
                       cursor: 'pointer',
                       fontSize: '12px',
                     }}
-                  >
-                    删除
-                  </button>
+                  >{t('common.delete')}</button>
                 </td>
               </tr>
             ))}

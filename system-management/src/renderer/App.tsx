@@ -1,3 +1,4 @@
+import { t } from './i18n'
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 import { ShapeType } from '../types/Editor'
@@ -74,7 +75,7 @@ const SettingsOverlay = ({ show }: { show: boolean }) => {
 
 const VideoNotePage = ({ onClose }: { onClose: () => void }) => (
     <VideoNoteShell>
-        <BackButton onClick={onClose}>返回</BackButton>
+        <BackButton onClick={onClose}>{t('app.back')}</BackButton>
         <VideoNote />
     </VideoNoteShell>
 )
@@ -96,10 +97,10 @@ export default function App() {
     return (
         <AppContainer>
             <ModeToggle $active={false} $offset={290} onClick={() => setShowVideoNote(true)}>
-                📝 视频笔记
+                📝 {t('app.videoNotes')}
             </ModeToggle>
             <ModeToggle $active={showDigitalTwin} $offset={140} onClick={() => setShowDigitalTwin(true)}>
-                🏭 数字孪生
+                🏭 {t('app.digitalTwin')}
             </ModeToggle>
             <ToggleButton show={showSettings} onClick={() => setShowSettings(!showSettings)} />
             <SettingsOverlay show={showSettings} />

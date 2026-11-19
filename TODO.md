@@ -34,9 +34,32 @@
 
 截至 2026-11-19，任务 1-9 全部闭环并归档。2026-11-19 按用户要求重开了任务 7（测试代码层补强）与任务 8（代码原则治理），并把任务 6 的 CI 自动化恢复（用户重申「测试即全自动化」），三项均已落地并归档于下方 2026-11-19 段。路线 B（有意不生成 OpenAPI 客户端）与下方「后端契约同步机制」作为项目约定继续有效。
 
-**仍按原则保留、未纳入本轮的欠账**（非新任务，需专门决策再开）：`src` 中 98 个超过 20 行的函数（绝大多数是 React 组件 / hook 的 JSX 与事件路由，机械拆分风险大于收益，且无测试覆盖的复杂 hook 不宜盲拆）、约 452 行中文 UI 字符串（属 i18n 资源范畴，尚无 i18n 基础设施）、110 个 catch 的逐一甄别（静态启发式误报率高）。本轮先完成风险可控、可验证的部分：未接线通道删除、中文注释清零、超 500 行文件拆分、测试行为断言强化。
+2026-11-19 晚，用户就上一轮「仍按原则保留的欠账」给出三项决策并已全部落地（详见下方 2026-11-19 晚归档）：① 函数长度标准定为约 50 行、不必太纠结；② UI 添加 i18n；③ catch 错误能覆盖就完整覆盖、不遗漏未捕获错误。至此，上一轮列出的三项欠账均已处理，当前无待办。i18n 基础设施已就位：新增语言（zh-CN / en）时按 `src/renderer/i18n/locales/` 的结构补资源 key，渲染层用 `t('key')`，语言切换入口在 Settings 页（`setLanguage` 写 localStorage 后重载）。
+
+**仍属持续优化、非待办的判断**：`useDigitalTwinData` 主组合 hook（约 147 行）超出 50 行，但主体是状态与回调编排样板，可提取的独立逻辑（patchDevice / createMessageHandler / connectGatewayWs）均已拆到模块级纯函数（≤20 行）；React 展示组件的 JSX 长度属声明式自然结果，不机械拆分。品牌名 `APP_DISPLAY_NAME` 保留中文（专有名词）。
 
 ## 归档
+
+### 2026-11-19 晚 — i18n、错误覆盖与函数长度治理
+
+用户对上一轮三项欠账的决策：函数约 50 行内即可、不必太纠结；UI 添加 i18n；catch 错误能覆盖就完整覆盖、不遗漏未捕获错误。重新静态测量后实施（非沿用旧快照：中文 296 行 / 31 文件、超 50 行函数 32 个、空 catch 0 个）。
+
+**i18n（UI 国际化）**：
+- 引入 `i18next@27` + `react-i18next@18`，新增 `src/renderer/i18n/`（`index.ts`、`locales/zh-CN.ts`、`locales/en.ts`）。默认 `zh-CN`，从 localStorage 读偏好，缺 key 回退 zh-CN。
+- 渲染层 296 行中文几乎全部迁移为 `t('key')`（按模块嵌套：common / alert / alertRule / device / scada / trace / warehouse / audio / digitalTwin 等），带插值的用 `{{var}}`（计数、aria-label、tooltip、模板默认值）。主进程日志/API 错误文案改英文（`screenshot.controller.ts`、`app-lifecycle.ts`），品牌名 `brand.ts` 保留中文。
+- Settings 页新增语言切换（简体中文 / English，`setLanguage` 写 localStorage 后重载页面使模块级 `t()` 生效）。源码中文仅剩品牌名一处。
+
+**错误覆盖（不遗漏未捕获错误）**：
+- 渲染层新增 `src/renderer/utils/globalError.ts`：`installGlobalErrorHandlers()` 在 `main.tsx` 安装，捕获 `error` 与 `unhandledrejection`，console.error 记录 + 页面底部可见 banner（role=alert）；可订阅的 `onGlobalError`。
+- 主进程新增 `src/main/global-error.ts`：`desktop-main.ts` 副作用导入，捕获 `uncaughtException` / `unhandledRejection` 并记录。
+- 给 4 处「仅注释的吞异常」补 `console.debug`（monitor-llm SSE、AudioContext 分块、i18n localStorage 读写）；给无 catch 的 fire-and-forget promise 补 `.catch()`（VoiceTools/Settings 的 IPC 调用、`app.whenReady`、`useDigitalTwinData` 的 WS 连接 IIFE）；4 处仅 i18n 相关的静默降级。空 catch 实测为 0。
+
+**函数长度（≤50 行，逻辑密集函数）**：
+- `websocket.service.ts` setup 99 行拆为 `buildMessageResponse` 等纯函数 + 3 个私有方法（均 ≤20 行），并补 5 例测试。
+- `chatgpt-inject.ts` init 88 行、`deepseek-inject.ts` init 72 行各拆为模块级单一职责函数（fetch 拦截 / 流上报 / 输入 / 发送按钮 / 登录处理），init 仅 6 行，行为不变。
+- `useDigitalTwinData.ts` 提取 `patchDevice` / `createMessageHandler` / `connectGatewayWs`（≤20 行），新增整体 `.catch`；主 hook 保留状态/回调编排（约 147 行，属样板，见「当前状态」）。
+
+**验收**：`npm run typecheck` 通过；`npm run test:run` 20 文件 / 210 例全绿（新增 globalError 3 例、websocket 5 例）。真实 e2e / Electron 冒烟仍交由 CI 验证。
 
 ### 2026-11-19 — 任务 6、7、8 重做（按 CODE_PINCEPLES 与「测试即全自动化」）
 

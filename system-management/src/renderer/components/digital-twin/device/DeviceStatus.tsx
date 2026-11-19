@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useEffect } from 'react'
 import type { Device } from '../scene/FactoryScene'
 
@@ -16,12 +17,12 @@ const statusColors: Record<string, string> = {
 }
 
 const statusLabels: Record<string, string> = {
-  running: '运行中',
-  idle: '空闲',
-  warning: '告警',
-  error: '故障',
-  offline: '离线',
-  online: '在线'
+  running: t('device.status.running'),
+  idle: t('device.status.idle'),
+  warning: t('device.status.warning'),
+  error: t('device.status.error'),
+  offline: t('device.status.offline'),
+  online: t('device.status.online')
 }
 
 export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
@@ -49,18 +50,18 @@ export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
     }}>
       {/* Stats Summary */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '16px' }}>
-        <StatCard label="总数" value={stats.total} color="#3b82f6" />
-        <StatCard label="运行" value={stats.running} color="#4ade80" />
-        <StatCard label="告警" value={stats.warning + stats.error} color="#ef4444" />
+        <StatCard label={t('device.stat.total')} value={stats.total} color="#3b82f6" />
+        <StatCard label={t('device.stat.running')} value={stats.running} color="#4ade80" />
+        <StatCard label={t('device.status.warning')} value={stats.warning + stats.error} color="#ef4444" />
       </div>
 
       {/* Filter */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-        <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>全部</FilterButton>
-        <FilterButton active={filter === 'running'} onClick={() => setFilter('running')}>运行中</FilterButton>
-        <FilterButton active={filter === 'idle'} onClick={() => setFilter('idle')}>空闲</FilterButton>
-        <FilterButton active={filter === 'warning'} onClick={() => setFilter('warning')}>告警</FilterButton>
-        <FilterButton active={filter === 'error'} onClick={() => setFilter('error')}>故障</FilterButton>
+        <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>{t('common.all')}</FilterButton>
+        <FilterButton active={filter === 'running'} onClick={() => setFilter('running')}>{t('device.status.running')}</FilterButton>
+        <FilterButton active={filter === 'idle'} onClick={() => setFilter('idle')}>{t('device.status.idle')}</FilterButton>
+        <FilterButton active={filter === 'warning'} onClick={() => setFilter('warning')}>{t('device.status.warning')}</FilterButton>
+        <FilterButton active={filter === 'error'} onClick={() => setFilter('error')}>{t('device.status.error')}</FilterButton>
       </div>
 
       {/* Device List */}
@@ -99,9 +100,7 @@ export function DeviceStatus({ devices, onDeviceSelect }: DeviceStatusProps) {
           </div>
         ))}
         {filteredDevices.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>
-            暂无设备
-          </div>
+          <div style={{ textAlign: 'center', padding: '20px', color: '#64748b' }}>{t('device.noDevices')}</div>
         )}
       </div>
     </div>

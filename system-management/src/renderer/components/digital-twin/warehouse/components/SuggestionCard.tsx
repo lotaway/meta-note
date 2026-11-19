@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 export interface RestockSuggestion {
   id: string
   itemId: string
@@ -76,7 +77,7 @@ export function SuggestionCard({
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: FontSizes.xxl, fontWeight: 600, color: Colors.text }}>+{suggestion.suggestedQuantity}</div>
-          <div style={{ fontSize: FontSizes.xs, color: Colors.textMuted }}>当前: {suggestion.currentStock}</div>
+          <div style={{ fontSize: FontSizes.xs, color: Colors.textMuted }}>{t('warehouse.current')} {suggestion.currentStock}</div>
         </div>
         <div style={{ color: Colors.textMuted, fontSize: FontSizes.xs, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: Transitions.normal }}>
           ▼
@@ -86,15 +87,15 @@ export function SuggestionCard({
         <div style={{ padding: `${Spacing.lg} ${Spacing.xl}`, borderTop: `1px solid ${Colors.border}`, background: 'rgba(15, 23, 42, 0.8)' }}>
           <div style={{ fontSize: FontSizes.md, color: Colors.textSecondary, marginBottom: Spacing.lg }}>{suggestion.reason}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: Spacing.md, fontSize: FontSizes.sm, marginBottom: Spacing.lg }}>
-            <div><span style={{ color: Colors.textMuted }}>置信度: </span><span style={{ color: confidenceColor }}>{suggestion.confidence}%</span></div>
-            {suggestion.estimatedArrival && <div><span style={{ color: Colors.textMuted }}>预计到货: </span><span style={{ color: Colors.text }}>{suggestion.estimatedArrival}</span></div>}
-            <div><span style={{ color: Colors.textMuted }}>创建时间: </span><span style={{ color: Colors.textSecondary }}>{formatDateTime(suggestion.createdAt)}</span></div>
+            <div><span style={{ color: Colors.textMuted }}>{t('warehouse.confidence')}</span><span style={{ color: confidenceColor }}>{suggestion.confidence}%</span></div>
+            {suggestion.estimatedArrival && <div><span style={{ color: Colors.textMuted }}>{t('warehouse.arrival')}</span><span style={{ color: Colors.text }}>{suggestion.estimatedArrival}</span></div>}
+            <div><span style={{ color: Colors.textMuted }}>{t('warehouse.createdAt')}</span><span style={{ color: Colors.textSecondary }}>{formatDateTime(suggestion.createdAt)}</span></div>
           </div>
           <div style={{ display: 'flex', gap: Spacing.md, flexWrap: 'wrap' }}>
-            {suggestion.status === 'pending' && onApprove && <Button variant="primary" onClick={(e) => { e.stopPropagation(); onApprove(suggestion.id) }}>审批通过</Button>}
-            {suggestion.status === 'pending' && onReject && <Button onClick={(e) => { e.stopPropagation(); onReject(suggestion.id) }}>拒绝</Button>}
-            {suggestion.status === 'approved' && onOrder && <Button variant="primary" onClick={(e) => { e.stopPropagation(); onOrder(suggestion.id) }}>下单</Button>}
-            {onDetailsClick && <Button onClick={(e) => { e.stopPropagation(); onDetailsClick(suggestion) }}>查看详情</Button>}
+            {suggestion.status === 'pending' && onApprove && <Button variant="primary" onClick={(e) => { e.stopPropagation(); onApprove(suggestion.id) }}>{t('warehouse.approve')}</Button>}
+            {suggestion.status === 'pending' && onReject && <Button onClick={(e) => { e.stopPropagation(); onReject(suggestion.id) }}>{t('warehouse.reject')}</Button>}
+            {suggestion.status === 'approved' && onOrder && <Button variant="primary" onClick={(e) => { e.stopPropagation(); onOrder(suggestion.id) }}>{t('warehouse.order')}</Button>}
+            {onDetailsClick && <Button onClick={(e) => { e.stopPropagation(); onDetailsClick(suggestion) }}>{t('warehouse.details')}</Button>}
           </div>
         </div>
       )}

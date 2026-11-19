@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { useState, useMemo } from 'react'
 
 interface DirectorySelectorProps {
@@ -12,8 +13,8 @@ interface DirectorySelectorProps {
 
 export default function DirectorySelector({
   title = "",
-  buttonTitle = "选择",
-  dialogTitle = "请选择文件夹",
+  buttonTitle = t('directory.select'),
+  dialogTitle = t('directory.chooseFolder'),
   placeholder = "",
   value = "",
   onButtonClick,

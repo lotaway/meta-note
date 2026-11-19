@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { t } from '../../../i18n'
 import { Card } from './components/Card'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Spacing } from './styles/constants'
@@ -33,7 +34,7 @@ export interface DemandChartProps {
 
 export function DemandChart({
   data,
-  title = '需求预测趋势',
+  title = t('warehouse.demandTitle'),
   showConfidenceInterval = true,
   showActual = true,
   height = 300

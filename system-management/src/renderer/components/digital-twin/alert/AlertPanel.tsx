@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState } from 'react'
 
 export interface Alert {
@@ -28,17 +29,17 @@ const levelColors: Record<string, string> = {
 }
 
 const levelLabels: Record<string, string> = {
-  info: '信息',
-  warning: '警告',
-  error: '错误',
-  critical: '严重'
+  info: t('common.level.info'),
+  warning: t('common.level.warning'),
+  error: t('common.level.error'),
+  critical: t('common.level.critical')
 }
 
 const statusLabels: Record<string, string> = {
-  triggered: '触发',
-  acknowledged: '已确认',
-  in_progress: '处理中',
-  resolved: '已解决'
+  triggered: t('alert.status.triggered'),
+  acknowledged: t('alert.status.acknowledged'),
+  in_progress: t('alert.status.in_progress'),
+  resolved: t('alert.status.resolved')
 }
 
 export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: AlertPanelProps) {
@@ -63,7 +64,7 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
     }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3 style={{ margin: 0, fontSize: '18px' }}>告警中心</h3>
+        <h3 style={{ margin: 0, fontSize: '18px' }}>{t('alert.title')}</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           {unreadCount > 0 && (
             <span style={{
@@ -73,7 +74,7 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
               borderRadius: '10px',
               fontSize: '12px'
             }}>
-              {unreadCount} 未处理
+              {t('alert.unreadCount', { count: unreadCount })}
             </span>
           )}
           {criticalCount > 0 && (
@@ -85,7 +86,7 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
               fontSize: '12px',
               animation: 'pulse 2s infinite'
             }}>
-              {criticalCount} 严重
+              {t('alert.criticalCount', { count: criticalCount })}
             </span>
           )}
         </div>
@@ -94,16 +95,16 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
       {/* Filters */}
       <div style={{ marginBottom: '12px' }}>
         <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
-          <FilterChip active={levelFilter === 'all'} onClick={() => setLevelFilter('all')}>全部级别</FilterChip>
-          <FilterChip active={levelFilter === 'critical'} onClick={() => setLevelFilter('critical')} color="#dc2626">严重</FilterChip>
-          <FilterChip active={levelFilter === 'error'} onClick={() => setLevelFilter('error')} color="#ef4444">错误</FilterChip>
-          <FilterChip active={levelFilter === 'warning'} onClick={() => setLevelFilter('warning')} color="#f59e0b">警告</FilterChip>
+          <FilterChip active={levelFilter === 'all'} onClick={() => setLevelFilter('all')}>{t('alert.filterAllLevels')}</FilterChip>
+          <FilterChip active={levelFilter === 'critical'} onClick={() => setLevelFilter('critical')} color="#dc2626">{t('common.level.critical')}</FilterChip>
+          <FilterChip active={levelFilter === 'error'} onClick={() => setLevelFilter('error')} color="#ef4444">{t('common.level.error')}</FilterChip>
+          <FilterChip active={levelFilter === 'warning'} onClick={() => setLevelFilter('warning')} color="#f59e0b">{t('common.level.warning')}</FilterChip>
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <FilterChip active={filter === 'all'} onClick={() => setFilter('all')}>全部</FilterChip>
-          <FilterChip active={filter === 'triggered'} onClick={() => setFilter('triggered')}>触发</FilterChip>
-          <FilterChip active={filter === 'acknowledged'} onClick={() => setFilter('acknowledged')}>已确认</FilterChip>
-          <FilterChip active={filter === 'resolved'} onClick={() => setFilter('resolved')}>已解决</FilterChip>
+          <FilterChip active={filter === 'all'} onClick={() => setFilter('all')}>{t('common.all')}</FilterChip>
+          <FilterChip active={filter === 'triggered'} onClick={() => setFilter('triggered')}>{t('alert.status.triggered')}</FilterChip>
+          <FilterChip active={filter === 'acknowledged'} onClick={() => setFilter('acknowledged')}>{t('alert.status.acknowledged')}</FilterChip>
+          <FilterChip active={filter === 'resolved'} onClick={() => setFilter('resolved')}>{t('alert.status.resolved')}</FilterChip>
         </div>
       </div>
 
@@ -156,9 +157,7 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
                       cursor: 'pointer',
                       fontSize: '11px'
                     }}
-                  >
-                    确认
-                  </button>
+                  >{t('common.confirm')}</button>
                 )}
                 {alert.status === 'acknowledged' && (
                   <button
@@ -172,18 +171,14 @@ export function AlertPanel({ alerts, onAcknowledge, onResolve, onAlertClick }: A
                       cursor: 'pointer',
                       fontSize: '11px'
                     }}
-                  >
-                    解决
-                  </button>
+                  >{t('common.resolve')}</button>
                 )}
               </div>
             </div>
           </div>
         ))}
         {filteredAlerts.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-            暂无告警
-          </div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>{t('alert.noAlerts')}</div>
         )}
       </div>
     </div>

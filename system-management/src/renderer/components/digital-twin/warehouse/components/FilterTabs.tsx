@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 import { Colors, Spacing, FontSizes, BorderRadius, Transitions } from '../styles/constants'
 
 type FilterType = 'all' | 'pending' | 'approved' | 'ordered'
@@ -9,10 +10,10 @@ interface FilterTabsProps {
 }
 
 const FILTER_LABELS: Record<FilterType, string> = {
-  all: '全部',
-  pending: '待审批',
-  approved: '已审批',
-  ordered: '已下单'
+  all: t('common.all'),
+  pending: t('warehouse.filter.pending'),
+  approved: t('warehouse.filter.approved'),
+  ordered: t('warehouse.filter.ordered')
 }
 
 export function FilterTabs({ activeFilter, onChange, count }: FilterTabsProps) {
@@ -20,7 +21,7 @@ export function FilterTabs({ activeFilter, onChange, count }: FilterTabsProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: Spacing.lg }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: Spacing.sm }}>
-        <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>补货建议</span>
+        <span style={{ fontWeight: 600, fontSize: FontSizes.xl }}>{t('warehouse.restockSuggestions')}</span>
         <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: Colors.danger, fontSize: FontSizes.xs, fontWeight: 600, padding: '2px 8px', borderRadius: '10px' }}>{count}</span>
       </div>
       <div style={{ display: 'flex', gap: Spacing.xs }}>

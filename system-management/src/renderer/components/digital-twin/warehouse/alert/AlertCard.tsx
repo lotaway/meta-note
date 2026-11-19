@@ -1,3 +1,4 @@
+import { t } from '../../../../i18n'
 import { Button } from '../components/Button'
 import { Colors, Spacing, FontSizes, BorderRadius, Transitions } from '../styles/constants'
 import { formatDateTime } from '../utils/format'
@@ -14,8 +15,8 @@ const SEVERITY_STYLES = {
 } as const
 
 const TYPE_LABELS: Record<string, string> = {
-  low_stock: '库存偏低', critical_stock: '库存紧急', overstock: '库存超储',
-  expiring: '即将过期', expired: '已过期', anomaly: '数据异常'
+  low_stock: t('warehouse.alertType.low_stock'), critical_stock: t('warehouse.alertType.critical_stock'), overstock: t('warehouse.alertType.overstock'),
+  expiring: t('warehouse.alertType.expiring'), expired: t('warehouse.alertType.expired'), anomaly: t('warehouse.alertType.anomaly')
 }
 
 export interface InventoryAlert {
@@ -111,7 +112,7 @@ export function AlertCard({ alert, onClick, onAcknowledge, onDismiss }: AlertCar
         </div>
         <div style={{ display: 'flex', gap: Spacing.md }}>
           {!alert.acknowledged && onAcknowledge && (
-            <Button onClick={handleAck} style={{ padding: ALERT_CONFIG.buttonPadding }}>标记已读</Button>
+            <Button onClick={handleAck} style={{ padding: ALERT_CONFIG.buttonPadding }}>{t('warehouse.markRead')}</Button>
           )}
           {onDismiss && (
             <Button variant="ghost" onClick={handleDismiss} style={{ padding: ALERT_CONFIG.buttonPadding }}>✕</Button>

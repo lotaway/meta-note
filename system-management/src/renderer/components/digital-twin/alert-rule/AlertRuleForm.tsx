@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useEffect } from 'react'
 import { alertRuleApi, type AlertRule, type CreateAlertRuleRequest, type UpdateAlertRuleRequest } from '../../../services/api/alertRule'
 
@@ -8,47 +9,47 @@ interface AlertRuleFormProps {
 }
 
 const METRIC_TYPES = [
-  { value: 'TEMPERATURE', label: '温度' },
-  { value: 'HUMIDITY', label: '湿度' },
-  { value: 'PRESSURE', label: '压力' },
-  { value: 'VIBRATION', label: '振动' },
-  { value: 'POWER', label: '功率' },
-  { value: 'RPM', label: '转速' },
-  { value: 'PRODUCTION_RATE', label: '生产率' },
-  { value: 'DEFECT_RATE', label: '缺陷率' },
-  { value: 'RESPONSE_TIME', label: '响应时间' },
+  { value: 'TEMPERATURE', label: t('alertRule.metric.TEMPERATURE') },
+  { value: 'HUMIDITY', label: t('alertRule.metric.HUMIDITY') },
+  { value: 'PRESSURE', label: t('alertRule.metric.PRESSURE') },
+  { value: 'VIBRATION', label: t('alertRule.metric.VIBRATION') },
+  { value: 'POWER', label: t('alertRule.metric.POWER') },
+  { value: 'RPM', label: t('alertRule.metric.RPM') },
+  { value: 'PRODUCTION_RATE', label: t('alertRule.metric.PRODUCTION_RATE') },
+  { value: 'DEFECT_RATE', label: t('alertRule.metric.DEFECT_RATE') },
+  { value: 'RESPONSE_TIME', label: t('alertRule.metric.RESPONSE_TIME') },
 ]
 
 const OPERATORS = [
-  { value: 'GREATER_THAN', label: '大于' },
-  { value: 'LESS_THAN', label: '小于' },
-  { value: 'GREATER_OR_EQUAL', label: '大于等于' },
-  { value: 'LESS_OR_EQUAL', label: '小于等于' },
-  { value: 'EQUAL', label: '等于' },
-  { value: 'NOT_EQUAL', label: '不等于' },
-  { value: 'BETWEEN', label: '介于' },
-  { value: 'OUTSIDE', label: '超出范围' },
+  { value: 'GREATER_THAN', label: t('alertRule.operator.GREATER_THAN') },
+  { value: 'LESS_THAN', label: t('alertRule.operator.LESS_THAN') },
+  { value: 'GREATER_OR_EQUAL', label: t('alertRule.operator.GREATER_OR_EQUAL') },
+  { value: 'LESS_OR_EQUAL', label: t('alertRule.operator.LESS_OR_EQUAL') },
+  { value: 'EQUAL', label: t('alertRule.operator.EQUAL') },
+  { value: 'NOT_EQUAL', label: t('alertRule.operator.NOT_EQUAL') },
+  { value: 'BETWEEN', label: t('alertRule.operator.BETWEEN') },
+  { value: 'OUTSIDE', label: t('alertRule.operator.OUTSIDE') },
 ]
 
 const LEVELS = [
-  { value: 'INFO', label: '信息', color: '#3b82f6' },
-  { value: 'WARNING', label: '警告', color: '#f59e0b' },
-  { value: 'ERROR', label: '错误', color: '#ef4444' },
-  { value: 'CRITICAL', label: '严重', color: '#dc2626' },
+  { value: 'INFO', label: t('common.level.info'), color: '#3b82f6' },
+  { value: 'WARNING', label: t('common.level.warning'), color: '#f59e0b' },
+  { value: 'ERROR', label: t('common.level.error'), color: '#ef4444' },
+  { value: 'CRITICAL', label: t('common.level.critical'), color: '#dc2626' },
 ]
 
 const ALERT_TYPES = [
-  { value: 'DEVICE_OFFLINE', label: '设备离线' },
-  { value: 'DEVICE_ERROR', label: '设备错误' },
-  { value: 'TEMPERATURE_HIGH', label: '温度过高' },
-  { value: 'PRESSURE_ABNORMAL', label: '压力异常' },
-  { value: 'VIBRATION_ABNORMAL', label: '振动异常' },
-  { value: 'PRODUCTION_STOP', label: '生产停止' },
-  { value: 'QUALITY_ISSUE', label: '质量问题' },
-  { value: 'MAINTENANCE_DUE', label: '维护到期' },
-  { value: 'NETWORK_ERROR', label: '网络错误' },
-  { value: 'POWER_FAILURE', label: '电源故障' },
-  { value: 'SAFETY_ISSUE', label: '安全问题' },
+  { value: 'DEVICE_OFFLINE', label: t('alertRule.type.DEVICE_OFFLINE') },
+  { value: 'DEVICE_ERROR', label: t('alertRule.type.DEVICE_ERROR') },
+  { value: 'TEMPERATURE_HIGH', label: t('alertRule.type.TEMPERATURE_HIGH') },
+  { value: 'PRESSURE_ABNORMAL', label: t('alertRule.type.PRESSURE_ABNORMAL') },
+  { value: 'VIBRATION_ABNORMAL', label: t('alertRule.type.VIBRATION_ABNORMAL') },
+  { value: 'PRODUCTION_STOP', label: t('alertRule.type.PRODUCTION_STOP') },
+  { value: 'QUALITY_ISSUE', label: t('alertRule.type.QUALITY_ISSUE') },
+  { value: 'MAINTENANCE_DUE', label: t('alertRule.type.MAINTENANCE_DUE') },
+  { value: 'NETWORK_ERROR', label: t('alertRule.type.NETWORK_ERROR') },
+  { value: 'POWER_FAILURE', label: t('alertRule.type.POWER_FAILURE') },
+  { value: 'SAFETY_ISSUE', label: t('alertRule.type.SAFETY_ISSUE') },
 ]
 
 export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
@@ -64,8 +65,8 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
     thresholdValue: rule?.thresholdValue || 80,
     level: rule?.level || 'WARNING',
     alertType: rule?.alertType || 'TEMPERATURE_HIGH',
-    titleTemplate: rule?.titleTemplate || '设备 {device} 告警',
-    descriptionTemplate: rule?.descriptionTemplate || '当前值 {value} 超过阈值 {threshold}',
+    titleTemplate: rule?.titleTemplate || t('alertRule.defaultTitleTemplate'),
+    descriptionTemplate: rule?.descriptionTemplate || t('alertRule.defaultDescriptionTemplate'),
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,7 +97,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
       }
       onSave()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '操作失败')
+      setError(err instanceof Error ? err.message : t('common.operationFailed'))
     } finally {
       setLoading(false)
     }
@@ -140,7 +141,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
         overflow: 'auto',
       }} onClick={e => e.stopPropagation()}>
         <h2 style={{ margin: '0 0 20px', color: '#e2e8f0', fontSize: '18px' }}>
-          {rule ? '编辑告警规则' : '创建告警规则'}
+          {rule ? t('alertRule.formEdit') : t('alertRule.formCreate')}
         </h2>
 
         {error && (
@@ -156,7 +157,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={labelStyle}>规则编码 *</label>
+              <label style={labelStyle}>{t('alertRule.field.ruleCode')}</label>
               <input
                 type="text"
                 value={formData.ruleCode}
@@ -168,7 +169,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>规则名称 *</label>
+              <label style={labelStyle}>{t('alertRule.field.ruleName')}</label>
               <input
                 type="text"
                 value={formData.ruleName}
@@ -179,7 +180,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>设备类型</label>
+              <label style={labelStyle}>{t('alertRule.field.deviceType')}</label>
               <input
                 type="text"
                 value={formData.deviceType}
@@ -189,7 +190,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>指标类型 *</label>
+              <label style={labelStyle}>{t('alertRule.field.metric')}</label>
               <select
                 value={formData.metricType}
                 onChange={e => setFormData({ ...formData, metricType: e.target.value })}
@@ -202,7 +203,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>比较操作符 *</label>
+              <label style={labelStyle}>{t('alertRule.field.operator')}</label>
               <select
                 value={formData.operator}
                 onChange={e => setFormData({ ...formData, operator: e.target.value })}
@@ -215,7 +216,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>阈值 *</label>
+              <label style={labelStyle}>{t('alertRule.field.threshold')}</label>
               <input
                 type="number"
                 step="0.1"
@@ -227,7 +228,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>告警级别 *</label>
+              <label style={labelStyle}>{t('alertRule.field.level')}</label>
               <select
                 value={formData.level}
                 onChange={e => setFormData({ ...formData, level: e.target.value })}
@@ -240,7 +241,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
             </div>
 
             <div>
-              <label style={labelStyle}>告警类型 *</label>
+              <label style={labelStyle}>{t('alertRule.field.type')}</label>
               <select
                 value={formData.alertType}
                 onChange={e => setFormData({ ...formData, alertType: e.target.value })}
@@ -254,7 +255,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
           </div>
 
           <div style={{ marginTop: '16px' }}>
-            <label style={labelStyle}>描述</label>
+            <label style={labelStyle}>{t('alertRule.field.description')}</label>
             <textarea
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -264,24 +265,24 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
             <div>
-              <label style={labelStyle}>标题模板</label>
+              <label style={labelStyle}>{t('alertRule.field.titleTemplate')}</label>
               <input
                 type="text"
                 value={formData.titleTemplate}
                 onChange={e => setFormData({ ...formData, titleTemplate: e.target.value })}
                 style={inputStyle}
-                placeholder="使用 {device}, {value} 占位符"
+                placeholder={t('alertRule.placeholder.titleTemplate')}
               />
             </div>
 
             <div>
-              <label style={labelStyle}>描述模板</label>
+              <label style={labelStyle}>{t('alertRule.field.descriptionTemplate')}</label>
               <input
                 type="text"
                 value={formData.descriptionTemplate}
                 onChange={e => setFormData({ ...formData, descriptionTemplate: e.target.value })}
                 style={inputStyle}
-                placeholder="使用 {value}, {threshold} 占位符"
+                placeholder={t('alertRule.placeholder.descriptionTemplate')}
               />
             </div>
           </div>
@@ -298,9 +299,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
                 color: '#e2e8f0',
                 cursor: 'pointer',
               }}
-            >
-              取消
-            </button>
+            >{t('common.cancel')}</button>
             <button
               type="submit"
               disabled={loading}
@@ -313,7 +312,7 @@ export function AlertRuleForm({ rule, onSave, onCancel }: AlertRuleFormProps) {
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? '保存中...' : '保存'}
+              {loading ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </form>

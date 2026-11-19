@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useMemo, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, Environment, Text, Html } from '@react-three/drei'
@@ -274,7 +275,7 @@ function WarehouseInfoPanel({ warehouse }: { warehouse: Warehouse }) {
     <Html position={[size / 2 - 2, 3, -size / 2 + 1]} center>
       <div
         role="status"
-        aria-label={`${warehouse.name} 信息面板`}
+        aria-label={t('warehouse.infoPanelAria', { name: warehouse.name })}
         style={{
           background: Colors.background,
           padding: INFO_PANEL_CONFIG.padding,
@@ -290,16 +291,16 @@ function WarehouseInfoPanel({ warehouse }: { warehouse: Warehouse }) {
           {warehouse.name}
         </div>
         <div style={{ display: 'grid', gap: INFO_PANEL_CONFIG.gridGap }}>
-          <div>总面积: <span style={{ color: Colors.textMuted }}>{warehouse.totalArea} m²</span></div>
-          <div>使用面积: <span style={{ color: Colors.success }}>{warehouse.usedArea} m²</span></div>
+          <div>{t('warehouse.totalArea')}<span style={{ color: Colors.textMuted }}>{warehouse.totalArea} m²</span></div>
+          <div>{t('warehouse.usedArea')}<span style={{ color: Colors.success }}>{warehouse.usedArea} m²</span></div>
           <div>
-            利用率:{' '}
+            {t('warehouse.utilization')}{' '}
             <span style={{ color: utilRate > 80 ? Colors.danger : Colors.success }}>
               {utilRate.toFixed(1)}%
             </span>
           </div>
-          <div>容量: <span style={{ color: Colors.info }}>{warehouse.capacity}</span></div>
-          <div>状态: <span style={{ color: statusColor }}>{warehouse.status.toUpperCase()}</span></div>
+          <div>{t('warehouse.capacity')}<span style={{ color: Colors.info }}>{warehouse.capacity}</span></div>
+          <div>{t('warehouse.statusInfo')}<span style={{ color: statusColor }}>{warehouse.status.toUpperCase()}</span></div>
         </div>
       </div>
     </Html>

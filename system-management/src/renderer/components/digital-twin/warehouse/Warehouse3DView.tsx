@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Warehouse3DScene } from './Warehouse3DScene'
 
@@ -50,7 +51,7 @@ export function Warehouse3DView({
     <ErrorBoundary>
       <div
         role="img"
-        aria-label={`${warehouse.name} 3D 视图`}
+        aria-label={t('warehouse.view3dAria', { name: warehouse.name })}
         style={{ width: '100%', height: '100%', minHeight: '400px' }}
       >
         <Warehouse3DScene

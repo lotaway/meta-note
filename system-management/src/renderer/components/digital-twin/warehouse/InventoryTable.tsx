@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import React, { useState, useMemo } from 'react'
 
 export interface InventoryItem {
@@ -82,11 +83,11 @@ export function InventoryTable({
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'normal': return '正常'
-      case 'low': return '偏低'
-      case 'critical': return '紧急'
-      case 'overstock': return '超储'
-      case 'expired': return '过期'
+      case 'normal': return t('warehouse.inventoryStatus.normal')
+      case 'low': return t('warehouse.inventoryStatus.low')
+      case 'critical': return t('warehouse.urgency.critical')
+      case 'overstock': return t('warehouse.inventoryStatus.overstock')
+      case 'expired': return t('warehouse.inventoryStatus.expired')
       default: return status
     }
   }
@@ -124,7 +125,7 @@ export function InventoryTable({
         }}>
           <input
             type="text"
-            placeholder="搜索 SKU/名称/类别/位置..."
+            placeholder={t('warehouse.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
             style={{
@@ -139,7 +140,7 @@ export function InventoryTable({
             }}
           />
           <span style={{ color: '#64748b', fontSize: '12px' }}>
-            {filteredItems.length} 条记录
+            {t('warehouse.recordCount', { count: filteredItems.length })}
           </span>
         </div>
       )}
@@ -154,12 +155,12 @@ export function InventoryTable({
             <tr style={{ background: 'rgba(30, 41, 59, 0.8)' }}>
               {[
                 { key: 'sku', label: 'SKU' },
-                { key: 'name', label: '名称' },
-                { key: 'category', label: '类别' },
-                { key: 'quantity', label: '数量' },
-                { key: 'location', label: '位置' },
-                { key: 'status', label: '状态' },
-                { key: 'lastUpdated', label: '更新时间' }
+                { key: 'name', label: t('warehouse.column.name') },
+                { key: 'category', label: t('warehouse.column.category') },
+                { key: 'quantity', label: t('warehouse.column.quantity') },
+                { key: 'location', label: t('warehouse.column.location') },
+                { key: 'status', label: t('alertRule.column.status') },
+                { key: 'lastUpdated', label: t('warehouse.column.lastUpdated') }
               ].map(col => (
                 <th
                   key={col.key}
@@ -252,11 +253,9 @@ export function InventoryTable({
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
               fontSize: '12px'
             }}
-          >
-            上一页
-          </button>
+          >{t('warehouse.prevPage')}</button>
           <span style={{ color: '#94a3b8', fontSize: '12px' }}>
-            第 {currentPage} / {totalPages} 页
+            {t('warehouse.pageInfo', { currentPage, totalPages })}
           </span>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
@@ -270,9 +269,7 @@ export function InventoryTable({
               cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
               fontSize: '12px'
             }}
-          >
-            下一页
-          </button>
+          >{t('warehouse.nextPage')}</button>
         </div>
       )}
     </div>

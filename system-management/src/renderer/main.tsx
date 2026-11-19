@@ -4,6 +4,9 @@ import SubtitlesOverlay from './pages/SubtitlesOverlay'
 import { AudioProvider } from './contexts/AudioContext'
 import './style.css'
 import { DirectoryProvider } from './contexts/DirectoryContext'
+import { installGlobalErrorHandlers } from './utils/globalError'
+
+installGlobalErrorHandlers()
 
 const container = document.getElementById('app')
 const root = createRoot(container!)

@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useEffect, useState } from 'react'
 import { mesApi, type TelemetryRecord, type DeviceCommand } from '../../../services/mes-api'
 
@@ -134,12 +135,10 @@ export function ScadaPanel({ equipmentCode, equipmentName }: ScadaPanelProps) {
       {/* Device header */}
       <div style={cardStyle}>
         <div style={{ fontSize: 14, color: '#3b82f6', fontWeight: 'bold', marginBottom: 4 }}>
-          {equipmentName || equipmentCode || '未选择设备'}
+          {equipmentName || equipmentCode || t('scada.noDeviceSelected')}
         </div>
         {!equipmentCode && (
-          <div style={{ fontSize: 12, color: '#64748b' }}>
-            请在左侧设备列表中选择设备查看 SCADA 数据
-          </div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>{t('scada.selectDeviceHint')}</div>
         )}
       </div>
 
@@ -148,13 +147,13 @@ export function ScadaPanel({ equipmentCode, equipmentName }: ScadaPanelProps) {
           {/* Real-time metrics */}
           <div style={cardStyle}>
             <div style={headerStyle}>
-              <span>📊 实时遥测指标</span>
+              <span>{t('scada.realtimeMetrics')}</span>
               <span style={{ fontSize: 11, color: '#475569' }}>
-                {telemetry.length > 0 ? `更新: ${new Date(telemetry[0].collectTime).toLocaleTimeString()}` : ''}
+                {telemetry.length > 0 ? `${t('scada.updated')} ${new Date(telemetry[0].collectTime).toLocaleTimeString()}` : ''}
               </span>
             </div>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>加载中...</div>
+              <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>{t('common.loading')}</div>
             ) : latestMetrics.length > 0 ? (
               <div style={metricGridStyle}>
                 {latestMetrics.map((m) => {
@@ -173,7 +172,7 @@ export function ScadaPanel({ equipmentCode, equipmentName }: ScadaPanelProps) {
                       </div>
                       {m.upperLimit != null && (
                         <div style={metricRangeStyle}>
-                          范围: {m.lowerLimit ?? '-'} ~ {m.upperLimit}
+                          {t('scada.range')} {m.lowerLimit ?? '-'} ~ {m.upperLimit}
                         </div>
                       )}
                     </div>
@@ -181,45 +180,41 @@ export function ScadaPanel({ equipmentCode, equipmentName }: ScadaPanelProps) {
                 })}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>
-                暂无遥测数据
-              </div>
+              <div style={{ textAlign: 'center', padding: 16, color: '#64748b', fontSize: 12 }}>{t('scada.noTelemetry')}</div>
             )}
           </div>
 
           {/* Command dispatch */}
           <div style={cardStyle}>
-            <div style={headerStyle}><span>🎮 设备指令下发</span></div>
+            <div style={headerStyle}><span>{t('scada.commandDispatch')}</span></div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <select style={selectStyle} value={cmdType} onChange={(e) => setCmdType(e.target.value)}>
-                <option value="START">启动</option>
-                <option value="STOP">停止</option>
-                <option value="RESET">复位</option>
-                <option value="SET_PARAMETER">设参数</option>
-                <option value="CALIBRATE">校准</option>
-                <option value="SET_SPEED">设速度</option>
-                <option value="SET_TEMPERATURE">设温度</option>
-                <option value="CUSTOM">自定义</option>
+                <option value="START">{t('scada.command.START')}</option>
+                <option value="STOP">{t('scada.command.STOP')}</option>
+                <option value="RESET">{t('scada.command.RESET')}</option>
+                <option value="SET_PARAMETER">{t('scada.command.SET_PARAMETER')}</option>
+                <option value="CALIBRATE">{t('scada.command.CALIBRATE')}</option>
+                <option value="SET_SPEED">{t('scada.command.SET_SPEED')}</option>
+                <option value="SET_TEMPERATURE">{t('scada.command.SET_TEMPERATURE')}</option>
+                <option value="CUSTOM">{t('scada.command.CUSTOM')}</option>
               </select>
               <input
                 style={inputStyle}
-                placeholder="指令参数 (JSON)"
+                placeholder={t('scada.paramPlaceholder')}
                 value={cmdPayload}
                 onChange={(e) => setCmdPayload(e.target.value)}
               />
               <button style={buttonStyle} onClick={handleSend} disabled={sending}>
-                {sending ? '发送中...' : '发送指令'}
+                {sending ? t('scada.sending') : t('scada.sendCommand')}
               </button>
             </div>
           </div>
 
           {/* Recent commands */}
           <div style={cardStyle}>
-            <div style={headerStyle}><span>📜 最近指令</span></div>
+            <div style={headerStyle}><span>{t('scada.recentCommands')}</span></div>
             {commands.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 12, color: '#64748b', fontSize: 12 }}>
-                暂无指令记录
-              </div>
+              <div style={{ textAlign: 'center', padding: 12, color: '#64748b', fontSize: 12 }}>{t('scada.noCommands')}</div>
             ) : (
               commands.slice(0, 6).map((cmd) => (
                 <div key={cmd.id} style={commandItemStyle}>

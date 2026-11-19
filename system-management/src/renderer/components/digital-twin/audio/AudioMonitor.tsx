@@ -1,3 +1,4 @@
+import { t } from '../../../i18n'
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface AudioDevice {
@@ -79,9 +80,7 @@ export function AudioMonitor() {
       padding: '16px',
       color: '#e2e8f0'
     }}>
-      <h4 style={{ margin: '0 0 12px', color: '#3b82f6', fontSize: '14px' }}>
-        系统音频采集
-      </h4>
+      <h4 style={{ margin: '0 0 12px', color: '#3b82f6', fontSize: '14px' }}>{t('audio.title')}</h4>
 
       <div style={{ marginBottom: '12px' }}>
         <select
@@ -99,7 +98,7 @@ export function AudioMonitor() {
             marginBottom: '8px'
           }}
         >
-          <option value={-1}>选择音频输入设备...</option>
+          <option value={-1}>{t('audio.selectDevice')}</option>
           {devices.map(d => (
             <option key={d.index} value={d.index}>{d.name}</option>
           ))}
@@ -119,14 +118,14 @@ export function AudioMonitor() {
             color: 'white'
           }}
         >
-          {capturing ? '停止采集' : '开始采集'}
+          {capturing ? t('audio.stop') : t('audio.start')}
         </button>
       </div>
 
       {/* Level meter */}
       <div style={{ marginTop: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
-          <span>电平</span>
+          <span>{t('audio.level')}</span>
           <span>{db === -Infinity ? '-∞' : db.toFixed(1)} dB</span>
         </div>
         <div style={{

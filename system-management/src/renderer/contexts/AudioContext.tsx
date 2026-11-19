@@ -53,8 +53,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             if (parsed.text) {
                 updateTranscript(parsed.text)
             }
-        } catch {
-            // Ignore parse errors for malformed chunks
+        } catch (err) {
+            console.debug('Dropped malformed audio chunk:', err)
         }
     }, [updateTranscript])
 

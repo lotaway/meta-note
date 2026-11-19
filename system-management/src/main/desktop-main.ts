@@ -1,4 +1,5 @@
 import "reflect-metadata"
+import './global-error'
 import { app, desktopCapturer, screen, systemPreferences } from "electron"
 import path from "node:path"
 import dotenv from 'dotenv'
