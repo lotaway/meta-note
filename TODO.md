@@ -49,6 +49,8 @@
 
 **CI run #10 后续**：Browser e2e 修复后，`Unit tests` 步骤暴露另一 runner 相关 flake——`RealTimeDataDisplay.test.tsx` 的 1000 条 `ShelfHeatmap` 渲染在 CI（本地 1.6s）超过 Vitest 默认 5s 超时。给两个大数据量用例显式设置 `20000ms` 超时，保留压力规模不降级断言。
 
+**CI run #11 后续**：Browser e2e 通过后 `Rebuild better-sqlite3 for Electron ABI` 步骤 exit 255。核实 `better-sqlite3` 在 `src/` 无任何 import（仅 package.json 声明），冒烟测试也不依赖它；该步骤是我方恢复 CI 时新增的无效门禁，已从 workflow 移除，避免为死依赖编译原生模块。若将来真正启用 SQLite，再在对应任务里补回 ABI 验证。
+
 **验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）全通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。`xvfb-run` Electron 冒烟仍由 CI 验证。
 
 ### 2026-11-19 晚 — i18n、错误覆盖与函数长度治理

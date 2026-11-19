@@ -86,11 +86,6 @@ jobs:
       - name: Browser e2e tests
         run: npm run test:e2e
 
-      - name: Rebuild better-sqlite3 for Electron ABI
-        # Validates the declared native dependency against Electron's ABI,
-        # after Node-ABI unit tests and before the Electron launch.
-        run: npm run rebuild:sqlite3
-
       - name: Electron runtime smoke
         # Real Electron startup, window.desktop bridge and NAPI-RS module load
         # under a virtual display. Catches native-ABI or preload regressions.
