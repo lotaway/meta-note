@@ -53,7 +53,9 @@
 
 **CI run #12 后续**：只剩 Electron 冒烟步骤失败。本地装好 Electron 二进制后复现出两处真实缺陷：① `desktop-main.ts` 的 `distPath: "dist/index.html"` 由 `loadFile()` 相对 `dist-electron/main/` 解析成不存在的 `dist-electron/main/dist/index.html`，窗口落在 `chrome-error://chromewebdata/`，`#app` 自然不存在；改为 `path.resolve(__dirname, '../../dist/index.html')`（打包后同样指向 asar 内 `dist/index.html`）。② 冒烟 spec 会把外部 `ELECTRON_RUN_AS_NODE=1` 透传给 Electron 导致其以 Node 模式启动；启动时显式剔除。修复后本地 `npm run test:smoke` 通过（真实窗口、bridge、NAPI 加载）。
 
-**验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）、`npm run test:smoke` 均通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。CI 最终状态以最新 run 为准。
+**CI run #13 最终全绿**（commit `0f45b84`，15 步全部 success）：native build → typecheck → unit tests → build → browser e2e → Electron runtime smoke 全部通过。此前 run #8/#9 的 Browser e2e 失败与后续暴露的 unit flake、死依赖 rebuild、Electron dist 路径错误已逐层定位并修复，恢复为一条全自动门禁。
+
+**验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）、`npm run test:smoke` 均通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。
 
 ### 2026-11-19 晚 — i18n、错误覆盖与函数长度治理
 
