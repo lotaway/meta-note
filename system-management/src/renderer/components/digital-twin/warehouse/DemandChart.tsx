@@ -16,7 +16,6 @@ import {
   type DemandForecastPoint
 } from './chart'
 
-// ============ 常量配置 ============
 const CHART_CONFIG = {
   yPaddingTop: 10,
   yScale: 80,
@@ -32,7 +31,6 @@ export interface DemandChartProps {
   height?: number
 }
 
-// ============ 主组件 ============
 export function DemandChart({
   data,
   title = '需求预测趋势',
@@ -40,7 +38,6 @@ export function DemandChart({
   showActual = true,
   height = 300
 }: DemandChartProps) {
-  // 计算图表数据
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return { maxVal: 100, points: [] }
 
@@ -68,7 +65,6 @@ export function DemandChart({
     return { maxVal, points }
   }, [data])
 
-  // 计算路径
   const paths = useMemo(() => {
     if (chartData.points.length < 2) {
       return { forecast: '', upper: '', lower: '', actual: '' }

@@ -18,7 +18,7 @@ on:
 # and would otherwise change the preinstalled toolchain silently.
 jobs:
   native-build-and-test:
-    name: Native build, typecheck and unit tests
+    name: Native build, typecheck, unit, e2e and Electron smoke
     runs-on: ubuntu-24.04
 
     defaults:
@@ -39,24 +39,26 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install native build dependencies
-        # Required by the Rust NAPI build (alsa-sys needs libasound2-dev,
-        # plus pkg-config / libudev for other crates). Display deps for
-        # e2e/smoke are intentionally omitted — those are manual-only now.
+      - name: Install native build and display dependencies
+        # alsa-sys needs libasound2-dev; pkg-config / libudev serve other crates.
+        # xvfb + GTK/NSS stack let a real Electron window open on a headless
+        # runner for the smoke test wrapped with xvfb-run below.
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            pkg-config libasound2-dev libv4l-dev libudev-dev
+            pkg-config libasound2-dev libv4l-dev libudev-dev \
+            xvfb libgtk-3-0 libnss3 libxss1 libasound2t64 libgbm1 \
+            libdrm2 libxkbcommon0 libatk1.0-0 libatk-bridge2.0-0 \
+            libcups2t64 libxcomposite1 libxdamage1 libxfixes3 \
+            libxrandr2 libpango-1.0-0 libcairo2 libatspi2.0-0 \
+            libx11-xcb1
 
       - name: Install dependencies
-        # Electron binary download stays skipped: browser e2e and Electron smoke
-        # are manual-only checks (see TODO tasks 6/7), not CI gates. No lockfile;
-        # the registry is pinned in system-management/.npmrc.
-        # yt-dlp's postinstall downloads a binary via the unauthenticated GitHub
-        # API and fails on shared-runner rate limits; CI never runs downloading
-        # code, so skip it (the binary is only needed for manual video features).
+        # The Electron binary is required by the runtime smoke test, so its
+        # download stays enabled. yt-dlp's postinstall uses the unauthenticated
+        # GitHub API and fails under shared-runner rate limits; CI never runs
+        # downloading code, so skip it. No lockfile; registry is pinned in .npmrc.
         env:
-          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
           YOUTUBE_DL_SKIP_DOWNLOAD: '1'
         run: npm install --legacy-peer-deps
 
@@ -67,4 +69,29 @@ jobs:
         run: npm run typecheck
 
       - name: Unit tests
+        # Run under the plain Node ABI, before better-sqlite3 is rebuilt for
+        # Electron. Unit tests mock native modules and need the Node binding.
         run: npm run test:run
+
+      - name: Build renderer and main process
+        # Produces dist/index.html and dist-electron/main/desktop-main.js,
+        # consumed by the browser e2e dev server and the Electron smoke.
+        run: npm run build
+
+      - name: Install Playwright browser
+        # Chromium is only for the browser e2e suite; headless needs no xvfb.
+        # Display libraries are already installed above.
+        run: npx playwright install chromium
+
+      - name: Browser e2e tests
+        run: npm run test:e2e
+
+      - name: Rebuild better-sqlite3 for Electron ABI
+        # Validates the declared native dependency against Electron's ABI,
+        # after Node-ABI unit tests and before the Electron launch.
+        run: npm run rebuild:sqlite3
+
+      - name: Electron runtime smoke
+        # Real Electron startup, window.desktop bridge and NAPI-RS module load
+        # under a virtual display. Catches native-ABI or preload regressions.
+        run: xvfb-run -a npm run test:smoke

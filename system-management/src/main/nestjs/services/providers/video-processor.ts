@@ -5,9 +5,6 @@ import fs from 'fs-extra';
 
 @Injectable()
 export class VideoProcessor {
-    /**
-     * 在指定时间点截取一帧
-     */
     async captureScreenshot(videoPath: string, timestamp: number, outputPath: string): Promise<string> {
         return new Promise((resolve, reject) => {
             ffmpeg(videoPath)
@@ -22,10 +19,6 @@ export class VideoProcessor {
         });
     }
 
-    /**
-     * 生成视频理解所需的网格图 (Video Understanding Mode)
-     * 按照 BiliNoteDetail.md 原理：每隔 interval 秒截取一帧，拼成 gridConfig[0] * gridConfig[1] 的网格
-     */
     async generateGridImage(
         videoPath: string,
         outputDir: string,
@@ -39,7 +32,6 @@ export class VideoProcessor {
         const frameCount = Math.floor(duration / interval);
         const groupSize = gridConfig[0] * gridConfig[1];
 
-        // 只有满足完整网格的才处理，丢弃不足的组 (对齐 BiliNoteDetail.md)
         for (let i = 0; i < Math.floor(frameCount / groupSize); i++) {
             const tempFrames: string[] = [];
             for (let j = 0; j < groupSize; j++) {
@@ -53,7 +45,6 @@ export class VideoProcessor {
             await this.combineToGrid(tempFrames, gridPath, gridConfig);
             gridImages.push(gridPath);
 
-            // 清理临时单帧
             for (const f of tempFrames) await fs.remove(f);
         }
 
@@ -69,10 +60,6 @@ export class VideoProcessor {
         });
     }
 
-    /**
-     * 将多张图拼成网格
-     * 注意：由于 JS 库限制，这里使用 ffmpeg filter complex 实现拼接
-     */
     private async combineToGrid(images: string[], outputPath: string, grid: [number, number]): Promise<void> {
         const cols = grid[0];
         const rows = grid[1];

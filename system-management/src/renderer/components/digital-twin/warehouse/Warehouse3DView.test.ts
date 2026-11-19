@@ -333,14 +333,14 @@ describe('Warehouse3DView - 3D Scene Loading', () => {
         status: 'occupied' as const
       }))
 
-      expect(() => {
-        render(
-          React.createElement(Warehouse3DView, {
-            warehouse: mockWarehouse,
-            shelves: largeShelfArray
-          })
-        )
-      }).not.toThrow()
+      render(
+        React.createElement(Warehouse3DView, {
+          warehouse: mockWarehouse,
+          shelves: largeShelfArray
+        })
+      )
+
+      expect(screen.getByRole('img')).toBeInTheDocument()
     })
   })
 })

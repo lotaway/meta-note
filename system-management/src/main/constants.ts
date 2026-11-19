@@ -82,18 +82,6 @@ export const STUDY_CONSTANTS = {
     STUDY_LIST_ERROR_KEY: 'study_list_error',
 } as const
 
-export const SERVER_PORTS = {
-    WEBSOCKET_PORT: parseInt(process.env.WEBSOCKET_PORT || "5050", 10),
-    WEB_SERVER_PORT: parseInt(process.env.WEB_SERVER_PORT || "5051", 10),
-    DEV_SERVER_PORT: parseInt(process.env.DEV_SERVER_PORT || "5173", 10),
-} as const
-
-export const SERVER_URLS = {
-    WEBSOCKET_URL: `ws://localhost:${SERVER_PORTS.WEBSOCKET_PORT}`,
-    DEV_SERVER_URL: `http://localhost:${SERVER_PORTS.DEV_SERVER_PORT}`,
-    WEB_SERVER_URL: `http://localhost:${SERVER_PORTS.WEB_SERVER_PORT}`,
-} as const
-
 export const TTS_CONSTANTS = {
     MODEL_VERSION: 'v2.0',
     MODEL_BASE_URL: 'https://huggingface.co/coqui/XTTS-v2/resolve/main',

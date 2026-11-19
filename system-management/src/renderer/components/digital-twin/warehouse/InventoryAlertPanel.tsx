@@ -24,7 +24,6 @@ export interface InventoryAlertPanelProps {
   sortBy?: 'severity' | 'occurredAt' | 'priority'
 }
 
-// ============ 子组件：摘要统计 ============
 function AlertSummary({ summary }: { summary: { critical: number; warning: number; info: number; total: number } }) {
   return (
     <div style={{ display: 'flex', gap: Spacing.lg, fontSize: FontSizes.md }}>
@@ -35,7 +34,6 @@ function AlertSummary({ summary }: { summary: { critical: number; warning: numbe
   )
 }
 
-// ============ 子组件：过滤器按钮组 ============
 interface FilterButtonProps {
   label: string
   isActive: boolean
@@ -104,7 +102,6 @@ function FilterBar({ filter, setFilter, severityFilter, setSeverityFilter }: Fil
   )
 }
 
-// ============ 子组件：告警列表 ============
 function AlertList({
   alerts,
   onAlertClick,
@@ -141,7 +138,6 @@ function AlertList({
   )
 }
 
-// ============ 主组件 ============
 export function InventoryAlertPanel({
   alerts,
   onAlertClick,

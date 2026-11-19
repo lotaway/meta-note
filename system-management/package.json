@@ -42,7 +42,6 @@
     "ioredis": "^5.8.2",
     "kafkajs": "^2.2.4",
     "lucide-react": "^0.300.0",
-    "mqtt": "^5.10.0",
     "react": "^19.0.0",
     "react-color": "^2.19.3",
     "react-dom": "^19.0.0",

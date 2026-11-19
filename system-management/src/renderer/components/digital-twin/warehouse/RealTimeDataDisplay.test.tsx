@@ -217,13 +217,14 @@ describe('Real-time Data Display Tests', () => {
     it('should handle large grid sizes', () => {
       const largeShelves = generateMockShelves(20, 30)
 
-      expect(() => {
-        render(
-          <ShelfHeatmap
-            shelves={largeShelves}
-          />
-        )
-      }).not.toThrow()
+      render(
+        <ShelfHeatmap
+          shelves={largeShelves}
+        />
+      )
+
+      expect(screen.getByRole('grid', { name: '库位热力图网格' })).toBeInTheDocument()
+      expect(screen.getAllByRole('gridcell').length).toBeGreaterThan(0)
     })
   })
 
@@ -397,26 +398,26 @@ describe('Real-time Data Display Tests', () => {
         { date: 'invalid', demand: NaN, forecast: NaN },
       ] as unknown as any[]
 
-      expect(() => {
-        render(
-          <DemandChart
-            data={invalidData}
-            title="需求趋势"
-          />
-        )
-      }).not.toThrow()
+      render(
+        <DemandChart
+          data={invalidData}
+          title="需求趋势"
+        />
+      )
+
+      expect(screen.getByRole('img', { name: '需求趋势' })).toBeInTheDocument()
     })
 
     it('should handle undefined data', () => {
-      expect(() => {
-        render(
-          <DemandChart
-            // @ts-expect-error - Testing invalid input
-            data={undefined}
-            title="需求趋势"
-          />
-        )
-      }).not.toThrow()
+      render(
+        <DemandChart
+          // @ts-expect-error - Testing invalid input
+          data={undefined}
+          title="需求趋势"
+        />
+      )
+
+      expect(screen.getByText(/组件加载失败/)).toBeInTheDocument()
     })
 
     it('should handle null values in data', () => {
@@ -424,14 +425,14 @@ describe('Real-time Data Display Tests', () => {
         { date: '2024-01-01', demand: null, forecast: null },
       ] as unknown as any[]
 
-      expect(() => {
-        render(
-          <DemandChart
-            data={dataWithNulls}
-            title="需求趋势"
-          />
-        )
-      }).not.toThrow()
+      render(
+        <DemandChart
+          data={dataWithNulls}
+          title="需求趋势"
+        />
+      )
+
+      expect(screen.getByRole('img', { name: '需求趋势' })).toBeInTheDocument()
     })
   })
 
@@ -479,13 +480,13 @@ describe('Real-time Data Display Tests', () => {
         status: 'occupied' as const,
       }))
 
-      expect(() => {
-        render(
-          <ShelfHeatmap
-            shelves={largeShelves}
-          />
-        )
-      }).not.toThrow()
+      render(
+        <ShelfHeatmap
+          shelves={largeShelves}
+        />
+      )
+
+      expect(screen.getAllByRole('gridcell').length).toBeGreaterThan(0)
     })
   })
 })

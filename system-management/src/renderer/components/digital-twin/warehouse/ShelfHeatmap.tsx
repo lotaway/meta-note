@@ -4,7 +4,6 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Colors, Spacing, FontSizes, BorderRadius, Transitions } from './styles/constants'
 import { Shelf, WarehouseHeatmapData } from './Warehouse3DView'
 
-// ============ 常量提取 ============
 const HEATMAP_CONFIG = {
   cellSize: '38px',
   gridColumnWidth: '40px',
@@ -41,7 +40,6 @@ export interface ShelfHeatmapProps {
   showLabels?: boolean
 }
 
-// ============ 辅助函数 ============
 function getHeatmapColor(value: number, hasShelf: boolean): string {
   if (!hasShelf) return 'transparent'
 
@@ -62,7 +60,6 @@ function getLoadColor(load: number, capacity: number): string {
   return Colors.danger
 }
 
-// ============ 子组件：热力图单元格 ============
 interface HeatmapCellProps {
   shelf: Shelf | null
   heatmapValue: number
@@ -73,12 +70,10 @@ interface HeatmapCellProps {
 function HeatmapCell({ shelf, heatmapValue, isSelected, onClick }: HeatmapCellProps) {
   const hasShelf = !!shelf
 
-  // 计算背景色
   const backgroundColor = heatmapValue > 0
     ? getHeatmapColor(heatmapValue, hasShelf)
     : (shelf ? getLoadColor(shelf.currentLoad, shelf.capacity) : Colors.background)
 
-  // 判断是否显示热力图阴影
   const hasHeatmapShadow = heatmapValue > HEATMAP_CONFIG.shadowThreshold
   const boxShadow = hasHeatmapShadow
     ? `inset 0 0 ${HEATMAP_CONFIG.shadowBlur} rgba(239, 68, 68, 0.5)`
@@ -134,7 +129,6 @@ function HeatmapCell({ shelf, heatmapValue, isSelected, onClick }: HeatmapCellPr
   )
 }
 
-// ============ 子组件：Y轴标签（层级） ============
 function YAxisLabels({ maxLevel }: { maxLevel: number }) {
   return (
     <>
@@ -158,7 +152,6 @@ function YAxisLabels({ maxLevel }: { maxLevel: number }) {
   )
 }
 
-// ============ 子组件：X轴标签（列号） ============
 function XAxisLabels({ maxColumn }: { maxColumn: number }) {
   return (
     <>
@@ -179,7 +172,6 @@ function XAxisLabels({ maxColumn }: { maxColumn: number }) {
   )
 }
 
-// ============ 子组件：热力图图例 ============
 function HeatmapLegend() {
   return (
     <div style={{ display: 'flex', gap: Spacing.lg, fontSize: FontSizes.sm }}>
@@ -220,7 +212,6 @@ function HeatmapLegend() {
   )
 }
 
-// ============ 子组件：图表头部 ============
 function ChartHeader({ showLabels }: { showLabels: boolean }) {
   if (!showLabels) return null
 
@@ -242,7 +233,6 @@ function ChartHeader({ showLabels }: { showLabels: boolean }) {
   )
 }
 
-// ============ 子组件：摘要统计 ============
 function SummaryStats({ summary }: { summary: { total: number; active: number; hot: number } }) {
   return (
     <div
@@ -273,7 +263,6 @@ function SummaryStats({ summary }: { summary: { total: number; active: number; h
   )
 }
 
-// ============ 子组件：热力图网格 ============
 function HeatmapGrid({
   gridData,
   selectedCell,
@@ -301,14 +290,11 @@ function HeatmapGrid({
           minWidth: 'fit-content'
         }}
       >
-        {/* 表头：列号 */}
         <div />
         <XAxisLabels maxColumn={maxColumn} />
 
-        {/* 数据行 */}
         {matrix.map((row, levelIdx) => (
           <div key={levelIdx} style={{ display: 'contents' }}>
-            {/* Y轴标签：层级号 */}
             <div
               style={{
                 display: 'flex',
@@ -323,7 +309,6 @@ function HeatmapGrid({
               {levelIdx + 1}
             </div>
 
-            {/* 单元格 */}
             {row.map((cell, colIdx) => {
               const isSelected = !!(
                 cell.shelf &&
@@ -353,7 +338,6 @@ function HeatmapGrid({
   )
 }
 
-// ============ 主组件 ============
 export function ShelfHeatmap({
   shelves,
   heatmapData,
@@ -361,7 +345,6 @@ export function ShelfHeatmap({
   selectedCell,
   showLabels = true
 }: ShelfHeatmapProps) {
-  // 构建网格数据
   const gridData = useMemo(() => {
     const shelvesData = shelves || []
     const heatmapDataVal = heatmapData || []
@@ -391,7 +374,6 @@ export function ShelfHeatmap({
     return { matrix, maxLevel, maxColumn }
   }, [shelves, heatmapData])
 
-  // 摘要统计
   const summary = useMemo(() => {
     const shelvesData = shelves || []
     const heatmapDataVal = heatmapData || []

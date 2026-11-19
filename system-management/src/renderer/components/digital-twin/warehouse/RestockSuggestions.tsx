@@ -5,7 +5,6 @@ import { FilterTabs } from './components/FilterTabs'
 import { SuggestionCard } from './components/SuggestionCard'
 import { Colors, Spacing, FontSizes } from './styles/constants'
 
-// ============ 常量提取 ============
 const SUGGESTION_CONFIG = {
   maxHeight: '500px',
   urgencyIndicatorSize: '8px',
@@ -58,7 +57,6 @@ export interface RestockSuggestionsProps {
   groupByUrgency?: boolean
 }
 
-// ============ 辅助函数 ============
 function getUrgencyLabel(urgency: string): string {
   return URGENCY_LABELS[urgency] || urgency
 }
@@ -67,7 +65,6 @@ function getUrgencyColor(urgency: string): string {
   return URGENCY_COLORS[urgency] || Colors.textMuted
 }
 
-// ============ 子组件：优先级分组头部 ============
 function UrgencyGroupHeader({ urgency, count }: { urgency: string; count: number }) {
   const color = getUrgencyColor(urgency)
   const label = getUrgencyLabel(urgency)
@@ -102,7 +99,6 @@ function UrgencyGroupHeader({ urgency, count }: { urgency: string; count: number
   )
 }
 
-// ============ 子组件：补货建议卡片列表 ============
 function SuggestionList({
   suggestions,
   expandedId,
@@ -138,7 +134,6 @@ function SuggestionList({
   )
 }
 
-// ============ 子组件：分组视图 ============
 function GroupedView({
   groupedSuggestions,
   expandedId,
@@ -181,7 +176,6 @@ function GroupedView({
   )
 }
 
-// ============ 子组件：空状态 ============
 function EmptyState() {
   return (
     <div
@@ -197,7 +191,6 @@ function EmptyState() {
   )
 }
 
-// ============ 子组件：过滤器头部 ============
 function FilterHeader({
   filter,
   count,
@@ -222,7 +215,6 @@ function FilterHeader({
   )
 }
 
-// ============ 主组件 ============
 export function RestockSuggestions({
   suggestions,
   items,
@@ -239,12 +231,10 @@ export function RestockSuggestions({
   // Use items as alias for suggestions
   const data = suggestions || items || []
 
-  // 过滤建议
   const filteredSuggestions = useMemo(() => {
     return data.filter(s => filter === 'all' || s.status === filter)
   }, [data, filter])
 
-  // 按优先级分组
   const groupedSuggestions = useMemo(() => {
     if (!groupByUrgency) return { all: filteredSuggestions }
 
@@ -265,12 +255,10 @@ export function RestockSuggestions({
     return groups
   }, [filteredSuggestions, groupByUrgency])
 
-  // 切换展开状态
   const handleToggle = (id: string) => {
     setExpandedId(prev => prev === id ? null : id)
   }
 
-  // 判断是否有内容
   const hasContent = filteredSuggestions.length > 0
 
   return (

@@ -4,7 +4,6 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { Colors, Spacing, FontSizes, BorderRadius, Transitions } from './styles/constants'
 import { Warehouse, Shelf } from './Warehouse3DView'
 
-// ============ 常量提取 ============
 const STATUS_CONFIG = {
   compact: {
     statusDotSize: '10px',
@@ -57,7 +56,6 @@ export interface WarehouseStatusProps {
   compact?: boolean
 }
 
-// ============ 辅助函数 ============
 function getStatusColor(status: string): string {
   type StatusColorKey = 'active' | 'maintenance' | 'inactive'
   const colorKey = status as StatusColorKey
@@ -79,7 +77,6 @@ function getStatusValueColor(status: string): string {
   return STATUS_VALUE_COLORS[status as keyof typeof STATUS_VALUE_COLORS] || Colors.text
 }
 
-// ============ 子组件：进度条 ============
 function ProgressBar({ value, max = 100, color }: { value: number; max?: number; color: string }) {
   const percent = Math.min((value / max) * 100, 100)
 
@@ -109,7 +106,6 @@ function ProgressBar({ value, max = 100, color }: { value: number; max?: number;
   )
 }
 
-// ============ 子组件：紧凑进度条 ============
 function CompactProgressBar({ value, color }: { value: number; color: string }) {
   return (
     <div
@@ -134,7 +130,6 @@ function CompactProgressBar({ value, color }: { value: number; color: string }) 
   )
 }
 
-// ============ 子组件：统计卡片 ============
 interface StatCardProps {
   label: string
   value: string | number
@@ -170,7 +165,6 @@ function StatCard({ label, value, color = Colors.text }: StatCardProps) {
   )
 }
 
-// ============ 子组件：状态指示器 ============
 function StatusIndicator({ status, size = 'full' }: { status: string; size?: 'compact' | 'full' }) {
   const color = getStatusColor(status)
   const dotSize = size === 'compact'
@@ -190,7 +184,6 @@ function StatusIndicator({ status, size = 'full' }: { status: string; size?: 'co
   )
 }
 
-// ============ 子组件：状态徽章 ============
 function StatusBadge({ status }: { status: string }) {
   const color = getStatusColor(status)
   const backgroundColor = status === 'active'
@@ -216,7 +209,6 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-// ============ 子组件：容量进度区域 ============
 function CapacityProgress({
   usedCap,
   totalCap,
@@ -246,7 +238,6 @@ function CapacityProgress({
   )
 }
 
-// ============ 子组件：库位状态网格 ============
 function ShelfStatusGrid({ stats }: { stats: { occupied: number; full: number; empty: number; maintenance: number } }) {
   const items = [
     { label: '占用', value: stats.occupied, color: Colors.success },
@@ -294,7 +285,6 @@ function ShelfStatusGrid({ stats }: { stats: { occupied: number; full: number; e
   )
 }
 
-// ============ 子组件：底部统计信息 ============
 function FooterStats({ warehouse }: { warehouse: Warehouse }) {
   return (
     <div
@@ -324,7 +314,6 @@ function FooterStats({ warehouse }: { warehouse: Warehouse }) {
   )
 }
 
-// ============ 紧凑模式组件 ============
 function CompactWarehouseStatus({
   warehouse,
   stats
@@ -363,7 +352,6 @@ function CompactWarehouseStatus({
   )
 }
 
-// ============ 完整模式组件 ============
 function FullWarehouseStatus({
   warehouse,
   stats
@@ -385,7 +373,6 @@ function FullWarehouseStatus({
 
   return (
     <Card style={{ padding: Spacing.xl }}>
-      {/* 头部 */}
       <div
         role="banner"
         style={{
@@ -406,7 +393,6 @@ function FullWarehouseStatus({
         <StatusBadge status={warehouse.status} />
       </div>
 
-      {/* 统计卡片 */}
       <div
         style={{
           display: 'grid',
@@ -427,7 +413,6 @@ function FullWarehouseStatus({
         />
       </div>
 
-      {/* 容量进度 */}
       <CapacityProgress
         usedCap={stats.usedCap}
         totalCap={stats.totalCap}
@@ -435,22 +420,18 @@ function FullWarehouseStatus({
         utilColor={utilColor}
       />
 
-      {/* 库位状态网格 */}
       <ShelfStatusGrid stats={stats} />
 
-      {/* 底部统计 */}
       <FooterStats warehouse={warehouse} />
     </Card>
   )
 }
 
-// ============ 主组件 ============
 export function WarehouseStatus({
   warehouse,
   shelves,
   compact = false
 }: WarehouseStatusProps) {
-  // 计算统计数据
   const stats = useMemo(() => {
     const shelvesData = shelves || []
     const total = shelvesData.length
@@ -473,12 +454,10 @@ export function WarehouseStatus({
     }
   }, [shelves])
 
-  // 内容组件（根据 compact 模式选择不同的渲染）
   const content = compact
     ? <CompactWarehouseStatus warehouse={warehouse || {} as Warehouse} stats={stats} />
     : <FullWarehouseStatus warehouse={warehouse || {} as Warehouse} stats={stats} />
 
-  // compact 模式也需要 ErrorBoundary 包裹
   return (
     <ErrorBoundary>
       {content}

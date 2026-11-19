@@ -684,15 +684,17 @@ describe('Alert Flow Tests - End-to-End', () => {
         acknowledged: false,
       }))
 
-      expect(() => {
-        render(
-          <InventoryAlertPanel
-            alerts={manyAlerts}
-            onAcknowledge={vi.fn()}
-            onDismiss={vi.fn()}
-          />
-        )
-      }).not.toThrow()
+      render(
+        <InventoryAlertPanel
+          alerts={manyAlerts}
+          onAcknowledge={vi.fn()}
+          onDismiss={vi.fn()}
+        />
+      )
+
+      expect(screen.getByText('库存告警')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '未处理' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '全部级别' })).toBeInTheDocument()
     })
 
     it('should handle large number of restock suggestions', () => {
@@ -713,15 +715,15 @@ describe('Alert Flow Tests - End-to-End', () => {
         status: 'pending' as const,
       }))
 
-      expect(() => {
-        render(
-          <RestockSuggestions
-            items={manyItems}
-            onApprove={vi.fn()}
-            onDismiss={vi.fn()}
-          />
-        )
-      }).not.toThrow()
+      render(
+        <RestockSuggestions
+          items={manyItems}
+          onApprove={vi.fn()}
+          onDismiss={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('list', { name: '补货建议列表' })).toBeInTheDocument()
     })
   })
 

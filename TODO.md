@@ -32,9 +32,32 @@
 
 ## 当前状态
 
-截至 2026-11-18，任务 1-9 全部闭环并归档，**当前无待办任务**。路线 B（有意不生成 OpenAPI 客户端）与下方「后端契约同步机制」作为项目约定继续有效；后续新增端点按该机制执行即可，无需新开 TODO 任务。
+截至 2026-11-19，任务 1-9 全部闭环并归档。2026-11-19 按用户要求重开了任务 7（测试代码层补强）与任务 8（代码原则治理），并把任务 6 的 CI 自动化恢复（用户重申「测试即全自动化」），三项均已落地并归档于下方 2026-11-19 段。路线 B（有意不生成 OpenAPI 客户端）与下方「后端契约同步机制」作为项目约定继续有效。
+
+**仍按原则保留、未纳入本轮的欠账**（非新任务，需专门决策再开）：`src` 中 98 个超过 20 行的函数（绝大多数是 React 组件 / hook 的 JSX 与事件路由，机械拆分风险大于收益，且无测试覆盖的复杂 hook 不宜盲拆）、约 452 行中文 UI 字符串（属 i18n 资源范畴，尚无 i18n 基础设施）、110 个 catch 的逐一甄别（静态启发式误报率高）。本轮先完成风险可控、可验证的部分：未接线通道删除、中文注释清零、超 500 行文件拆分、测试行为断言强化。
 
 ## 归档
+
+### 2026-11-19 — 任务 6、7、8 重做（按 CODE_PINCEPLES 与「测试即全自动化」）
+
+用户指出 2026-11-18 归档中任务 7/8「无实质待办」的结论与实际不符，要求按 `CODE_PINCEPLES/CODE_PRICEPLES` 与 `FRONTEND_PRICEPLES` 重做，并重申「测试就全自动化、引入 xvfb，普通脚本才人工介入」。本轮重新做了静态测量（非沿用旧快照）后实施：
+
+**任务 7（测试代码层补强）**：
+- 新增 3 个直接用例文件：`src/renderer/services/clients/digital-twin/api.test.ts`（12 例，覆盖 devices / alerts / summary / acknowledge / resolve / isReachable 与网关认证安装）、`src/renderer/services/clients/mes/api.test.ts`（10 例，覆盖 telemetry / command / trace 链与失败降级）、`src/renderer/services/api/alertRule.test.ts`（11 例，覆盖 list 过滤 / CRUD / checkUnique / 错误响应）。
+- 把 8 处 `expect(...).not.toThrow()` 性能 / 容错断言替换为可观测断言（真实 DOM：告警面板按钮、补货建议 role=list、热力图 role=grid/gridcell、图表 role=img；其中 `undefined` 数据场景实测触发 ErrorBoundary 显示降级文案，断言据此修正为可见降级 UI）。
+- 测试从 16 文件 / 176 例增至 18 文件 / 202 例（删除死代码带走 1 文件 / 5 例）。
+
+**任务 8（按代码原则治理，风险可控部分）**：
+- 删除未接线通道：`src/renderer/services/mqtt.ts`（只有 barrel 导出、无业务调用）、`src/renderer/hooks/useAlertNotification.ts` 及其测试（协议与现有 WS 不符，`ALERT_CREATED` 已由 `useDigitalTwinData` 处理）、孤儿服务 `src/renderer/services/notification.ts`；同步清理 `services/index.ts` 导出、`package.json` 的 `mqtt` 依赖、`constants.ts` 中零引用的 `SERVER_PORTS` / `SERVER_URLS`。`Toast.tsx` 因 `DigitalTwinPage` 仍在渲染 `ToastContainer` 而保留。
+- 中文注释清零：删除 6 个文件中 65 行中文注释（含 JSX `{/* */}` 与 JSDoc），源码注释不再有中文；命名已能表达语义。
+- 超 500 行文件拆分：`Warehouse3DView.tsx` 506 行拆为 `Warehouse3DScene.tsx`（378 行，常量 + 6 个 3D 子组件）+ 主文件（68 行，仅类型 + 容器 / ErrorBoundary）；类型仍从主文件导出，`ShelfHeatmap.tsx` 与 barrel 的导入不变。
+- 未强行处理 98 个 20 行以上函数 / 中文 UI 字符串 / 110 个 catch，理由见「当前状态」。
+
+**任务 6（CI 自动化恢复）**：用户重申测试即全自动化，`.github/workflows/system-management-check.yml` 从最小三件套恢复为 13 步：装 xvfb + 图形依赖（保留 alsa/pkg-config/libudev）、npm 安装（取消 `ELECTRON_SKIP_BINARY_DOWNLOAD`、保留 `YOUTUBE_DL_SKIP_DOWNLOAD=1`）→ `build:native` → `typecheck` → `test:run`（Node ABI，先于 sqlite3 rebuild）→ `npm run build` → `playwright install chromium` → `test:e2e` → `rebuild:sqlite3`（Electron ABI）→ `xvfb-run -a npm run test:smoke`。
+
+**验收**：`npm run typecheck` 通过；`npm run test:run` 通过（18 文件 / 202 例）；Playwright workflow YAML 解析通过、13 步顺序正确、引用的 7 个 npm 脚本均存在。真实 e2e / Electron 冒烟本地受浏览器版本与二进制下载限制，交由 CI 境外 runner 验证（本轮提交触发的 CI 需关注结果）。
+
+### 2026-11-18 — 任务 6、7、8（首轮结论，部分已于 2026-11-19 推翻并重做）
 
 ### 2026-11-18 — 任务 6、7、8（收尾：三项均无剩余待办）
 
