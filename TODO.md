@@ -47,6 +47,8 @@
 - **dev server 在 headless CI 启动真实 Electron**：`webServer.command: npm run dev` 会加载 `vite-plugin-electron`，在无显示环境下启动窗口 / 触发 Electron 二进制下载，dev server 挂起、`page.goto` 30s 超时（本地出现白屏与 `HTTP 000`）。修复：`vite.config.ts` 增加 `VITE_BROWSER_E2E=1` 开关跳过 Electron 插件；`playwright.config.ts` 的 webServer 命令改为 `cross-env VITE_BROWSER_E2E=1 npm run dev`。浏览器 e2e 只需 renderer，Electron 冒烟仍用独立 config 与真实二进制，两条链路互不干扰。
 - **scene.spec.ts 断言与真实 UI 不符**：默认路由是笔记编辑器，3D 画布只存在于 Digital Twin 页；旧用例直接在 `/` 等 `canvas` 并断言从未被写入的 `window.__WS_CONNECTED__`，必然超时 / 失败。重写为通过 `Digital Twin` 按钮进入页面后断言画布尺寸、相机拖拽无 pageerror、设备列表与连接状态、Alerts Tab 可切换；bridge 与 gateway 在浏览器层 stub，不依赖后端。用例从 13 个收敛为 8 个真实断言。
 
+**CI run #10 后续**：Browser e2e 修复后，`Unit tests` 步骤暴露另一 runner 相关 flake——`RealTimeDataDisplay.test.tsx` 的 1000 条 `ShelfHeatmap` 渲染在 CI（本地 1.6s）超过 Vitest 默认 5s 超时。给两个大数据量用例显式设置 `20000ms` 超时，保留压力规模不降级断言。
+
 **验收**：`npm run typecheck`、`npm run build`、`npm run test:run`（20 文件 / 210 例）全通过；本地用系统 Chrome 跑 `playwright test` 8/8 通过（本机缺 Playwright 自带 Chromium，CI 由 `npx playwright install chromium` 提供）。`xvfb-run` Electron 冒烟仍由 CI 验证。
 
 ### 2026-11-19 晚 — i18n、错误覆盖与函数长度治理

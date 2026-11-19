@@ -225,7 +225,7 @@ describe('Real-time Data Display Tests', () => {
 
       expect(screen.getByRole('grid', { name: '库位热力图网格' })).toBeInTheDocument()
       expect(screen.getAllByRole('gridcell').length).toBeGreaterThan(0)
-    })
+    }, 20000)
   })
 
   describe('WarehouseStatus - Real-time Status Updates', () => {
@@ -487,6 +487,6 @@ describe('Real-time Data Display Tests', () => {
       )
 
       expect(screen.getAllByRole('gridcell').length).toBeGreaterThan(0)
-    })
+    }, 20000)
   })
 })
